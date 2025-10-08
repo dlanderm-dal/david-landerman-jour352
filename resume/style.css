@@ -50,16 +50,16 @@ strong{
 }
 
 /*job title formatting*/
-h3 {
+.jobtitle {
    font-weight:600;
    font-size:1.5em; 
 }
 
 /*job organization formatting*/
 
-h4{
+organization{
     font-weight:400;
-    font-size:1.5em; 
+    font-size:1.25em; 
 }
 
 
