@@ -1,8 +1,16 @@
 /*styles for my resume*/
 
 
+#container{
+    width:100%;
+    max-width:1200px;
+    margin:0 auto;
+}
+
+
 
 /*main body formatting*/
+
 
 BODY{
    font-family: 'Open Sans', arial, sans-serif;
@@ -12,11 +20,15 @@ BODY{
 }
 
 /*name formatting*/
-h1{
+#name{
     font-size:3em;
     text-transform:uppercase;
     text-align:center;
     color:#33485e;
+    border-bottom: 1px solid #33485e;
+    width: 60%;
+    min-width: 300px;
+    margin:0 auto;
 }
 
 /*job title formatting*/
@@ -26,11 +38,15 @@ strong{
     font-size:1.5em;
 }
 /*section heading formatting*/
-h2 {
+.sectionheader {
     font-size:1.5em;
     text-transform:uppercase;
     background-color:#33485e;
     color:#fff;
+    margin-top:20px; 
+    margin-bottom: 10px;
+    width: 70%;
+    min-width: 300px;
 }
 
 /*job title formatting*/
