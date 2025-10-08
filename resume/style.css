@@ -57,29 +57,48 @@ strong{
 
 /*job organization formatting*/
 
-organization{
+.organization{
     font-weight:400;
     font-size:1.25em; 
 }
 
 
 /*job dates formatting*/
-h5{
+.date{
     font-weight:400;
     font-size:1em; 
     font-style:italic;
+    margin-top:2px;
 }
 /*education items formatting*/
-#educationlist {
+#degrees {
     font-size:1em;
+    margin-top: 5px;
 } 
 
 /*skills items formatting*/
-#skillslist {
+#do {
     font-size:1em;
+    margin-top: 5px;
 } 
 
 /*contact info formatting*/
 #contactlist {
     font-size:1em;
 } 
+
+.description{
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.menu{
+    margin:0px;
+    padding:0px;
+    text-align: center;
+    
+}
+
+.contactitem{
+    display: inline;
+}
