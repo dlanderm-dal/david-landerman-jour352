@@ -2,6 +2,42 @@
 
 <html lang="en">
 <head>
+  <style>
+  .col-md-6 {
+    text-align: center;}
+  .col-md-4 {
+    text-align: center;
+  }
+  .imagemaxwidth{
+    max-width: 500px;}
+  h1{
+    font-family: "Special Elite"
+  }
+  h2{
+    font-family: "Special Elite"
+  }
+  h3{
+    font-family: "Special Elite"
+  }
+  .navbar-brand{
+    font-family: "Special Elite"
+  }
+  .btn{
+    font-family: "Special Elite"
+  }
+  .row{
+    padding-bottom: 50px;
+  }
+  @media only screen and(max-width: 900px) {
+    h2{padding-top: 50px;
+    }
+    body{background-color:teal;
+    }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -23,8 +59,8 @@ crossorigin="anonymous"></script>
 </head>
 <body>
 
-
- <nav class="navbar navbar-expand-lg bg-body-tertiary">
+<!--navbar-->
+ <nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark" >
   <div class="container-fluid">
     <a class="navbar-brand" href="#">Skate Newsletter</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +82,71 @@ crossorigin="anonymous"></script>
     </div>
   </div>
 </nav>
+
+<!--hero image-->
+<div class="container col-xxl-8 px-4 py-5">
+            <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+                <div class="col-10 col-sm-8 col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=334&q=80
+" class="d-block mx-lg-auto img-fluid" alt="skateboards" width="700" height="500" loading="lazy">
+                </div>
+                <div class="col-lg-6">
+                    <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Responsive left-aligned hero with image</h1>
+                    <p class="lead"> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitationullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <button type="button" class="btn btn-dark btn-lg px-4 me-md-2">Read Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+<div class="container">
+
+  <div class="row">
+    <div class="col-md-6">
+      <h2>Lorem ipsum dolor sit amet</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua.
+      </p>
+      <img src="https://images.unsplash.com/photo-1572776685600-aca8c3456337?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1502&q=80" alt="man with hat" class="imagemaxwidth" >
+      <button type="button" class="btn btn-dark">
+        Read now
+      </button>
+    </div>
+    <div class="col-md-6">
+        <h2>Lorem ipsum dolor sit amet</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua.
+        </p>
+        <img src="https://images.unsplash.com/photo-1621544402532-78c290378588?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80" alt="man flipping skateboard" class="imagemaxwidth">
+        <button type="button" class="btn btn-dark center">Read now</button>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <i class="bi bi-book" style="font-size:3em;"></i>
+      <h3>Read</h3>
+      <p>Read stories from our archive.</p>
+    </div> 
+    <div class="col-md-4">
+      <i class="bi bi-chat-square-dots" style="font-size:3em;"></i>
+      <h3>Contact</h3>
+      <p>Ask us a question.</p>
+    </div> 
+    <div class="col-md-4">
+      <i class="bi bi-heart" style="font-size:3em;"></i>
+      <h3>Follow</h3>
+      <p>Follow us on Facebook or Twitter.</p>
+    </div> 
+  </div>
+</div>
+
+ <footer class="footer mt-auto py-3 bg-dark">
+       <div class="container">
+         <span class="text-muted">This is a bootstrap exercise</span>
+       </div>
+     </footer>
 
 
 </body>
