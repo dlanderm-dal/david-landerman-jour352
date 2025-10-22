@@ -2,3 +2,105 @@
   margin: 0 auto;
   width: 900px; 
 } 
+
+
+
+
+#byline {
+font-family: Helvetica, sans-serif;
+font-size: 14px;
+font-style: italic;
+}
+
+#headline{
+  font-family: Helvetica, "sans-serif";
+  font-size: 30px;
+  text-align:center;
+}
+
+p{
+  font-family: Georgia, serif;
+  font-size: 13px;
+  margin: 10em ;
+  padding-bottom: 0.5em;
+ 
+}
+
+#headlineimage{
+  width: 800px;
+  text-align: center;
+}
+
+.bodyimage{
+  width:600px;
+}
+
+#masthead {
+  text-align: center;
+  font-size: 6em;
+  z-index: 2;
+  font-family: baskerville;
+}
+
+#subhead{
+  text-align:center;
+  position: relative;
+  z-index: 1;
+  top:-40px;
+  left:-20px;
+  font-style: italic;
+
+}
+
+#subheadline{
+  font-family: Georgia;
+  font-style: italic;
+  font-size:20px;
+  padding-bottom: 15px;
+  line-height:20px;
+}
+
+h1{
+  font-family: Georgia;
+  font-size: 30px
+}
+
+.image{
+
+}
+
+.caption {
+  width: 80%;
+  color:gray;
+  text-align:left !important;
+  width: 600px;
+  display:inline-block;
+  line-height:12px;
+  font-size:11px;
+  padding-bottom:10px;
+}
+
+.maincaption {
+  width: 80%;
+  color:gray;
+  text-align:left !important;
+  width: 820px;
+  display:inline-block;
+  line-height:12px;
+  font-size:11px;
+  padding-bottom:10px;
+}
+
+.credit{
+  font-style:italic;
+}
+
+blockquote{
+  font-size:3em;
+  font-family:georgia, serif;
+}
+
+h3{
+  font-family: Georgia, serif;
+  font-weight: bold !important;
+}
