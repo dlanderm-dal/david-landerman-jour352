@@ -1,0 +1,166 @@
+.content {
+  margin: 0 auto;
+  width: 900px; 
+} 
+
+#masttext {
+  
+    font-size: 5em;
+  z-index: 2;
+  font-family: baskerville;
+  letter-spacing:-2px;
+  background:green;
+   color:#f1cd9f;
+   text-align: center;
+   height:120px;
+    margin-top:-10px
+   
+}
+
+
+#submasthead{
+  text-align:center;
+  position: relative;
+  z-index: 1;
+  top: -38px;
+  left:-10px;
+  font-style: italic;
+   color:rgb(241, 205, 159);
+}
+
+#golf_icon{
+  fill:rgb(241, 205, 159);
+}
+
+#puts{
+    color:rgb(241, 205, 159);
+    border-radius:10px;
+}
+
+#hole{
+    color:white;
+    font-size:1em;
+}
+
+
+#headline{
+  font-family: baskerville, serif;
+  font-size: 60px;
+  text-align:center;
+  line-height:50px;
+  padding-bottom:20px;
+}
+
+
+
+#subheadline{
+  font-family: Georgia;
+  font-style: italic;
+  font-size:20px;
+  padding-bottom: 20px;
+  line-height:25px;
+}
+
+
+#byline {
+font-family: Helvetica, sans-serif;
+font-size: 14px;
+font-style: italic;
+}
+
+#date {
+font-family: Helvetica, sans-serif;
+font-size: 14px;
+}
+
+.imagewrapper{
+    width: 100%;
+    text-align:center;
+    
+}
+
+.mainimage{
+    width: 1200px;
+    
+}
+
+.captionwrapper{
+width: 1200px;
+text-align: right!important;
+
+}
+
+.subcaptionwrapper{
+width: 800px;
+text-align: right!important;
+
+}
+/* Dang Adam, I really really tried to figure out how to do float and put the caption and photocred in the same line with one left justified and one right justified but I couldn't figure it out via stack overflow, float still is a weird concept to me. I obviously could have AI-ed it but thats not coolio. I hope you appreciate that I was having the same problem I had with the study exercise with the centering of elements so I just over div-ed it. *shrug* I want to get better at this.*/
+.caption {
+  
+  color:gray;
+  text-align:right !important;
+  font-size:12px;
+  padding-bottom:10px;
+}
+
+
+.subimage{
+    width: 800px;
+    
+}
+
+
+
+p{
+  font-family: Helvetica, arial, sans-serif;
+  font-size: 16px;
+  margin: 2em ;
+  padding-bottom: 0.5em;
+ 
+}
+
+h2{
+  font-family: "Times New Roman", serif;
+  font-size: 20px;
+  line-height:50px;
+  padding-bottom:20px;
+  font-style:italic;
+  text-decoration: underline;
+}
+
+.containercontainer{
+    
+    width:900px;
+   
+}
+
+.pullquotecontainer{
+    text-align:right;
+    width:600px;
+   
+   margin-left:200px
+}
+
+
+blockquote{
+    font-family: Helvetica, arial, sans-serif;
+  font-size: 25px;
+  text-align: left;
+  font-style:italic;
+  
+}
+
+
+h4{
+  font-family: "Times New Roman", serif;
+  font-size: 20px;
+  line-height:50px;
+  
+}
+
+.link{
+    font-family: "arial", serif;
+    font-size: 16px;
+    line-height:40px;
+}
