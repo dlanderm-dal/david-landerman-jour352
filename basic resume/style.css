@@ -1,0 +1,115 @@
+/*styles for my resume*/
+
+
+#container{
+    width:100%;
+    max-width:1200px;
+    margin:0 auto;
+    padding-bottom:50px;
+}
+
+
+
+/*main body formatting*/
+
+
+BODY{
+   font-family: 'Open Sans', arial, sans-serif;
+   font-size: 1em;
+   color:#444
+   font-weight:400;
+}
+
+/*name formatting*/
+#name{
+    font-size:3em;
+    text-transform:uppercase;
+    text-align:center;
+    color:#33485e;
+    border-bottom: 1px solid #33485e;
+    width: 60%;
+    min-width: 300px;
+    margin:0 auto;
+}
+
+/*job title formatting*/
+#title{
+    color:#33485e;
+    text-transform:uppercase;
+    font-size:1.5em;
+    font-weight:600;
+    text-align:center;
+    margin-top:20px;
+}
+/*section heading formatting*/
+.sectionheader {
+    font-size:1.5em;
+    text-transform:uppercase;
+    background-color:#33485e;
+    color:#fff;
+    margin-top:20px; 
+    margin-bottom: 10px;
+    width: 70%;
+    min-width: 300px;
+}
+
+/*job title formatting*/
+.jobtitle {
+   font-weight:600;
+   font-size:1.5em; 
+}
+
+/*job organization formatting*/
+
+.organization{
+    font-weight:400;
+    font-size:1.25em; 
+}
+
+
+/*job dates formatting*/
+.date{
+    font-weight:400;
+    font-size:1em; 
+    font-style:italic;
+    margin-top:2px;
+}
+/*education items formatting*/
+#degrees {
+    font-size:1em;
+    margin-top: 5px;
+} 
+
+/*skills items formatting*/
+#do {
+    font-size:1em;
+    margin-top: 5px;
+} 
+
+/*contact info formatting*/
+#contactlist {
+    font-size:1em;
+} 
+
+.description{
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.menu{
+    margin:0px;
+    padding:0px;
+    text-align: center;
+    
+}
+
+.contactitem{
+    display: inline;
+}
+
+.top{
+    width:60%;
+    min-width:300px;
+    margin:0 auto;
+    margin-bottom:30px;
+}
