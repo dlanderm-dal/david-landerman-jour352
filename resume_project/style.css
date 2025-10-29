@@ -7,7 +7,11 @@
     
     font main body: georgia serif*/
 
-
+.container_one{
+    max-width:100%;
+    overflow:hidden;
+    
+}
 
 .nav{
     height:100%
@@ -16,9 +20,25 @@
 #mainsection{
 width:100vw !important;
 }
+.titlepanel{
+    top: 56px;
+    position:absolute;
+}
 .fullbox{
     box-sizing:content-box !important;
     width:100vw !important;
+}
+.row{
+    width:100%!important;
+}
+.card{
+    margin-left:28px;
+}
+.divider{
+padding-top:100vh!important;
+}
+.title_text{
+    font-size:x-large;
 }
 
 }
@@ -36,9 +56,8 @@ width:100vw !important;
 .mainimage{
 position:absolute;
 left:20vw;
-z-index:2;
+z-index:-1;
 height:140vw;
-
 }
 
 
@@ -59,11 +78,11 @@ z-index:2;
 }
 
 .corporation_name {
-    text-align: right;
+    text-align: center!important;
 }
 
 .job_title{
-    text-align:right;
+    text-align:right!important;
 }
 .divider{
 padding-top:100vh!important;
@@ -83,6 +102,7 @@ padding-top:93vh;
 }
 .section_heading{
     background:orange;
+    width:100vw;
 }
 
 .section_body_headline{
@@ -98,7 +118,6 @@ padding-top:93vh;
     margin-bottom:30px;
 }
 .card_heading{
-    display:block;
     padding-bottom:5px;
     border-bottom-style:solid;
     border-bottom-width:1px;
@@ -111,6 +130,11 @@ padding-top:93vh;
 
 .logo_image{
     width:80px;
+}
+
+.logo_image2{
+    width:200px;
+    padding-top:15px;
 }
 
 .company_description{
@@ -174,6 +198,89 @@ padding-top:93vh;
 
 .challenge_name{
     font-size:large;
-    padding-left:5px;
+    padding-left:15px;
     color:blue;
 }
+
+.gridline_container{
+    margin-left:3vw!important;
+    margin-right:3vw;
+    margin-top:1vh;
+    margin-bottom:1vh;
+    display:block;
+    max-width:92%;
+
+}
+
+.bold_text{
+font-weight:bold;
+font-style:normal!important;
+}
+
+.mindset_example{
+    margin-left:10px;
+    margin-right: 10px;
+    
+}
+.mindset_description, .challenge_description, .mindset_example, .challenge_result {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
+
+.mindset_title{
+    margin:0 auto;
+    display: inline-block;
+    padding-left:0px!important;
+}
+
+.image_row{
+    display: inline-block;
+    border-bottom-style:solid;
+    border-bottom-width:2px;
+    border-bottom-color:rgb(127, 107, 107);
+    margin:0 auto;
+}
+.image_icon_row{
+    
+    height:30px;
+
+}
+
+.flip_it{
+    transform: scaleX(-1);
+}
+
+.img_in_card{
+    height:200px;
+    object-fit:cover;
+}
+
+.card_img{
+    padding:0!important;
+}
+
+.article_caption{
+    background-color:rgba(0, 0, 0, 0.493);
+   
+}
+
+
+
+.carousel_container{
+   /*How do I get the images to scale and crop? I dont know how to modify the bootstarp carousel like that*/
+}
+
+.contact_container{
+    margin:0 auto;
+
+}
+
+.nav_bar_text{
+    color:rgb(3, 58, 58)
+}
+
+.logo_top_corner{
+    margin:0 auto;
+}
+
