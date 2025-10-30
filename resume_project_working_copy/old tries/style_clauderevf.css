@@ -1,0 +1,392 @@
+/*==================================================
+  COLOR THEME LIBRARY - Find/Replace for Easy Theming
+  ==================================================
+  Primary Color (Orange): #FFA500 or 'orange'
+  Secondary Color (Blue): #023a3a
+  Accent Color (Gray): #e1e1e1 or rgb(225, 225, 225)
+  Dark Gray: rgb(127, 107, 107)
+  
+  Main Body Font: Georgia, serif
+  Heading Font: Arial, sans-serif
+==================================================*/
+
+.container_one {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.nav {
+    height: 100%
+}
+
+/* Mobile Styles - Below 768px */
+@media (max-width: 767px) {
+    #mainsection {
+        width: 100vw !important;
+    }
+    
+    .titlepanel {
+        top: 56px;
+        position: absolute;
+    }
+    
+    .fullbox {
+        box-sizing: content-box !important;
+        width: 100vw !important;
+    }
+    
+    .row {
+        width: 100% !important;
+    }
+    
+    .card {
+        margin-left: 28px;
+    }
+    
+    .divider {
+        padding-top: 100vh !important;
+    }
+    
+    .title_text {
+        font-size: x-large;
+    }
+
+    /* Original hero image behavior for mobile */
+    .mainimage {
+        position: absolute;
+        left: 20vw;
+        z-index: -1;
+        height: 140vw;
+    }
+}
+
+/* Desktop Styles - 768px and above */
+@media (min-width: 768px) {
+    /* Original hero image behavior for desktop */
+    .mainimage {
+        position: absolute;
+        right: 0vw;
+        max-width: 60vw;
+        height: auto;
+        z-index: 2;
+    }
+    
+    .titlepanel {
+        overflow: hidden;
+        height: 100vh;
+        width: 75vw;
+        position: absolute;
+    }
+
+    .corporation_name {
+        text-align: center !important;
+    }
+
+    .job_title {
+        text-align: right !important;
+    }
+    
+    .divider {
+        padding-top: 100vh !important;
+    }
+}
+
+.titlecontainer {
+    position: relative;
+}
+
+.titlepanel {
+    position: absolute;
+    height: 93vh;
+    overflow: hidden !important;
+    width: 100vw;
+}
+
+#titletext {
+    position: absolute;
+    z-index: 6;
+    top: 10vw;
+    left: 2vw;
+}
+
+.divider {
+    padding-top: 93vh;
+}
+
+.section_heading {
+    background: orange;
+    width: 100vw;
+}
+
+.section_headline {
+    margin: 0;
+    padding: 10px 20px;
+}
+
+.section_body_headline {
+    border-left-style: solid;
+    border-left-width: 4px;
+    border-left-color: orange;
+    padding-left: 5px;
+}
+
+.card {
+    margin-top: 10px;
+    padding-top: 15px;
+    box-shadow: -1px 1px .25px grey;
+    margin-bottom: 30px;
+    background-color: white;
+}
+
+.card_heading {
+    padding-bottom: 5px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.card_heading_container {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.logo_image {
+    width: 80px;
+}
+
+.logo_image2 {
+    width: 200px;
+    padding-top: 15px;
+}
+
+.company_description {
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-top: 10px;
+    font-style: italic;
+    background-color: white;
+}
+
+.card_body {
+    margin-left: 30px;
+    margin-right: 30px;
+}
+
+.employment_dates {
+    background: rgb(225, 225, 225);
+    margin-bottom: 0px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    border-top-style: solid;
+    border-top-width: 1px;
+    color: #000;
+}
+
+/* Education dates keep orange color */
+.education_dates {
+    color: orange;
+}
+
+.font_1 {
+    font-family: Georgia, serif;
+}
+
+.font_2 {
+    font-family: Arial, sans-serif;
+    font-size: auto;
+}
+
+.corporation_name {
+    text-align: center;
+}
+
+.job_title {
+    text-align: center;
+}
+
+.school_name {
+    font-size: large;
+    text-transform: uppercase;
+    padding-left: 5px;
+    color: #023a3a;
+}
+
+.city {
+    padding-left: 5px;
+    margin-bottom: 0px;
+}
+
+.honors {
+    padding-left: 5px;
+    margin-bottom: 2px;
+}
+
+.challenge_name {
+    font-size: large;
+    padding-left: 15px;
+    color: #023a3a;
+}
+
+.gridline_container {
+    margin-left: 3vw !important;
+    margin-right: 3vw;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    display: block;
+    max-width: 92%;
+}
+
+.bold_text {
+    font-weight: bold;
+    font-style: normal !important;
+}
+
+.mindset_example {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.mindset_description,
+.challenge_description,
+.mindset_example,
+.challenge_result {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
+
+.mindset_title {
+    margin: 0 auto;
+    display: inline-block;
+    padding-left: 0px !important;
+    text-align: center;
+}
+
+.image_row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    border-bottom-style: solid;
+    border-bottom-width: 2px;
+    border-bottom-color: rgb(127, 107, 107);
+    margin: 0 auto;
+    padding: 10px;
+    gap: 10px;
+}
+
+.image_icon_row {
+    height: 30px;
+}
+
+.flip_it {
+    transform: scaleX(-1);
+}
+
+.img_in_card {
+    height: 200px;
+    object-fit: cover;
+}
+
+.card_img {
+    padding: 0 !important;
+}
+
+.article_caption {
+    background-color: rgba(0, 0, 0, 0.493);
+}
+
+.carousel-inner img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.contact_container {
+    margin: 0 auto;
+}
+
+.nav_bar_text {
+    color: #023a3a;
+}
+
+.logo_top_corner {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.centered_image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.contact_caption {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.skills_section_category {
+    width: 100%;
+    padding: 20px;
+}
+
+.skills_section_category_heading {
+    text-align: center;
+    font-family: Georgia, serif;
+    color: #023a3a;
+}
+
+/* Mobile navbar styling */
+.navbar-light {
+    background-color: #f8f9fa !important;
+}
+
+.navbar-light .nav-link {
+    color: #023a3a !important;
+}
+
+.navbar-light .nav-link:hover {
+    color: orange !important;
+}
+
+/* Sidebar navigation spacing */
+.nav hr {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav .nav-pills .nav-item:first-child {
+    margin-top: 0;
+}
+
+/* Carousel container */
+.carousel_container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+/* Responsive adjustments for mindset diversity cards */
+@media (max-width: 991px) {
+    .mindset_title {
+        display: block;
+        width: 100%;
+    }
+    
+    .image_row {
+        flex-direction: column;
+    }
+}
+
+/* Section body container for white background areas */
+.section_body_container,
+.section1,
+.section,
+.contact_row_container {
+    background-color: white;
+}
+
+/*inspiration https://andrewborstein.com */
