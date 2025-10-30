@@ -1,0 +1,458 @@
+/* ============================================
+   COLOR THEME
+   ============================================ */
+:root {
+    --primary-color: #ff6b35;
+    --secondary-color: #004e89;
+    --accent-color: #1a659e;
+    --text-dark: #003459;
+    --text-light: #666;
+    --bg-light: #f8f9fa;
+    --bg-dark: #212529;
+    --border-color: #dee2e6;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Georgia, serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: Arial, sans-serif;
+}
+
+/* ============================================
+   LAYOUT - SIDEBAR
+   ============================================ */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    max-width: 100%;
+    height: auto;
+}
+
+.sidebar .nav-link {
+    color: var(--text-dark);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(0, 78, 137, 0.1);
+    color: var(--secondary-color);
+}
+
+/* ============================================
+   LAYOUT - MAIN CONTENT
+   ============================================ */
+.main-content {
+    margin-left: 0;
+}
+
+@media (min-width: 992px) {
+    .main-content {
+        margin-left: 280px;
+    }
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.hero-section {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.hero-image {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: auto;
+    max-width: 65%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-text {
+    position: absolute;
+    top: 15%;
+    left: 5%;
+    z-index: 10;
+    max-width: 40%;
+}
+
+.hero-text h1 {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: bold;
+    line-height: 1.2;
+    color: var(--text-dark);
+}
+
+/* Mobile hero adjustments */
+@media (max-width: 991px) {
+    .hero-section {
+        margin-top: 56px;
+    }
+    
+    .hero-image {
+        left: 20%;
+        max-width: none;
+        width: 140%;
+        height: auto;
+    }
+    
+    .hero-text {
+        top: 10%;
+        left: 5%;
+        max-width: 60%;
+    }
+}
+
+/* ============================================
+   SECTION STYLES
+   ============================================ */
+.content-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    background-color: var(--primary-color);
+    padding: 1rem 2rem;
+    width: 100%;
+}
+
+.section-header h2 {
+    color: white;
+    margin: 0;
+    font-size: 2rem;
+}
+
+.section-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-subheader {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--secondary-color);
+}
+
+/* ============================================
+   CARDS - EXPERIENCE
+   ============================================ */
+.experience-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.card-header-row {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.company-logo {
+    flex-shrink: 0;
+}
+
+.company-logo img {
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+.company-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.company-name {
+    margin: 0 0 0.5rem 0;
+    color: var(--secondary-color);
+    font-size: 1.25rem;
+}
+
+.job-title {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+.company-description {
+    padding: 1rem 1.5rem;
+    font-style: italic;
+    color: var(--text-light);
+    background-color: #f8f9fa;
+    margin: 0;
+}
+
+.job-description {
+    padding: 1.5rem;
+    line-height: 1.6;
+}
+
+.employment-dates {
+    background-color: #e9ecef;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   CARDS - EDUCATION
+   ============================================ */
+.education-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.school-name {
+    text-transform: uppercase;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.school-location,
+.school-honors,
+.school-dates {
+    margin: 0.25rem 0;
+    color: var(--text-light);
+}
+
+/* ============================================
+   CARDS - CHALLENGES
+   ============================================ */
+.challenge-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.challenge-title {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.challenge-description,
+.challenge-result {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.challenge-outcome {
+    margin: 0;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* ============================================
+   CARDS - MINDSET DIVERSITY
+   ============================================ */
+.mindset-intro {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+}
+
+.mindset-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.mindset-icon-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.mindset-icon {
+    height: 30px;
+    width: auto;
+}
+
+.mindset-icon-flip {
+    transform: scaleX(-1);
+}
+
+.mindset-title {
+    margin: 0;
+    color: var(--secondary-color);
+    font-size: 1rem;
+    text-align: center;
+}
+
+.mindset-description {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.mindset-example {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+/* ============================================
+   CAROUSEL
+   ============================================ */
+.carousel {
+    max-width: 100%;
+}
+
+.carousel-inner {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.carousel-item {
+    height: 500px;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.carousel-caption {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.article-link {
+    color: white;
+    text-decoration: underline;
+}
+
+.article-link:hover {
+    color: var(--primary-color);
+}
+
+/* ============================================
+   CONTACT & RESUME
+   ============================================ */
+.contact-item,
+.resume-item {
+    text-align: center;
+    padding: 2rem;
+}
+
+.contact-icon,
+.resume-icon {
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.contact-icon:hover,
+.resume-icon:hover {
+    transform: scale(1.1);
+}
+
+.contact-label,
+.resume-label {
+    margin: 0;
+    color: var(--text-dark);
+    font-weight: bold;
+}
+
+/* ============================================
+   MOBILE NAVIGATION
+   ============================================ */
+@media (max-width: 991px) {
+    .navbar {
+        width: 100%;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 768px) {
+    .section-content {
+        padding: 1rem;
+    }
+    
+    .card-header-row {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .company-info {
+        text-align: center;
+    }
+    
+    .carousel-item {
+        height: 300px;
+    }
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+.text-serif {
+    font-family: Georgia, serif;
+}
+
+.text-sans {
+    font-family: Arial, sans-serif;
+}
+
+/* Spacing utilities - Bootstrap gap classes */
+.g-4 {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 1.5rem;
+}
