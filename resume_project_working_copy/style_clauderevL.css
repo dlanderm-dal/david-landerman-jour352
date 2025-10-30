@@ -1,0 +1,680 @@
+/* ============================================
+   DAVID LANDERMAN RESUME WEBSITE - RevL
+   Professional Portfolio CSS
+   ============================================
+   
+   CHANGELOG - RevL:
+   - Fixed title text positioning to match original
+     * Changed .title-text to #titletext (id selector)
+     * Maintained z-index: 6 for proper layering
+     * Using viewport units (top: 10vw, left: 2vw)
+   - Fixed desktop hero panel width to 75vw (from 100%)
+   - Fixed image anchoring to right: 0vw for proper alignment
+   - Updated z-index values (image: 2, text: 6)
+   
+   TABLE OF CONTENTS:
+   1. Color Theme Variables
+   2. Base Styles & Typography
+   3. Layout System
+      3.1 Sidebar Navigation (Desktop)
+      3.2 Mobile Navigation
+      3.3 Main Content Area
+   4. Hero Section
+   5. Content Sections
+   6. Card Components
+      6.1 Experience Cards
+      6.2 Education Cards
+      6.3 Challenge Cards
+      6.4 Mindset Diversity Cards
+   7. Carousel Component
+   8. Contact & Resume Components
+   9. Responsive Media Queries
+   10. Utility Classes
+   ============================================ */
+
+/* ============================================
+   1. COLOR THEME - EASY CUSTOMIZATION
+   ============================================
+   To change theme colors, find/replace these hex codes:
+   
+   PRIMARY (Orange) - Section headers, accents, highlights
+   #ff6b35
+   
+   SECONDARY (Blue) - Text headings, titles, emphasis
+   #004e89
+   
+   ACCENT (Light Blue) - Hover states, links
+   #1a659e
+   
+   TEXT DARK (Navy) - Primary body text, nav links
+   #003459
+   
+   TEXT LIGHT (Gray) - Secondary text, descriptions
+   #666666
+   
+   BORDER (Light Gray) - Card borders, dividers
+   #dee2e6
+   
+   BACKGROUND LIGHT (Off-white) - Sidebar, navbar background
+   #f8f9fa
+   
+   BACKGROUND WHITE - Main content background
+   #ffffff
+   ============================================ */
+
+/* ============================================
+   2. BASE STYLES & TYPOGRAPHY
+   ============================================ */
+
+/* Reset & Box Model */
+* {
+    box-sizing: border-box;
+}
+
+/* Body Styles */
+body {
+    font-family: Georgia, serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #ffffff;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+    font-family: Arial, sans-serif;
+}
+
+/* ============================================
+   3. LAYOUT SYSTEM
+   ============================================ */
+
+/* ------------------------------------
+   3.1 Sidebar Navigation (Desktop)
+   ------------------------------------ */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar Logo */
+.sidebar-logo-link {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar-logo {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0;
+}
+
+/* Sidebar Navigation Links */
+.sidebar .nav {
+    padding: 0 1rem;
+    margin-top: 0.75rem;
+}
+
+.sidebar .nav-link {
+    color: #003459;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(0, 78, 137, 0.1);
+    color: #004e89;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.1rem;
+}
+
+/* ------------------------------------
+   3.2 Mobile Navigation
+   ------------------------------------ */
+.navbar-light {
+    background-color: #f8f9fa !important;
+}
+
+.navbar-light .navbar-brand {
+    color: #003459;
+    font-weight: bold;
+}
+
+.navbar-light .nav-link {
+    color: #003459;
+}
+
+.navbar-light .nav-link:hover {
+    color: #004e89;
+}
+
+.navbar-light .nav-link i {
+    font-size: 1.1rem;
+}
+
+/* ------------------------------------
+   3.3 Main Content Area
+   ------------------------------------ */
+.main-content {
+    margin-left: 0;
+    width: 100%;
+    background-color: #ffffff;
+}
+
+/* ============================================
+   4. HERO SECTION
+   ============================================ */
+
+/* Hero Container */
+.title-container {
+    position: relative;
+    width: 100%;
+    background-color: #ffffff;
+}
+
+/* Hero Panel (Wrapper for image and text) */
+.title-panel {
+    position: absolute;
+    height: 93vh;
+    overflow: hidden !important;
+    width: 100%;
+    background-color: #ffffff;
+}
+
+/* Hero Image */
+.main-image {
+    position: absolute;
+    left: 20vw;
+    z-index: 1;
+    height: 140vw;
+}
+
+/* Hero Text Overlay */
+#titletext {
+    position: absolute;
+    z-index: 6;
+    top: 10vw;
+    left: 2vw;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+}
+
+.title-text h1 {
+    font-size: x-large;
+    font-weight: bold;
+    line-height: 1.2;
+    color: #ff6b35;
+    margin: 0;
+}
+
+/* Hero Divider (spacing element after hero) */
+.divider {
+    padding-top: 93vh;
+    clear: both;
+}
+
+/* ============================================
+   5. CONTENT SECTIONS
+   ============================================ */
+
+/* Section Container */
+.content-section {
+    margin-bottom: 0;
+    background-color: #ffffff;
+    position: relative;
+    z-index: 10;
+}
+
+/* Section Header (Orange bar with title) */
+.section-header {
+    background-color: #ff6b35;
+    padding: 1rem 2rem;
+    width: 100%;
+}
+
+.section-header h2 {
+    color: white;
+    margin: 0;
+    font-size: 2rem;
+}
+
+/* Section Content Wrapper (for future background pattern) */
+.section-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    /* Future: background-image: url('pattern.png'); */
+}
+
+/* Section Subheader (Left border with blue heading) */
+.section-subheader {
+    border-left: 4px solid #ff6b35;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+    color: #004e89;
+}
+
+/* ============================================
+   6. CARD COMPONENTS
+   ============================================ */
+
+/* ------------------------------------
+   6.1 Experience Cards
+   ------------------------------------ */
+.experience-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Card Header (Company logo, name, and job title row) */
+.card-header-row {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    flex-wrap: wrap;
+}
+
+/* Company Logo Container */
+.company-logo {
+    flex-shrink: 0;
+}
+
+.company-logo img {
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+/* Company Info Container (Name + Job Title) */
+.company-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.company-name {
+    margin: 0 0 0.5rem 0;
+    color: #004e89;
+    font-size: 1.25rem;
+}
+
+.job-title {
+    margin: 0;
+    color: #666666;
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+/* Card Content Areas */
+.company-description {
+    padding: 1rem 1.5rem;
+    font-style: italic;
+    color: #666666;
+    background-color: white;
+    margin: 0;
+}
+
+.job-description {
+    padding: 1.5rem;
+    line-height: 1.6;
+}
+
+.employment-dates {
+    background-color: #e9ecef;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    border-top: 1px solid #dee2e6;
+    font-size: 0.9rem;
+    color: #ff6b35;
+    font-weight: 500;
+}
+
+/* ------------------------------------
+   6.2 Education Cards
+   ------------------------------------ */
+.education-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.school-name {
+    text-transform: uppercase;
+    color: #004e89;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.school-location,
+.school-honors {
+    margin: 0.25rem 0;
+    color: #666666;
+}
+
+.school-dates {
+    margin: 0.25rem 0;
+    color: #666666;
+}
+
+.date-highlight {
+    color: #ff6b35;
+    font-weight: 500;
+}
+
+/* ------------------------------------
+   6.3 Challenge Cards
+   ------------------------------------ */
+.challenge-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.challenge-title {
+    color: #004e89;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.challenge-description,
+.challenge-result {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: #666666;
+}
+
+.challenge-outcome {
+    margin: 0;
+    color: #ff6b35;
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* ------------------------------------
+   6.4 Mindset Diversity Cards
+   ------------------------------------ */
+.mindset-intro {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #004e89;
+    font-size: 1.1rem;
+}
+
+.mindset-card {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+/* Icon Row (Icons + Title) */
+.mindset-icon-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.icon-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.mindset-icon {
+    height: 30px;
+    width: auto;
+}
+
+.mindset-icon-flip {
+    transform: scaleX(-1);
+}
+
+.mindset-title {
+    margin: 0;
+    color: #004e89;
+    font-size: 1rem;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Card Content */
+.mindset-description {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.mindset-example {
+    font-size: 0.9rem;
+    color: #666666;
+    line-height: 1.6;
+}
+
+/* ============================================
+   7. CAROUSEL COMPONENT
+   ============================================ */
+.carousel {
+    max-width: 100%;
+}
+
+.carousel-inner {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.carousel-item {
+    height: 500px;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.carousel-caption {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.article-link {
+    color: white;
+    text-decoration: underline;
+}
+
+.article-link:hover {
+    color: #ff6b35;
+}
+
+/* ============================================
+   8. CONTACT & RESUME COMPONENTS
+   ============================================ */
+.contact-item {
+    text-align: center;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.contact-icon {
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.contact-icon:hover {
+    transform: scale(1.1);
+}
+
+.contact-label {
+    margin: 0;
+    color: #003459;
+    font-weight: bold;
+}
+
+/* Resume Section Images */
+.logo_image {
+    max-width: 100px;
+    width: 100px;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.logo_image:hover {
+    transform: scale(1.1);
+}
+
+.centered_image {
+    display: block;
+    margin: 0 auto 1rem auto;
+}
+
+/* ============================================
+   9. RESPONSIVE MEDIA QUERIES
+   ============================================ */
+
+/* ------------------------------------
+   Desktop Layout (768px and up)
+   ------------------------------------ */
+@media (min-width: 768px) {
+    /* Layout - Adjust for sidebar */
+    .main-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+    }
+    
+    /* Hero Section - Desktop adjustments */
+    .title-panel {
+        overflow: hidden;
+        height: 100vh;
+        width: 75vw;
+        position: absolute;
+        left: 0;
+    }
+
+    .main-image {
+        position: absolute;
+        right: -5vw;
+        left: auto;
+        max-width: 60vw;
+        height: auto;
+        z-index: 2;
+    }
+
+    #titletext {
+        z-index: 6;
+    }
+
+    .divider {
+        padding-top: 100vh !important;
+    }
+}
+
+/* ------------------------------------
+   Mobile/Tablet Layout (767px and below)
+   ------------------------------------ */
+@media (max-width: 767px) {
+    /* Hide Desktop Sidebar */
+    .sidebar {
+        display: none !important;
+    }
+    
+    /* Layout */
+    .navbar {
+        width: 100%;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    /* Hero Section - Account for mobile navbar */
+    .title-panel {
+        top: 56px;
+        position: absolute;
+    }
+
+    .divider {
+        padding-top: 100vh !important;
+    }
+    
+    /* Section Content */
+    .section-content {
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Card Headers - Stack vertically on mobile */
+    .card-header-row {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .company-info {
+        text-align: center;
+    }
+    
+    /* Carousel - Smaller height on mobile */
+    .carousel-item {
+        height: 300px;
+    }
+}
+
+/* ------------------------------------
+   Extra Small Screens (499px and below)
+   ------------------------------------ */
+@media (max-width: 499px) {
+    /* Stack mindset icons vertically */
+    .icon-group {
+        flex-direction: column;
+    }
+}
+
+/* ============================================
+   10. UTILITY CLASSES
+   ============================================ */
+
+/* Bootstrap Grid Gutter Override */
+.g-4 {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 1.5rem;
+}
+
+.row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+}
