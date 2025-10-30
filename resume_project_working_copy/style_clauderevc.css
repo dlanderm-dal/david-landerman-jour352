@@ -1,0 +1,130 @@
+/* ============================================
+   COLOR THEME - EASY CUSTOMIZATION
+   ============================================
+   PRIMARY (Orange): #ff6b35 - Section headers, accents, date highlights
+   SECONDARY (Blue): #004e89 - Headings, titles, nav links
+   ACCENT (Light Blue): #1a659e - Hover states
+   TEXT DARK (Navy): #003459 - Primary text
+   TEXT LIGHT (Gray): #666666 - Secondary text
+   BORDER (Gray): #dee2e6 - Borders, dividers
+   BACKGROUND (Off-white): #f8f9fa - Page background
+   
+   To change theme: Find/Replace hex codes above throughout this file
+   ============================================ */
+
+/* BASE */
+*{box-sizing:border-box}
+body{font-family:Georgia,serif;margin:0;padding:0;overflow-x:hidden;background:#f8f9fa}
+h1,h2,h3,h4,h5,h6{font-family:Arial,sans-serif}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;width:280px;height:100vh;z-index:1000;overflow-y:auto;padding:0}
+.sidebar-logo-link{display:block;width:100%;margin:0;padding:0}
+.sidebar-logo{width:100%;height:auto;display:block;margin:0}
+.sidebar .nav{padding:0 1rem;margin-top:.75rem}
+.sidebar .nav-link{color:#003459;padding:.75rem 1rem;transition:all .3s;border-radius:4px}
+.sidebar .nav-link:hover{background:rgba(0,78,137,.1);color:#004e89}
+.sidebar .nav-link i{font-size:1.1rem}
+
+/* MOBILE NAV */
+.navbar-light{background-color:#f8f9fa!important}
+.navbar-light .navbar-brand{color:#003459;font-weight:bold}
+.navbar-light .nav-link{color:#003459}
+.navbar-light .nav-link:hover{color:#004e89}
+.navbar-light .nav-link i{font-size:1.1rem}
+
+/* MAIN LAYOUT */
+.main-content{margin-left:0}
+@media (min-width:992px){
+    .main-content{margin-left:280px}
+}
+
+/* HERO */
+.hero-section{position:relative;height:100vh;width:100%;overflow:hidden;background:#fff}
+.hero-image{position:absolute;top:0;right:-5%;height:100%;width:auto;min-width:70%;object-fit:cover;object-position:center left}
+.hero-text{position:absolute;top:20%;left:3%;z-index:10;max-width:45%}
+.hero-text h1{font-size:clamp(1.75rem,4.5vw,3.5rem);font-weight:bold;line-height:1.2;color:#003459}
+
+@media (max-width:991px){
+    .hero-section{margin-top:56px}
+    .hero-image{left:15%;right:auto;height:120vh;width:auto;min-width:unset}
+    .hero-text{top:12%;left:5%;max-width:55%}
+}
+
+/* SECTIONS */
+.content-section{margin-bottom:0}
+.section-header{background:#ff6b35;padding:1rem 2rem;width:100%}
+.section-header h2{color:#fff;margin:0;font-size:2rem}
+
+/* Background pattern container - add background-image here later */
+.section-content{padding:2rem;max-width:1200px;margin:0 auto;background:#fff}
+.section-subheader{border-left:4px solid #ff6b35;padding-left:1rem;margin-bottom:1.5rem;color:#004e89}
+
+/* CARDS - EXPERIENCE */
+.experience-card{background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);margin-bottom:2rem;border-radius:4px;overflow:hidden}
+.card-header-row{display:flex;align-items:center;gap:2rem;padding:1.5rem;border-bottom:1px solid #dee2e6;flex-wrap:wrap}
+.company-logo{flex-shrink:0}
+.company-logo img{max-width:120px;max-height:80px;object-fit:contain}
+.company-info{flex:1;min-width:200px}
+.company-name{margin:0 0 .5rem 0;color:#004e89;font-size:1.25rem}
+.job-title{margin:0;color:#666;font-size:1rem;font-weight:normal}
+.company-description{padding:1rem 1.5rem;font-style:italic;color:#666;background:#fff;margin:0}
+.job-description{padding:1.5rem;line-height:1.6}
+.employment-dates{background:#e9ecef;padding:.75rem 1.5rem;margin:0;border-top:1px solid #dee2e6;font-size:.9rem;color:#ff6b35;font-weight:500}
+
+/* CARDS - EDUCATION */
+.education-card{background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:1.5rem;border-radius:4px;height:100%}
+.school-name{text-transform:uppercase;color:#004e89;font-size:1.1rem;margin-bottom:.5rem}
+.school-location,.school-honors{margin:.25rem 0;color:#666}
+.school-dates{margin:.25rem 0;color:#ff6b35;font-weight:500}
+
+/* CARDS - CHALLENGES */
+.challenge-card{background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:1.5rem;border-radius:4px;height:100%}
+.challenge-title{color:#004e89;margin-bottom:1rem;font-size:1.1rem}
+.challenge-description,.challenge-result{margin-bottom:1rem;line-height:1.6;color:#666}
+.challenge-outcome{margin:0;color:#ff6b35;font-style:italic;font-weight:500}
+
+/* CARDS - MINDSET */
+.mindset-intro{text-align:center;margin-bottom:2rem;color:#004e89;font-size:1.1rem}
+.mindset-card{background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);padding:1.5rem;border-radius:4px;height:100%}
+.mindset-icon-row{display:flex;align-items:center;justify-content:center;gap:1rem;padding-bottom:1rem;border-bottom:2px solid #dee2e6;margin-bottom:1rem;flex-wrap:wrap}
+.icon-group{display:flex;gap:.5rem;align-items:center}
+@media (max-width:499px){
+    .icon-group{flex-direction:column}
+}
+.mindset-icon{height:30px;width:auto}
+.mindset-icon-flip{transform:scaleX(-1)}
+.mindset-title{margin:0;color:#004e89;font-size:1rem;text-align:center;line-height:1.3}
+.mindset-description{margin-bottom:1rem;line-height:1.6}
+.mindset-example{font-size:.9rem;color:#666;line-height:1.6}
+
+/* CAROUSEL */
+.carousel{max-width:100%}
+.carousel-inner{border-radius:4px;overflow:hidden}
+.carousel-item{height:500px}
+.carousel-item img{width:100%;height:100%;object-fit:cover;object-position:center}
+.carousel-caption{background:rgba(0,0,0,.7);padding:1rem;border-radius:4px}
+.article-link{color:#fff;text-decoration:underline}
+.article-link:hover{color:#ff6b35}
+
+@media (max-width:768px){
+    .carousel-item{height:300px}
+    .section-content{padding:1.5rem 1rem}
+    .card-header-row{flex-direction:column;text-align:center}
+    .company-info{text-align:center}
+}
+
+/* CONTACT & RESUME */
+.contact-item,.resume-item{text-align:center;padding:2rem;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.contact-icon,.resume-icon{max-width:100px;height:auto;margin-bottom:1rem;transition:transform .3s}
+.contact-icon:hover,.resume-icon:hover{transform:scale(1.1)}
+.contact-label,.resume-label{margin:0;color:#003459;font-weight:bold}
+
+/* RESPONSIVE */
+@media (max-width:991px){
+    .navbar{width:100%}
+    .main-content{margin-left:0}
+}
+
+/* UTILITIES */
+.g-4{--bs-gutter-x:1.5rem;--bs-gutter-y:1.5rem}

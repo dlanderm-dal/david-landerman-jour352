@@ -1,16 +1,29 @@
 /* ============================================
-   COLOR THEME
+   COLOR THEME - EASY CUSTOMIZATION
+   ============================================
+   To change theme colors, find/replace these hex codes throughout the stylesheet:
+   
+   PRIMARY (Orange) - Section headers, accents, highlights
+   Current: #ff6b35
+   
+   SECONDARY (Blue) - Text headings, titles, emphasis
+   Current: #004e89
+   
+   ACCENT (Light Blue) - Hover states, links
+   Current: #1a659e
+   
+   TEXT DARK (Navy) - Primary body text, nav links
+   Current: #003459
+   
+   TEXT LIGHT (Gray) - Secondary text, descriptions
+   Current: #666666
+   
+   BORDER (Light Gray) - Card borders, dividers
+   Current: #dee2e6
+   
+   BACKGROUND LIGHT (Off-white) - Page background, light sections
+   Current: #f8f9fa
    ============================================ */
-:root {
-    --primary-color: #ff6b35;
-    --secondary-color: #004e89;
-    --accent-color: #1a659e;
-    --text-dark: #003459;
-    --text-light: #666;
-    --bg-light: #f8f9fa;
-    --bg-dark: #212529;
-    --border-color: #dee2e6;
-}
 
 /* ============================================
    BASE STYLES
@@ -24,6 +37,7 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    background-color: #f8f9fa;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -41,22 +55,66 @@ h1, h2, h3, h4, h5, h6 {
     height: 100vh;
     z-index: 1000;
     overflow-y: auto;
+    padding: 0;
+}
+
+.sidebar-logo-link {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .sidebar-logo {
-    max-width: 100%;
+    width: 100%;
     height: auto;
+    display: block;
+    margin: 0;
+}
+
+.sidebar .nav {
+    padding: 0 1rem;
+    margin-top: 0.75rem;
 }
 
 .sidebar .nav-link {
-    color: var(--text-dark);
+    color: #003459;
     padding: 0.75rem 1rem;
     transition: all 0.3s ease;
+    border-radius: 4px;
 }
 
 .sidebar .nav-link:hover {
     background-color: rgba(0, 78, 137, 0.1);
-    color: var(--secondary-color);
+    color: #004e89;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.1rem;
+}
+
+/* ============================================
+   MOBILE NAVIGATION
+   ============================================ */
+.navbar-light {
+    background-color: #f8f9fa !important;
+}
+
+.navbar-light .navbar-brand {
+    color: #003459;
+    font-weight: bold;
+}
+
+.navbar-light .nav-link {
+    color: #003459;
+}
+
+.navbar-light .nav-link:hover {
+    color: #004e89;
+}
+
+.navbar-light .nav-link i {
+    font-size: 1.1rem;
 }
 
 /* ============================================
@@ -80,32 +138,33 @@ h1, h2, h3, h4, h5, h6 {
     height: 100vh;
     width: 100%;
     overflow: hidden;
+    background-color: white;
 }
 
 .hero-image {
     position: absolute;
     top: 0;
-    right: 0;
+    right: -5%;
     height: 100%;
     width: auto;
-    max-width: 65%;
+    min-width: 70%;
     object-fit: cover;
-    object-position: center;
+    object-position: center left;
 }
 
 .hero-text {
     position: absolute;
-    top: 15%;
-    left: 5%;
+    top: 20%;
+    left: 3%;
     z-index: 10;
-    max-width: 40%;
+    max-width: 45%;
 }
 
 .hero-text h1 {
-    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-size: clamp(1.75rem, 4.5vw, 3.5rem);
     font-weight: bold;
     line-height: 1.2;
-    color: var(--text-dark);
+    color: #003459;
 }
 
 /* Mobile hero adjustments */
@@ -115,28 +174,29 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .hero-image {
-        left: 20%;
-        max-width: none;
-        width: 140%;
-        height: auto;
+        left: 15%;
+        right: auto;
+        height: 120vh;
+        width: auto;
+        min-width: unset;
     }
     
     .hero-text {
-        top: 10%;
+        top: 12%;
         left: 5%;
-        max-width: 60%;
+        max-width: 55%;
     }
 }
 
 /* ============================================
-   SECTION STYLES
+   SECTION STYLES (Background pattern area)
    ============================================ */
 .content-section {
-    margin-bottom: 3rem;
+    margin-bottom: 0;
 }
 
 .section-header {
-    background-color: var(--primary-color);
+    background-color: #ff6b35;
     padding: 1rem 2rem;
     width: 100%;
 }
@@ -147,17 +207,22 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 2rem;
 }
 
+/* This is where you can add background pattern image in the future */
 .section-content {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    background-color: white;
+    /* Future: Add background-image here for pattern */
+    /* Example: background-image: url('pattern.png'); */
+    /* background-repeat: repeat; */
 }
 
 .section-subheader {
-    border-left: 4px solid var(--primary-color);
+    border-left: 4px solid #ff6b35;
     padding-left: 1rem;
     margin-bottom: 1.5rem;
-    color: var(--secondary-color);
+    color: #004e89;
 }
 
 /* ============================================
@@ -176,7 +241,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 2rem;
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #dee2e6;
     flex-wrap: wrap;
 }
 
@@ -197,13 +262,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .company-name {
     margin: 0 0 0.5rem 0;
-    color: var(--secondary-color);
+    color: #004e89;
     font-size: 1.25rem;
 }
 
 .job-title {
     margin: 0;
-    color: var(--text-light);
+    color: #666666;
     font-size: 1rem;
     font-weight: normal;
 }
@@ -211,8 +276,8 @@ h1, h2, h3, h4, h5, h6 {
 .company-description {
     padding: 1rem 1.5rem;
     font-style: italic;
-    color: var(--text-light);
-    background-color: #f8f9fa;
+    color: #666666;
+    background-color: white;
     margin: 0;
 }
 
@@ -225,8 +290,10 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #e9ecef;
     padding: 0.75rem 1.5rem;
     margin: 0;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid #dee2e6;
     font-size: 0.9rem;
+    color: #ff6b35;
+    font-weight: 500;
 }
 
 /* ============================================
@@ -242,16 +309,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .school-name {
     text-transform: uppercase;
-    color: var(--secondary-color);
+    color: #004e89;
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
 }
 
 .school-location,
-.school-honors,
+.school-honors {
+    margin: 0.25rem 0;
+    color: #666666;
+}
+
 .school-dates {
     margin: 0.25rem 0;
-    color: var(--text-light);
+    color: #ff6b35;
+    font-weight: 500;
 }
 
 /* ============================================
@@ -266,20 +338,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .challenge-title {
-    color: var(--secondary-color);
+    color: #004e89;
     margin-bottom: 1rem;
+    font-size: 1.1rem;
 }
 
 .challenge-description,
 .challenge-result {
     margin-bottom: 1rem;
     line-height: 1.6;
+    color: #666666;
 }
 
 .challenge-outcome {
     margin: 0;
-    color: var(--text-light);
+    color: #ff6b35;
     font-style: italic;
+    font-weight: 500;
 }
 
 /* ============================================
@@ -288,7 +363,7 @@ h1, h2, h3, h4, h5, h6 {
 .mindset-intro {
     text-align: center;
     margin-bottom: 2rem;
-    color: var(--secondary-color);
+    color: #004e89;
     font-size: 1.1rem;
 }
 
@@ -306,9 +381,22 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     gap: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid #dee2e6;
     margin-bottom: 1rem;
     flex-wrap: wrap;
+}
+
+.icon-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Stack icons vertically on narrow screens */
+@media (max-width: 499px) {
+    .icon-group {
+        flex-direction: column;
+    }
 }
 
 .mindset-icon {
@@ -322,9 +410,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .mindset-title {
     margin: 0;
-    color: var(--secondary-color);
+    color: #004e89;
     font-size: 1rem;
     text-align: center;
+    line-height: 1.3;
 }
 
 .mindset-description {
@@ -334,7 +423,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .mindset-example {
     font-size: 0.9rem;
-    color: var(--text-light);
+    color: #666666;
     line-height: 1.6;
 }
 
@@ -373,7 +462,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .article-link:hover {
-    color: var(--primary-color);
+    color: #ff6b35;
+}
+
+@media (max-width: 768px) {
+    .carousel-item {
+        height: 300px;
+    }
 }
 
 /* ============================================
@@ -383,6 +478,10 @@ h1, h2, h3, h4, h5, h6 {
 .resume-item {
     text-align: center;
     padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
 }
 
 .contact-icon,
@@ -401,12 +500,12 @@ h1, h2, h3, h4, h5, h6 {
 .contact-label,
 .resume-label {
     margin: 0;
-    color: var(--text-dark);
+    color: #003459;
     font-weight: bold;
 }
 
 /* ============================================
-   MOBILE NAVIGATION
+   RESPONSIVE ADJUSTMENTS
    ============================================ */
 @media (max-width: 991px) {
     .navbar {
@@ -418,12 +517,9 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
-/* ============================================
-   RESPONSIVE ADJUSTMENTS
-   ============================================ */
 @media (max-width: 768px) {
     .section-content {
-        padding: 1rem;
+        padding: 1.5rem 1rem;
     }
     
     .card-header-row {
@@ -434,24 +530,11 @@ h1, h2, h3, h4, h5, h6 {
     .company-info {
         text-align: center;
     }
-    
-    .carousel-item {
-        height: 300px;
-    }
 }
 
 /* ============================================
    UTILITIES
    ============================================ */
-.text-serif {
-    font-family: Georgia, serif;
-}
-
-.text-sans {
-    font-family: Arial, sans-serif;
-}
-
-/* Spacing utilities - Bootstrap gap classes */
 .g-4 {
     --bs-gutter-x: 1.5rem;
     --bs-gutter-y: 1.5rem;
