@@ -208,17 +208,18 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 6;
     top: 10vw;
     left: 2vw;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
+    padding: 1.5vw 2vw;
+    border-radius: 0.5vw;
+    width: auto;
+    transform-origin: left top;
 }
 
-.title-text h1 {
-    font-size: x-large;
+.title-text {
     font-weight: bold;
     line-height: 1.2;
-    color: #ff6b35;
+    color: #003459;
     margin: 0;
+    white-space: nowrap;
 }
 
 /* Hero Divider (spacing element after hero) */
@@ -344,7 +345,6 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
     border-top: 1px solid #dee2e6;
     font-size: 0.9rem;
-    color: #ff6b35;
     font-weight: 500;
 }
 
@@ -570,7 +570,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    Desktop Layout (768px and up)
    ------------------------------------ */
-@media (min-width: 768px) {
+@media (min-width: 991px) {
     /* Layout - Adjust for sidebar */
     .main-content {
         margin-left: 280px;
@@ -581,22 +581,29 @@ h1, h2, h3, h4, h5, h6 {
     .title-panel {
         overflow: hidden;
         height: 100vh;
-        width: 75vw;
+        width: 100%;
         position: absolute;
         left: 0;
     }
 
     .main-image {
         position: absolute;
-        right: -5vw;
+        right: -10vw;
         left: auto;
-        max-width: 60vw;
-        height: auto;
         z-index: 2;
+        object-fit: cover;
+        position:absolute;
+        max-width:60vw;
+        height:auto;
     }
 
     #titletext {
         z-index: 6;
+        transform: scale(1.2);
+    }
+
+    .title-text {
+        font-size: 2.5vw;
     }
 
     .divider {
@@ -607,7 +614,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    Mobile/Tablet Layout (767px and below)
    ------------------------------------ */
-@media (max-width: 767px) {
+@media (max-width: 990px) {
     /* Hide Desktop Sidebar */
     .sidebar {
         display: none !important;
@@ -627,6 +634,14 @@ h1, h2, h3, h4, h5, h6 {
     .title-panel {
         top: 56px;
         position: absolute;
+    }
+
+    #titletext {
+        transform: scale(1);
+    }
+
+    .title-text {
+        font-size: 3.5vw;
     }
 
     .divider {
