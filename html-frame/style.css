@@ -1,0 +1,42 @@
+.headline{
+    font-size:3em;
+    font-weight: 700;
+    text-align:center;
+    font-family: 'Montserrat',sans-serif;
+}
+
+.byline{
+    font-size:1em;
+    text-transform: uppercase;
+    text-align:center;
+    font-family: 'Montserrat',sans-serif;
+}
+
+p{
+    font-family:georgia, serif;
+    line-height:180%;
+}
+
+.chapter_headline{
+    font-size:2em;
+    font-weight: 700;
+    text-align:left;
+    font-family: 'Montserrat',sans-serif;
+}
+
+.image-container{
+    display:fit-content;
+    text-align: center;
+    margin:0 auto;
+    height:auto;
+    width:60%;
+}
+
+.trumpstein{
+   width:100%;
+}
+.caption{
+    text-align:left;
+    font-size:.75em;
+    color:rgb(128, 128, 128)
+}
