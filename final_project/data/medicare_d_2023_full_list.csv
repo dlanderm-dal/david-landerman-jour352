@@ -1,0 +1,25 @@
+﻿Brnd_Name,Gnrc_Name,Generic Exists,Pill?,Fatal,NOTE,Tot_Mftr,Mftr_Name,Tot_Spndng_2023,Tot_Dsg_Unts_2023,Tot_Clms_2023,Tot_Benes_2023,Average Number of Doses/Beneficiary,Avg_Spnd_Per_Dsg_Unt_Wghtd_2023,Avg_Spnd_Per_Clm_2023,Avg_Spnd_Per_Bene_2023,Outlier_Flag_2023,Chg_Avg_Spnd_Per_Dsg_Unt_22_23,CAGR_Avg_Spnd_Per_Dsg_Unt_19_23
+Humira(Cf) Pen,Adalimumab,,No,,"Humira is used to treat many inflammatory conditions in adults, such as rheumatoid arthritis (RA), psoriatic arthritis (PA), ankylosing spondylitis (AS), plaque psoriasis, and a skin condition called hidradenitis Humira is also used in adults and children to treat Crohn's disease, juvenile idiopathic arthritis, ulcerative colitis, and uveitis. suppurativa.",1,Abbvie US LLC,"$4,419,828,188.30","1,182,524.40","478,808.00","61,474.00",19.24,"$3,750.06","$9,230.90","$71,897.52",0,0.105645643,0.092096812
+Enbrel Sureclick,Etanercept,,No,,"Enbrel SureClick is a tumor necrosis factor (TNF) blocker that is used in adults to prevent joint damage caused by rheumatoid arthritis, psoriatic arthritis, or ankylosing spondylitis.
+
+Enbrel SureClick is also used to treat plaque psoriasis in adults and children at least 4 years old.
+
+Enbrel SureClick is used to treat polyarticular juvenile idiopathic arthritis in children who are at least 2 years old.",1,Amgen,"$2,054,858,498.80","1,133,801.14","263,299.00","34,287.00",33.07,"$1,812.36","$7,804.28","$59,931.13",0,0.096982336,0.081451467
+Pomalyst,Pomalidomide,No,Yes,X,Cancer (Multiple Myeloma),1,Celgene/BMS,1709288465,1569928,78733,12739,123.2379308,1088.759899,21709.93694,134177.6015,0,0.078200402,0.063624432
+Dupixent Pen,Dupilumab,,No,,"moderate-to-severe eczema, asthma, nasal polyps, COPD, eosinophilic esophagitis, and several other inflammatory conditions.",1,Sanofi-Aventis,"$1,081,417,350.80","1,144,006.56","274,533.00","41,263.00",27.72,$951.72,"$3,939.12","$26,207.92",0,0.074800746,0.063511085
+Cabometyx,Cabozantinib S-Malate,No,Yes,X,"Cancer (kidney, liver, thyroid and neuroendocrine cancers)",1,"Exelixis, Inc.",1109315042,1263204,43039,8210,153.8616322,878.2367759,25774.64723,135117.5447,0,0.087118865,0.083064396
+Revlimid,Lenalidomide,Yes,Yes,X,Cancer (Multiple Myeloma),1,Celgene/BMS,3859804789,4395154,216207,36967,118.8939865,878.2121963,17852.3581,104412.1727,0,-0.00553052,0.041777723
+Ibrance,Palbociclib,No,Yes,X,Cancer (Breast),1,Pfizer US Pharm,2020903604,2683726,128974,16015,167.5757727,753.0159391,15669.07752,126188.1739,0,0.085126981,0.06562132
+Vyndamax,Tafamidis,No,Yes,X,ATTR-CM (terminal),1,Pfizer US Pharm,1349659508,1835099,52375,7589,241.8103834,735.4695895,25769.15529,177844.1835,0,0.062676796,0.035156562
+Tagrisso,Osimertinib Mesylate,No,Yes,X,Cancer (EGFR-positive non-small cell lung cancer),1,Astrazeneca,1231962204,2163426,70847,9387,230.4704378,569.4504275,17389.05252,131241.3129,0,0.040296905,0.02778228
+Mounjaro,Tirzepatide,,No,,"Diabetes GLP-1, (Diabetes is fatal if unmanaged)",1,Eli Lilly & Co.,"$2,361,384,157.10","4,374,599.50","1,821,486.00","370,203.00",11.82,$539.82,"$1,296.41","$6,378.62",0,0.049363618,0.049363618
+Lenvima,Lenvatinib Mesylate,No,Yes,X,"Cancer (thyroid, liver, kidney, endometrial cancers)",1,Eisai Inc.,778834823.9,1842278,32513,7904,233.0817308,492.9720953,23954.5666,98536.79452,0,0.103702018,0.096242399
+Imbruvica,Ibrutinib,No,Yes,X,Cancer (Blood),1,"Pharmacyclics,",2371893292,5656766,152032,17100,330.8050292,486.6250737,15601.27665,138707.21,0,0.057813997,0.075712999
+Trulicity,Dulaglutide,,No,,Diabetes,1,Eli Lilly & Co.,"$7,363,856,224.30","15,240,416.42","5,316,020.00","938,731.00",16.24,$483.21,"$1,385.22","$7,844.48",0,0.052715557,0.060885502
+Sprycel,Dasatinib,No,Yes,X,Cancer (Leukemia),1,BMS Primarycare,510233994.6,1174244.998,37783,5120,229.3447262,444.7860938,13504.3272,99655.07707,0,0.064746455,0.054563164
+Opsumit,Macitentan,No,Yes,X,Pulmonary Arterial (fatal if untreated),1,Actelion Pharma,1018837123,2399203,79581,9031,265.6630495,424.6564892,12802.51722,112815.5379,0,0.082639041,0.062600426
+Promacta,Eltrombopag Olamine,No,Yes,X,"ITP (can be fatal), Hep C, Aplastic Anemia",1,Novartis,557676106.3,1373284,39505,5708,240.5893483,397.6819987,14116.59553,97700.78946,0,0.113243765,0.096315473
+Ozempic,Semaglutide,,No,,"Diabetes GLP-1, (Diabetes is fatal if unmanaged)",1,Novo Nordisk,"$9,194,048,435.10","26,990,261.40","6,927,972.00","1,464,468.00",18.43,$355.90,"$1,327.09","$6,278.08",0,-0.239917246,-0.041883577
+Uptravi,Selexipag,No,Yes,X,Pulmonary Arterial (fatal if untreated),1,Actelion Pharma,758070464.2,2296260,33016,3727,616.1148377,353.0765996,22960.69979,203399.6416,0,0.095789375,0.074431306
+Abrysvo,"Rsv Vacc, Pref A And Pref B/PF",,No,,RSV Vaccine,1,Pfizer US Pharm,"$698,160,177.70","2,133,059.80","2,133,980.00","2,131,906.00",1.00,$327.30,$327.16,$327.48,0,,
+Trikafta,Elexacaftor/Tezacaftor/IVacaft,No,Yes,,Cystic Fibrosis,1,Vertex Pharmace,674525362.1,2097534,24611,2534,827.7561168,321.5836724,27407.47479,266189.9614,0,0.011025269,0.026694055
