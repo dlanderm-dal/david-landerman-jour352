@@ -22,16 +22,13 @@ library(rio)
 library(lubridate)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r}
+Scratch work
+#```{r}
 medicare_2023_d<-read_csv("medicare_d_2023_full_list.csv")
 ```
 
-```{r}
-medicare_2023_d_set1<-medicare_2023_d %>% 
+#```{r}
+#medicare_2023_d_set1<-medicare_2023_d %>% 
   filter(Tot_Dsg_Unts_2023>1000000) %>% 
   arrange(desc("Avg_Spnd_Per_Dsg_Unt_Wghtd_2023")) %>% 
   filter(Mftr_Name!="Overall") %>% 
@@ -41,7 +38,8 @@ medicare_2023_d_set1<-medicare_2023_d %>%
 
 
 START HERE
-#bring in filtered medicare drug list
+#bring in filtered medicare drug list source:
+https://data.cms.gov/summary-statistics-on-use-and-payments/medicare-medicaid-spending-by-drug/medicare-part-d-spending-by-drug
 List was filtered:
 Drugs with over 1million doses in 2023
 Sorted by highest cost/dose in 2023
