@@ -362,4 +362,134 @@ cat(round(x_min, 2), ",", round(y_lower_at_xmin, 2), ",",
     round(x_max, 2), ",", round(y_lower_at_xmax, 2),
     " @color:gray @opacity:0.3\n")
 ```
+#Revlimid Price History
+
+Step 1: Load Revlimid Filtered Medicare Data-This would be broken down from step 1 were this a data project but I did it in excel
+```{r}
+revlimid_medicare_dose_cost<-read_csv("Revlimid_Medicare.csv", skip=1) %>% 
+  clean_names() %>% 
+  mutate(medicare_avg_cost_unit = as.numeric(gsub("[$,]", "", medicare_avg_cost_unit))) %>% 
+  mutate(medicare_avg_cost_unit = round(medicare_avg_cost_unit, 2)) %>% 
+  glimpse()
+
+```
+
+```{r}
+revlimid_medicare_dose_cost <- revlimid_medicare_dose_cost %>%
+  rowwise() %>%
+  mutate(date = list(c(ymd(paste0(year, "-01-01")), ymd(paste0(year, "-12-31"))))) %>%
+  unnest(date) %>%
+  ungroup() 
+```
+
+Step 2 Load in historic Price Info
+```{r}
+revlimid_full_list_price_history<-read_csv("Revlimid_List_Price.csv", skip=1) %>% 
+  slice(1:(n()-8)) %>% 
+  clean_names() %>% 
+  mutate(effective_date=mdy(effective_date))
+glimpse(revlimid_full_list_price_history)
+  
+```
+Bring to wide format, pivot table
+```{r}
+revlimid_wide <- revlimid_full_list_price_history %>%
+  mutate(drug_id = paste(identifier, dosage, package_size, sep = "_")) %>%
+  select(effective_date, drug_id, unit) %>%
+  pivot_wider(names_from = drug_id, values_from = unit)
+```
+
+Fill in blank spots with previously known prices
+```{r}
+revlimid_wide_fill <- revlimid_wide %>%
+  arrange(effective_date) %>%
+  fill(everything(), .direction = "down")
+```
+
+Create Averages
+```{r}
+revlimid_wide_fill <- revlimid_wide_fill %>%
+  mutate(avg_price = rowMeans(select(., -effective_date), na.rm = TRUE))
+```
+
+Slim down datasets to just whats going into datawrapper, join
+```{r}
+revlimid_avg_prices_dw <- revlimid_wide_fill %>%
+  select(date = effective_date, avg_price)
+
+revlimid_medicare_dose_dw <- revlimid_medicare_dose_cost %>%
+  select(date, medicare_avg_cost_unit)
+
+#revlimid average price per dose history compared with revilimid medicare spending
+dw_revlimid_price_hist_medicare_comp <- revlimid_avg_prices_dw %>%
+  full_join(revlimid_medicare_dose_dw, by = "date")
+
+```
+
+
+Fill down
+```{r}
+dw_revlimid_price_hist_medicare_comp <- dw_revlimid_price_hist_medicare_comp %>%
+  arrange(date) %>%
+  fill(avg_price, .direction = "down") %>%
+  mutate(year = year(date)) %>%
+  group_by(year) %>%
+  fill(medicare_avg_cost_unit, .direction = "down") %>%
+  ungroup()
+```
+
+```{r}
+write.csv(dw_revlimid_price_hist_medicare_comp, "datawrapper_revlimid_medicare_price_comparison.csv", row.names = FALSE, na="")
+```
+
+Revlimid Inflation Comparison
+
+```{r}
+revlimid_5mg <- revlimid_wide_fill %>%
+  select(effective_date, `59572-0405-00_5 mg_100s ea`)
+```
+
+
+Inflation Rates
+```{r}
+Inflation_Rates<-read_csv("Inflation_Rates.csv") %>%
+  select(-Ave) %>%
+  pivot_longer(cols = -Year, names_to = "month", values_to = "rate") %>% 
+  filter(!is.na(Year))
+```
+```{r}
+Inflation_Rates_dates <- Inflation_Rates %>%
+  mutate(date = ymd(paste(Year, month, "01", sep = "-")))
+head(Inflation_Rates)
+```
+
+```{r}
+Inflation_Rates_dates <- Inflation_Rates_dates %>%
+  filter(date >= ymd("2005-12-01"))
+```
+
+Inflating Start Price of 258 dollars
+```{r}
+Inflation_Rates_final <- Inflation_Rates_dates %>%
+  arrange(date) %>%
+  mutate(
+    rate_monthly = (rate / 100) / 12,
+    #divide by 12 for annual->monthly
+    inflated_value = 258 * cumprod(1 + rate_monthly)
+  )
+```
+
+Join With 5 mg
+```{r}
+inflation_join <- Inflation_Rates_final %>%
+  select(date, inflated_value)
+
+revlimid_5mg_inflation <- revlimid_5mg %>%
+  full_join(inflation_join, by = c("effective_date" = "date")) %>%
+  arrange(effective_date)
+
+```
+```{r}
+write.csv(revlimid_5mg_inflation, "dw_revlimid_5mg_history_inflation.csv", row.names = FALSE, na="")
+```
 

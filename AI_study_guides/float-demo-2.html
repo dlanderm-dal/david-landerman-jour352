@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Float Demo — Text Wrapping</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #ff6b35;
+      font-family: Arial, sans-serif;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #8892b0;
+      margin-bottom: 2rem;
+    }
+
+    /* ============================================
+       CONTROLS
+       ============================================ */
+    .controls {
+      background-color: #16213e;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls label {
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      color: #8892b0;
+    }
+
+    .controls select {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: none;
+      background-color: #0a0a14;
+      color: #e8e8e8;
+      cursor: pointer;
+    }
+
+    .current-css {
+      margin-left: auto;
+      font-family: monospace;
+      background-color: #0a0a14;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      color: #4ecca3;
+    }
+
+    /* ============================================
+       DEMO AREA
+       ============================================ */
+    .demo-container {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 2rem;
+      color: #333;
+    }
+
+    .demo-container h2 {
+      font-family: Arial, sans-serif;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #1a1a2e;
+    }
+
+    .article-demo {
+      line-height: 1.7;
+    }
+
+    .article-demo p {
+      margin-bottom: 1rem;
+    }
+
+    /* ============================================
+       PULL QUOTE STYLES
+       ============================================ */
+    .pull-quote {
+      width: 220px;
+      padding: 1.5rem;
+      margin: 0.5rem;
+      background: linear-gradient(135deg, #ff6b35, #d4532a);
+      border-radius: 8px;
+      color: white;
+      /* float will be set by JavaScript */
+    }
+
+    .pull-quote p {
+      font-size: 1.1rem;
+      font-style: italic;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .pull-quote footer {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    /* Float variations */
+    .pull-quote.float-none {
+      float: none;
+    }
+
+    .pull-quote.float-right {
+      float: right;
+      margin-left: 1.5rem;
+      margin-right: 0;
+    }
+
+    .pull-quote.float-left {
+      float: left;
+      margin-right: 1.5rem;
+      margin-left: 0;
+    }
+
+    /* ============================================
+       EXPLANATION BOX
+       ============================================ */
+    .explanation {
+      background-color: #16213e;
+      border-left: 4px solid #4ecca3;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .explanation h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .explanation p {
+      color: #b8c5d6;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .explanation p:last-child {
+      margin-bottom: 0;
+    }
+
+    .explanation code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       VISUAL INDICATOR
+       ============================================ */
+    .flow-indicator {
+      display: inline-block;
+      background-color: #4ecca3;
+      color: #1a1a2e;
+      font-family: Arial, sans-serif;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      margin-left: 0.5rem;
+    }
+
+    /* ============================================
+       CODE REFERENCE SECTION
+       ============================================ */
+    .code-section {
+      margin-top: 2rem;
+      background-color: #16213e;
+      border-radius: 8px;
+      padding: 2rem;
+    }
+
+    .code-section h2 {
+      font-family: Arial, sans-serif;
+      color: #ff6b35;
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .code-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.75rem 1rem;
+    }
+
+    .code-header.html-header {
+      background-color: #e44d26;
+      color: white;
+    }
+
+    .code-header.css-header {
+      background-color: #264de4;
+      color: white;
+    }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .code-block code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      color: #e8e8e8;
+    }
+
+    /* Syntax highlighting */
+    .code-block .comment {
+      color: #6a737d;
+    }
+
+    .code-block .selector {
+      color: #4ecca3;
+    }
+
+    .code-block .prop {
+      color: #79c0ff;
+    }
+
+    .code-block .val {
+      color: #f7931e;
+    }
+
+    /* Key points box */
+    .key-points {
+      background-color: #0a0a14;
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .key-points h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .key-points ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .key-points li {
+      color: #b8c5d6;
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .key-points li:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-points code {
+      background-color: #16213e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>Float: Making Text Wrap</h1>
+  <p class="subtitle">Use the dropdown to see how different float values affect the pull quote.</p>
+
+  <div class="controls">
+    <label for="float-select">Float value:</label>
+    <select id="float-select">
+      <option value="none">none (default — no floating)</option>
+      <option value="right" selected>right</option>
+      <option value="left">left</option>
+    </select>
+    <div class="current-css">.pull-quote { float: <span id="css-value">right</span>; }</div>
+  </div>
+
+  <div class="demo-container">
+    <h2>Article Example</h2>
+    
+    <div class="article-demo">
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+
+      <blockquote class="pull-quote float-right" id="demo-quote">
+        <p>"Design is not just what it looks like. Design is how it works."</p>
+        <footer>— Steve Jobs</footer>
+      </blockquote>
+
+      <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
+
+      <p>Accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
+
+      <p>Sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.</p>
+    </div>
+  </div>
+
+  <div class="explanation" id="explanation">
+    <h3>What's happening with <code>float: right</code></h3>
+    <p>The blockquote slides to the <strong>right edge</strong> of its container. The paragraphs that come after it in the HTML flow around it on the left side.</p>
+    <p>Notice: the quote is still "in the flow" enough that text respects its space — unlike <code>position: absolute</code> where text would go right under it.</p>
+  </div>
+
+  <!-- ============================================
+       CODE REFERENCE SECTION
+       ============================================ -->
+  <div class="code-section">
+    <h2>The Code — Example</h2>
+    
+    <div class="code-columns">
+      <!-- HTML Column -->
+      <div class="code-block">
+        <div class="code-header html-header">HTML</div>
+        <pre><code>&lt;article&gt;
+
+  &lt;p&gt;Generic text...&lt;/p&gt;
+
+  &lt;blockquote class="pull-quote"&gt;
+    &lt;p&gt;"Your quote here."&lt;/p&gt;
+    &lt;footer&gt;— Speaker Name&lt;/footer&gt;
+  &lt;/blockquote&gt;
+
+  &lt;p&gt;More generic text... this paragraph
+     will wrap around the pull quote.&lt;/p&gt;
+
+  &lt;p&gt;Another paragraph... continues to
+     wrap until it clears the quote.&lt;/p&gt;
+
+&lt;/article&gt;</code></pre>
+      </div>
+
+      <!-- CSS Column -->
+      <div class="code-block">
+        <div class="code-header css-header">CSS</div>
+        <pre><code><span class="comment">/* The container */</span>
+<span class="selector">article</span> {
+  <span class="prop">font-family</span>: <span class="val">Georgia, serif</span>;
+  <span class="prop">font-size</span>: <span class="val">1rem</span>;
+  <span class="prop">line-height</span>: <span class="val">1.7</span>;
+  <span class="prop">color</span>: <span class="val">#333</span>;
+  <span class="prop">max-width</span>: <span class="val">800px</span>;      <span class="comment">/* Readable width */</span>
+  <span class="prop">padding</span>: <span class="val">2rem</span>;
+  <span class="prop">background</span>: <span class="val">#f5f5f5</span>;   <span class="comment">/* Light background */</span>
+}
+
+<span class="comment">/* Paragraph spacing */</span>
+<span class="selector">article p</span> {
+  <span class="prop">margin-bottom</span>: <span class="val">1rem</span>;
+}
+
+<span class="comment">/* The pull quote box */</span>
+<span class="selector">.pull-quote</span> {
+  <span class="prop">float</span>: <span class="val">right</span>;        <span class="comment">/* THE KEY LINE */</span>
+  <span class="prop">width</span>: <span class="val">220px</span>;        <span class="comment">/* Must set a width */</span>
+  <span class="prop">margin</span>: <span class="val">0.5rem</span>;
+  <span class="prop">margin-left</span>: <span class="val">1.5rem</span>; <span class="comment">/* Space from text */</span>
+  <span class="prop">padding</span>: <span class="val">1.5rem</span>;
+  <span class="prop">background</span>: <span class="val">#ff6b35</span>;
+  <span class="prop">border-radius</span>: <span class="val">8px</span>;
+  <span class="prop">color</span>: <span class="val">white</span>;
+}
+
+<span class="comment">/* The quote text */</span>
+<span class="selector">.pull-quote p</span> {
+  <span class="prop">font-size</span>: <span class="val">1.1rem</span>;
+  <span class="prop">font-style</span>: <span class="val">italic</span>;
+  <span class="prop">margin-bottom</span>: <span class="val">0.75rem</span>;
+}
+
+<span class="comment">/* The attribution */</span>
+<span class="selector">.pull-quote footer</span> {
+  <span class="prop">font-size</span>: <span class="val">0.8rem</span>;
+  <span class="prop">text-align</span>: <span class="val">right</span>;
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Key points callout -->
+    <div class="key-points">
+      <h3>🔑 Key Things to Notice</h3>
+      <ul>
+        <li><strong>You must set a width</strong> on the floated element. Without it, the blockquote tries to be full-width and there's no room for text to wrap.</li>
+        <li><strong>margin-left</strong> (for float: right) creates breathing room between the quote and the wrapping text. Use <code>margin-right</code> if you're floating left.</li>
+        <li><strong>The HTML order matters.</strong> The blockquote should come <em>before</em> the paragraphs you want to wrap around it.</li>
+        <li><strong>No extra divs needed.</strong> The paragraphs don't need wrappers — they just flow around naturally.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const select = document.getElementById('float-select');
+    const quote = document.getElementById('demo-quote');
+    const cssValue = document.getElementById('css-value');
+    const explanation = document.getElementById('explanation');
+
+    const explanations = {
+      none: `<h3>What's happening with <code>float: none</code></h3>
+        <p>This is the <strong>default behavior</strong> — no floating at all. The blockquote just sits in the normal document flow, taking up the full width available, with paragraphs stacking above and below it.</p>
+        <p>This is what you'd get if you didn't use float at all. Text doesn't wrap — everything just stacks vertically.</p>`,
+      
+      right: `<h3>What's happening with <code>float: right</code></h3>
+        <p>The blockquote slides to the <strong>right edge</strong> of its container. The paragraphs that come after it in the HTML flow around it on the left side.</p>
+        <p>Notice: the quote is still "in the flow" enough that text respects its space — unlike <code>position: absolute</code> where text would go right under it.</p>`,
+      
+      left: `<h3>What's happening with <code>float: left</code></h3>
+        <p>The blockquote slides to the <strong>left edge</strong> of its container. The paragraphs that come after it in the HTML flow around it on the right side.</p>
+        <p>Same principle as float right, just mirrored. The text still wraps — it just wraps on the opposite side.</p>`
+    };
+
+    select.addEventListener('change', function() {
+      const value = this.value;
+      
+      // Update classes
+      quote.className = 'pull-quote float-' + value;
+      
+      // Update CSS display
+      cssValue.textContent = value;
+      
+      // Update explanation
+      explanation.innerHTML = explanations[value];
+    });
+  </script>
+
+</body>
+</html>

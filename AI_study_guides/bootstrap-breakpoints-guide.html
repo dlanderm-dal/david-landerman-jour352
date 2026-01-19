@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootstrap Media Queries: Interactive Guide</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #7952b3 0%, #5a3d8a 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      color: white;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.85);
+      margin-top: 0.5rem;
+    }
+
+    /* ============================================
+       NAVIGATION
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      padding: 1rem 1.25rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #7952b3;
+      color: white;
+      border-bottom: 3px solid #4ecca3;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       INTRO BOX
+       ============================================ */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #7952b3;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #7952b3;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    .intro-box p + p {
+      margin-top: 1rem;
+    }
+
+    .intro-box code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       SECTION HEADERS
+       ============================================ */
+    .section-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.2rem;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid;
+    }
+
+    .section-header.purple { color: #7952b3; border-color: #7952b3; }
+    .section-header.teal { color: #4ecca3; border-color: #4ecca3; }
+    .section-header.orange { color: #ff6b35; border-color: #ff6b35; }
+    .section-header.blue { color: #60a5fa; border-color: #60a5fa; }
+
+    /* ============================================
+       EXPLANATION TEXT
+       ============================================ */
+    .explanation {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .explanation code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       BREAKPOINT REFERENCE
+       ============================================ */
+    .breakpoint-chart {
+      display: flex;
+      margin: 1.5rem 0;
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .breakpoint-item {
+      flex: 1;
+      padding: 1rem;
+      text-align: center;
+      border-right: 1px solid #16213e;
+      transition: background-color 0.2s;
+    }
+
+    .breakpoint-item:last-child {
+      border-right: none;
+    }
+
+    .breakpoint-item.active {
+      background-color: #7952b3;
+    }
+
+    .breakpoint-item.active .bp-name,
+    .breakpoint-item.active .bp-pixels,
+    .breakpoint-item.active .bp-desc {
+      color: white;
+    }
+
+    .bp-name {
+      font-family: monospace;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #4ecca3;
+    }
+
+    .bp-pixels {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #8892b0;
+      margin-top: 0.25rem;
+    }
+
+    .bp-desc {
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+    }
+
+    /* ============================================
+       VIEWPORT SIMULATOR
+       ============================================ */
+    .simulator-container {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .simulator-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .simulator-controls label {
+      font-family: Arial, sans-serif;
+      font-size: 0.85rem;
+      color: #8892b0;
+    }
+
+    .width-slider {
+      flex: 1;
+      min-width: 200px;
+      height: 8px;
+      -webkit-appearance: none;
+      background: linear-gradient(to right, 
+        #e94560 0%, #e94560 16.6%,
+        #f59e0b 16.6%, #f59e0b 33.2%,
+        #4ecca3 33.2%, #4ecca3 49.8%,
+        #3b82f6 49.8%, #3b82f6 66.4%,
+        #8b5cf6 66.4%, #8b5cf6 83%,
+        #ec4899 83%, #ec4899 100%
+      );
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .width-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .width-display {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: #4ecca3;
+      min-width: 80px;
+    }
+
+    .current-breakpoint {
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      background-color: #7952b3;
+      color: white;
+    }
+
+    .viewport-frame {
+      background-color: #16213e;
+      border: 3px solid #0f3460;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      overflow: hidden;
+      transition: max-width 0.3s ease;
+    }
+
+    .viewport-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .sim-column {
+      background-color: #7952b3;
+      padding: 1rem;
+      border-radius: 4px;
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      transition: flex-basis 0.3s ease;
+    }
+
+    /* ============================================
+       COLUMN BUILDER
+       ============================================ */
+    .builder-panel {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .builder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .builder-header span {
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #7952b3;
+    }
+
+    .add-column-btn,
+    .reset-btn {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: 0.5rem;
+    }
+
+    .add-column-btn:hover,
+    .reset-btn:hover {
+      background-color: #3db892;
+    }
+
+    .reset-btn {
+      background-color: #6b7280;
+    }
+
+    .reset-btn:hover {
+      background-color: #4b5563;
+    }
+
+    .column-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      background-color: #16213e;
+      border-radius: 6px;
+      flex-wrap: wrap;
+    }
+
+    .column-label {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      color: #8892b0;
+      min-width: 60px;
+    }
+
+    .bp-select {
+      padding: 0.4rem 0.5rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      background-color: #0a0a14;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #e8e8e8;
+      min-width: 70px;
+    }
+
+    .bp-select:focus {
+      outline: none;
+      border-color: #4ecca3;
+    }
+
+    .delete-col-btn {
+      background: none;
+      border: none;
+      color: #6b7280;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.25rem;
+      margin-left: auto;
+      transition: color 0.15s;
+    }
+
+    .delete-col-btn:hover {
+      color: #e94560;
+    }
+
+    .generated-classes {
+      background-color: #16213e;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .generated-label {
+      font-family: Arial, sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      margin-bottom: 0.5rem;
+    }
+
+    .generated-code {
+      font-family: monospace;
+      font-size: 1rem;
+      color: #4ecca3;
+      word-break: break-all;
+    }
+
+    /* ============================================
+       UTILITY BUILDER
+       ============================================ */
+    .utility-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 2px;
+      background-color: #0f3460;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .utility-cell {
+      background-color: #16213e;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+
+    .utility-cell.header {
+      background-color: #0a0a14;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #4ecca3;
+      cursor: default;
+    }
+
+    .utility-cell.row-label {
+      background-color: #0a0a14;
+      font-family: Arial, sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      cursor: default;
+    }
+
+    .utility-cell.selectable:hover {
+      background-color: #1e3a5f;
+    }
+
+    .utility-cell.selected {
+      background-color: #7952b3;
+    }
+
+    .utility-cell.selected .cell-icon {
+      color: white;
+    }
+
+    .cell-icon {
+      font-size: 1rem;
+      color: #6b7280;
+    }
+
+    .utility-result {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .utility-classes {
+      font-family: monospace;
+      font-size: 1rem;
+      color: #4ecca3;
+      margin-bottom: 1rem;
+    }
+
+    .utility-preview {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .preview-bp {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 0.7rem;
+    }
+
+    .preview-bp.visible {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .preview-bp.hidden {
+      background-color: #374151;
+      color: #6b7280;
+    }
+
+    /* ============================================
+       CODE BLOCK
+       ============================================ */
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-header {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.75rem 1rem;
+      background-color: #264de4;
+      color: white;
+    }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .code-block code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      color: #e8e8e8;
+    }
+
+    .comment { color: #6a737d; }
+    .selector { color: #4ecca3; }
+    .prop { color: #79c0ff; }
+    .val { color: #f7931e; }
+
+    /* ============================================
+       KEY INSIGHT BOX
+       ============================================ */
+    .key-insight {
+      background-color: #0a0a14;
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .key-insight h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .key-insight ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .key-insight li {
+      color: #b8c5d6;
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .key-insight li:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-insight code {
+      background-color: #16213e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       MEDIA QUERY BUILDER
+       ============================================ */
+    .mq-builder {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .mq-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .mq-label {
+      font-family: Arial, sans-serif;
+      font-size: 0.85rem;
+      color: #8892b0;
+    }
+
+    .mq-select,
+    .mq-input {
+      padding: 0.5rem 0.75rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      background-color: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #e8e8e8;
+    }
+
+    .mq-select:focus,
+    .mq-input:focus {
+      outline: none;
+      border-color: #4ecca3;
+    }
+
+    .mq-input {
+      width: 80px;
+    }
+
+    .mq-output {
+      background-color: #16213e;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .mq-output-label {
+      font-family: Arial, sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      margin-bottom: 0.5rem;
+    }
+
+    .mq-output-code {
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: #4ecca3;
+      line-height: 1.6;
+    }
+
+    .mq-explanation {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #0f3460;
+      font-size: 0.85rem;
+      color: #8892b0;
+      line-height: 1.6;
+    }
+
+    /* ============================================
+       COMPARISON TABLE
+       ============================================ */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border: 1px solid #0f3460;
+    }
+
+    .comparison-table th {
+      background-color: #16213e;
+      font-family: Arial, sans-serif;
+      color: #7952b3;
+      font-size: 0.8rem;
+    }
+
+    .comparison-table td {
+      background-color: #0a0a14;
+      color: #b8c5d6;
+    }
+
+    .comparison-table code {
+      background-color: #16213e;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      color: #4ecca3;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #8892b0;
+      font-size: 0.85rem;
+      border-top: 1px solid #0f3460;
+      margin-top: 2rem;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Bootstrap Media Queries</h1>
+    <p class="subtitle">Interactive guide to responsive breakpoints, columns, and utility classes</p>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="tab-breakpoints">Breakpoints</button>
+      <button class="tab-btn" data-tab="tab-columns">Column Builder</button>
+      <button class="tab-btn" data-tab="tab-utilities">Show/Hide Utilities</button>
+      <button class="tab-btn" data-tab="tab-custom">Custom Media Queries</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============================================
+         TAB 1: BREAKPOINTS
+         ============================================ -->
+    <div id="tab-breakpoints" class="tab-content active">
+
+      <div class="intro-box">
+        <h2>What Are Breakpoints?</h2>
+        <p>Breakpoints are specific viewport widths where your layout changes. Bootstrap defines 6 breakpoints. When you use a class like <code>col-md-6</code>, the "md" means "at medium screens and up."</p>
+      </div>
+
+      <h3 class="section-header purple">The 6 Bootstrap Breakpoints</h3>
+
+      <div class="breakpoint-chart" id="breakpointChart">
+        <div class="breakpoint-item" data-bp="xs">
+          <div class="bp-name">xs</div>
+          <div class="bp-pixels">&lt;576px</div>
+          <div class="bp-desc">Extra small (phones)</div>
+        </div>
+        <div class="breakpoint-item" data-bp="sm">
+          <div class="bp-name">sm</div>
+          <div class="bp-pixels">≥576px</div>
+          <div class="bp-desc">Small (large phones)</div>
+        </div>
+        <div class="breakpoint-item" data-bp="md">
+          <div class="bp-name">md</div>
+          <div class="bp-pixels">≥768px</div>
+          <div class="bp-desc">Medium (tablets)</div>
+        </div>
+        <div class="breakpoint-item" data-bp="lg">
+          <div class="bp-name">lg</div>
+          <div class="bp-pixels">≥992px</div>
+          <div class="bp-desc">Large (desktops)</div>
+        </div>
+        <div class="breakpoint-item" data-bp="xl">
+          <div class="bp-name">xl</div>
+          <div class="bp-pixels">≥1200px</div>
+          <div class="bp-desc">Extra large</div>
+        </div>
+        <div class="breakpoint-item" data-bp="xxl">
+          <div class="bp-name">xxl</div>
+          <div class="bp-pixels">≥1400px</div>
+          <div class="bp-desc">Extra extra large</div>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">Interactive: See Breakpoints in Action</h3>
+
+      <div class="simulator-container">
+        <div class="simulator-controls">
+          <label>Viewport Width:</label>
+          <input type="range" class="width-slider" id="viewportSlider" min="320" max="1600" value="800">
+          <span class="width-display" id="widthDisplay">800px</span>
+          <span class="current-breakpoint" id="currentBreakpoint">md</span>
+        </div>
+
+        <div class="viewport-frame" id="viewportFrame">
+          <div class="viewport-content" id="viewportContent">
+            <div class="sim-column" style="flex: 0 0 calc(50% - 0.25rem);">col-md-6</div>
+            <div class="sim-column" style="flex: 0 0 calc(50% - 0.25rem);">col-md-6</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 Key Concept: Mobile-First</h3>
+        <ul>
+          <li>Bootstrap is <strong>mobile-first</strong>: styles apply from that breakpoint <strong>and up</strong></li>
+          <li><code>col-md-6</code> means "6 columns at md (768px) AND ABOVE"</li>
+          <li>Below md, the column defaults to full width (12 columns)</li>
+          <li>To change behavior at smaller sizes, add more classes: <code>col-12 col-md-6</code></li>
+        </ul>
+      </div>
+
+      <h3 class="section-header orange">The Pixel Values to Memorize</h3>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Breakpoint</th>
+          <th>Min-Width</th>
+          <th>Typical Devices</th>
+          <th>Class Infix</th>
+        </tr>
+        <tr>
+          <td>Extra small</td>
+          <td><code>&lt;576px</code></td>
+          <td>Portrait phones</td>
+          <td><code>(none)</code> or <code>col-*</code></td>
+        </tr>
+        <tr>
+          <td>Small</td>
+          <td><code>≥576px</code></td>
+          <td>Landscape phones</td>
+          <td><code>-sm-</code></td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td><code>≥768px</code></td>
+          <td>Tablets</td>
+          <td><code>-md-</code></td>
+        </tr>
+        <tr>
+          <td>Large</td>
+          <td><code>≥992px</code></td>
+          <td>Desktops</td>
+          <td><code>-lg-</code></td>
+        </tr>
+        <tr>
+          <td>Extra large</td>
+          <td><code>≥1200px</code></td>
+          <td>Large desktops</td>
+          <td><code>-xl-</code></td>
+        </tr>
+        <tr>
+          <td>Extra extra large</td>
+          <td><code>≥1400px</code></td>
+          <td>Larger desktops</td>
+          <td><code>-xxl-</code></td>
+        </tr>
+      </table>
+
+    </div>
+
+    <!-- ============================================
+         TAB 2: COLUMN BUILDER
+         ============================================ -->
+    <div id="tab-columns" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Build Responsive Column Layouts</h2>
+        <p>Set how many columns each item takes at different breakpoints. Watch how the layout changes as you adjust the viewport width.</p>
+      </div>
+
+      <div class="builder-panel">
+        <div class="builder-header">
+          <span>Columns</span>
+          <div>
+            <button class="reset-btn" id="resetColumnsBtn">Reset</button>
+            <button class="add-column-btn" id="addColumnBtn">+ Add Column</button>
+          </div>
+        </div>
+
+        <div id="columnsList">
+          <!-- Columns will be added here -->
+        </div>
+
+        <div class="generated-classes">
+          <div class="generated-label">Generated HTML:</div>
+          <div class="generated-code" id="generatedHtml"></div>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">Live Preview</h3>
+
+      <div class="simulator-container">
+        <div class="simulator-controls">
+          <label>Viewport Width:</label>
+          <input type="range" class="width-slider" id="columnViewportSlider" min="320" max="1600" value="800">
+          <span class="width-display" id="columnWidthDisplay">800px</span>
+          <span class="current-breakpoint" id="columnCurrentBreakpoint">md</span>
+        </div>
+
+        <div class="viewport-frame" id="columnViewportFrame">
+          <div class="viewport-content" id="columnPreview">
+            <!-- Preview columns will be rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 How Column Classes Work</h3>
+        <ul>
+          <li><code>col-12</code> = full width (12/12 columns) at all sizes</li>
+          <li><code>col-md-6</code> = half width (6/12) at medium and up, full width below</li>
+          <li><code>col-6 col-md-4 col-lg-3</code> = half on mobile, third on tablet, quarter on desktop</li>
+          <li>Columns should add up to 12 (or less) per row</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         TAB 3: SHOW/HIDE UTILITIES
+         ============================================ -->
+    <div id="tab-utilities" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Responsive Display Utilities</h2>
+        <p>Bootstrap's <code>d-*</code> classes let you show or hide elements at different breakpoints. Click the grid below to set visibility at each breakpoint.</p>
+      </div>
+
+      <h3 class="section-header purple">Click to Toggle Visibility at Each Breakpoint</h3>
+
+      <div class="utility-grid" id="utilityGrid">
+        <div class="utility-cell header">xs</div>
+        <div class="utility-cell header">sm</div>
+        <div class="utility-cell header">md</div>
+        <div class="utility-cell header">lg</div>
+        <div class="utility-cell header">xl</div>
+        <div class="utility-cell header">xxl</div>
+        
+        <div class="utility-cell selectable" data-bp="xs" data-visible="true">
+          <span class="cell-icon">👁️</span>
+        </div>
+        <div class="utility-cell selectable" data-bp="sm" data-visible="true">
+          <span class="cell-icon">👁️</span>
+        </div>
+        <div class="utility-cell selectable" data-bp="md" data-visible="true">
+          <span class="cell-icon">👁️</span>
+        </div>
+        <div class="utility-cell selectable" data-bp="lg" data-visible="true">
+          <span class="cell-icon">👁️</span>
+        </div>
+        <div class="utility-cell selectable" data-bp="xl" data-visible="true">
+          <span class="cell-icon">👁️</span>
+        </div>
+        <div class="utility-cell selectable" data-bp="xxl" data-visible="true">
+          <span class="cell-icon">👁️</span>
+        </div>
+      </div>
+
+      <div class="utility-result" id="utilityResult">
+        <div class="generated-label">Generated Classes:</div>
+        <div class="utility-classes" id="utilityClasses">d-block</div>
+        
+        <div class="generated-label" style="margin-top: 1rem;">Visibility Preview:</div>
+        <div class="utility-preview" id="utilityPreview">
+          <!-- Preview will be rendered here -->
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 Display Utility Patterns</h3>
+        <ul>
+          <li><code>d-none</code> = hidden at all sizes</li>
+          <li><code>d-block</code> = visible at all sizes</li>
+          <li><code>d-none d-md-block</code> = hidden on mobile, visible at md+</li>
+          <li><code>d-block d-lg-none</code> = visible until lg, then hidden</li>
+          <li><code>d-none d-md-block d-xl-none</code> = visible only between md and xl</li>
+        </ul>
+      </div>
+
+      <h3 class="section-header orange">Common Patterns</h3>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Pattern</th>
+          <th>Classes</th>
+          <th>Result</th>
+        </tr>
+        <tr>
+          <td>Mobile only</td>
+          <td><code>d-block d-md-none</code></td>
+          <td>Visible on xs/sm, hidden at md+</td>
+        </tr>
+        <tr>
+          <td>Desktop only</td>
+          <td><code>d-none d-lg-block</code></td>
+          <td>Hidden until lg, then visible</td>
+        </tr>
+        <tr>
+          <td>Tablet only</td>
+          <td><code>d-none d-md-block d-lg-none</code></td>
+          <td>Visible only at md</td>
+        </tr>
+        <tr>
+          <td>Hide on tablet</td>
+          <td><code>d-block d-md-none d-lg-block</code></td>
+          <td>Visible except at md</td>
+        </tr>
+      </table>
+
+    </div>
+
+    <!-- ============================================
+         TAB 4: CUSTOM MEDIA QUERIES
+         ============================================ -->
+    <div id="tab-custom" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Writing Your Own Media Queries</h2>
+        <p>Sometimes you need custom responsive CSS beyond Bootstrap's classes. Here's how to write media queries that match Bootstrap's breakpoints.</p>
+      </div>
+
+      <h3 class="section-header purple">Interactive Media Query Builder</h3>
+
+      <div class="mq-builder">
+        <div class="mq-row">
+          <span class="mq-label">I want styles to apply</span>
+          <select class="mq-select" id="mqDirection">
+            <option value="min">at and ABOVE</option>
+            <option value="max">at and BELOW</option>
+            <option value="between">BETWEEN</option>
+          </select>
+        </div>
+
+        <div class="mq-row" id="mqSingleRow">
+          <span class="mq-label">this breakpoint:</span>
+          <select class="mq-select" id="mqBreakpoint">
+            <option value="576">sm (576px)</option>
+            <option value="768" selected>md (768px)</option>
+            <option value="992">lg (992px)</option>
+            <option value="1200">xl (1200px)</option>
+            <option value="1400">xxl (1400px)</option>
+          </select>
+        </div>
+
+        <div class="mq-row" id="mqBetweenRow" style="display: none;">
+          <span class="mq-label">from:</span>
+          <select class="mq-select" id="mqMin">
+            <option value="576">sm (576px)</option>
+            <option value="768" selected>md (768px)</option>
+            <option value="992">lg (992px)</option>
+            <option value="1200">xl (1200px)</option>
+          </select>
+          <span class="mq-label">to:</span>
+          <select class="mq-select" id="mqMax">
+            <option value="575.98">below sm</option>
+            <option value="767.98">below md</option>
+            <option value="991.98" selected>below lg</option>
+            <option value="1199.98">below xl</option>
+            <option value="1399.98">below xxl</option>
+          </select>
+        </div>
+
+        <div class="mq-output">
+          <div class="mq-output-label">Generated CSS:</div>
+          <div class="mq-output-code" id="mqOutput"></div>
+          <div class="mq-explanation" id="mqExplanation"></div>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">min-width vs max-width</h3>
+
+      <div class="explanation">
+        <p>This is where people get confused. Here's the rule:</p>
+      </div>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Type</th>
+          <th>Syntax</th>
+          <th>Meaning</th>
+          <th>Use When</th>
+        </tr>
+        <tr>
+          <td>min-width</td>
+          <td><code>@media (min-width: 768px)</code></td>
+          <td>768px and LARGER</td>
+          <td>Mobile-first (Bootstrap's approach)</td>
+        </tr>
+        <tr>
+          <td>max-width</td>
+          <td><code>@media (max-width: 767.98px)</code></td>
+          <td>767.98px and SMALLER</td>
+          <td>Desktop-first or targeting small only</td>
+        </tr>
+      </table>
+
+      <div class="key-insight">
+        <h3>🔑 Why 767.98px and not 767px?</h3>
+        <ul>
+          <li>Bootstrap uses <code>.98</code> to avoid a 1px gap where both queries could match</li>
+          <li><code>min-width: 768px</code> + <code>max-width: 767.98px</code> = no overlap</li>
+          <li>If you used 767px, a viewport exactly 768px wide would match BOTH queries!</li>
+        </ul>
+      </div>
+
+      <h3 class="section-header orange">Bootstrap's Exact Media Queries</h3>
+
+      <div class="code-block">
+        <div class="code-header">CSS</div>
+        <pre><code><span class="comment">/* Small devices (landscape phones, 576px and up) */</span>
+<span class="selector">@media (min-width: 576px)</span> { ... }
+
+<span class="comment">/* Medium devices (tablets, 768px and up) */</span>
+<span class="selector">@media (min-width: 768px)</span> { ... }
+
+<span class="comment">/* Large devices (desktops, 992px and up) */</span>
+<span class="selector">@media (min-width: 992px)</span> { ... }
+
+<span class="comment">/* X-Large devices (large desktops, 1200px and up) */</span>
+<span class="selector">@media (min-width: 1200px)</span> { ... }
+
+<span class="comment">/* XX-Large devices (larger desktops, 1400px and up) */</span>
+<span class="selector">@media (min-width: 1400px)</span> { ... }</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">CSS - Targeting Below a Breakpoint</div>
+        <pre><code><span class="comment">/* Below sm (extra small only) */</span>
+<span class="selector">@media (max-width: 575.98px)</span> { ... }
+
+<span class="comment">/* Below md (sm and smaller) */</span>
+<span class="selector">@media (max-width: 767.98px)</span> { ... }
+
+<span class="comment">/* Below lg (md and smaller) */</span>
+<span class="selector">@media (max-width: 991.98px)</span> { ... }
+
+<span class="comment">/* Below xl (lg and smaller) */</span>
+<span class="selector">@media (max-width: 1199.98px)</span> { ... }
+
+<span class="comment">/* Below xxl (xl and smaller) */</span>
+<span class="selector">@media (max-width: 1399.98px)</span> { ... }</code></pre>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Bootstrap Media Queries · Interactive Study Guide</p>
+  </footer>
+
+  <script>
+    // ============================================
+    // TAB SWITCHING
+    // ============================================
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // ============================================
+    // BREAKPOINT HELPERS
+    // ============================================
+    const breakpoints = [
+      { name: 'xs', min: 0, max: 575 },
+      { name: 'sm', min: 576, max: 767 },
+      { name: 'md', min: 768, max: 991 },
+      { name: 'lg', min: 992, max: 1199 },
+      { name: 'xl', min: 1200, max: 1399 },
+      { name: 'xxl', min: 1400, max: 9999 }
+    ];
+
+    function getBreakpoint(width) {
+      for (let bp of breakpoints) {
+        if (width >= bp.min && width <= bp.max) {
+          return bp.name;
+        }
+      }
+      return 'xxl';
+    }
+
+    function updateBreakpointChart(bp) {
+      document.querySelectorAll('.breakpoint-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.bp === bp) {
+          item.classList.add('active');
+        }
+      });
+    }
+
+    // ============================================
+    // TAB 1: BREAKPOINTS SIMULATOR
+    // ============================================
+    const viewportSlider = document.getElementById('viewportSlider');
+    const widthDisplay = document.getElementById('widthDisplay');
+    const currentBreakpoint = document.getElementById('currentBreakpoint');
+    const viewportFrame = document.getElementById('viewportFrame');
+
+    viewportSlider.addEventListener('input', function() {
+      const width = this.value;
+      widthDisplay.textContent = width + 'px';
+      viewportFrame.style.maxWidth = width + 'px';
+      
+      const bp = getBreakpoint(parseInt(width));
+      currentBreakpoint.textContent = bp;
+      updateBreakpointChart(bp);
+    });
+
+    // Initialize
+    viewportSlider.dispatchEvent(new Event('input'));
+
+    // ============================================
+    // TAB 2: COLUMN BUILDER
+    // ============================================
+    let columns = [
+      { id: 0, xs: 12, sm: 12, md: 6, lg: 6, xl: 6, xxl: 6 },
+      { id: 1, xs: 12, sm: 12, md: 6, lg: 6, xl: 6, xxl: 6 }
+    ];
+    let columnIdCounter = 2;
+
+    function generateColumnClasses(col) {
+      const classes = [];
+      
+      // Start with xs (no infix)
+      let lastVal = col.xs;
+      classes.push(`col-${lastVal}`);
+      
+      // Add breakpoint-specific classes only when value changes
+      const bps = ['sm', 'md', 'lg', 'xl', 'xxl'];
+      bps.forEach(bp => {
+        if (col[bp] !== lastVal) {
+          classes.push(`col-${bp}-${col[bp]}`);
+          lastVal = col[bp];
+        }
+      });
+      
+      return classes.join(' ');
+    }
+
+    function getColumnWidthAtBreakpoint(col, bp) {
+      const bpOrder = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl'];
+      const bpIndex = bpOrder.indexOf(bp);
+      
+      // Find the applicable column width (cascade down)
+      for (let i = bpIndex; i >= 0; i--) {
+        if (col[bpOrder[i]] !== undefined) {
+          return col[bpOrder[i]];
+        }
+      }
+      return 12;
+    }
+
+    function createColumnRow(col, index) {
+      const row = document.createElement('div');
+      row.className = 'column-row';
+      row.dataset.id = col.id;
+
+      row.innerHTML = `
+        <span class="column-label">Column ${index + 1}</span>
+        <label style="font-size: 0.75rem; color: #6b7280;">xs:</label>
+        <select class="bp-select" data-bp="xs">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => 
+            `<option value="${n}" ${col.xs === n ? 'selected' : ''}>${n}</option>`
+          ).join('')}
+        </select>
+        <label style="font-size: 0.75rem; color: #6b7280;">sm:</label>
+        <select class="bp-select" data-bp="sm">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => 
+            `<option value="${n}" ${col.sm === n ? 'selected' : ''}>${n}</option>`
+          ).join('')}
+        </select>
+        <label style="font-size: 0.75rem; color: #6b7280;">md:</label>
+        <select class="bp-select" data-bp="md">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => 
+            `<option value="${n}" ${col.md === n ? 'selected' : ''}>${n}</option>`
+          ).join('')}
+        </select>
+        <label style="font-size: 0.75rem; color: #6b7280;">lg:</label>
+        <select class="bp-select" data-bp="lg">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => 
+            `<option value="${n}" ${col.lg === n ? 'selected' : ''}>${n}</option>`
+          ).join('')}
+        </select>
+        <label style="font-size: 0.75rem; color: #6b7280;">xl:</label>
+        <select class="bp-select" data-bp="xl">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => 
+            `<option value="${n}" ${col.xl === n ? 'selected' : ''}>${n}</option>`
+          ).join('')}
+        </select>
+        <label style="font-size: 0.75rem; color: #6b7280;">xxl:</label>
+        <select class="bp-select" data-bp="xxl">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n => 
+            `<option value="${n}" ${col.xxl === n ? 'selected' : ''}>${n}</option>`
+          ).join('')}
+        </select>
+        <button class="delete-col-btn" title="Delete">✕</button>
+      `;
+
+      // Event listeners
+      row.querySelectorAll('.bp-select').forEach(select => {
+        select.addEventListener('change', function() {
+          const bp = this.dataset.bp;
+          const val = parseInt(this.value);
+          col[bp] = val;
+          updateColumnUI();
+        });
+      });
+
+      row.querySelector('.delete-col-btn').addEventListener('click', () => {
+        columns = columns.filter(c => c.id !== col.id);
+        updateColumnUI();
+      });
+
+      return row;
+    }
+
+    function updateColumnUI() {
+      const list = document.getElementById('columnsList');
+      list.innerHTML = '';
+      columns.forEach((col, index) => {
+        list.appendChild(createColumnRow(col, index));
+      });
+
+      // Update generated HTML
+      const html = columns.map(col => 
+        `<div class="${generateColumnClasses(col)}">...</div>`
+      ).join('\n');
+      document.getElementById('generatedHtml').textContent = html;
+
+      // Update preview
+      updateColumnPreview();
+    }
+
+    function updateColumnPreview() {
+      const width = parseInt(document.getElementById('columnViewportSlider').value);
+      const bp = getBreakpoint(width);
+      const preview = document.getElementById('columnPreview');
+      
+      preview.innerHTML = columns.map((col, index) => {
+        const colWidth = getColumnWidthAtBreakpoint(col, bp);
+        const percent = (colWidth / 12 * 100);
+        return `<div class="sim-column" style="flex: 0 0 calc(${percent}% - 0.5rem);">
+          ${generateColumnClasses(col)}
+        </div>`;
+      }).join('');
+    }
+
+    // Column viewport slider
+    const columnViewportSlider = document.getElementById('columnViewportSlider');
+    const columnWidthDisplay = document.getElementById('columnWidthDisplay');
+    const columnCurrentBreakpoint = document.getElementById('columnCurrentBreakpoint');
+    const columnViewportFrame = document.getElementById('columnViewportFrame');
+
+    columnViewportSlider.addEventListener('input', function() {
+      const width = this.value;
+      columnWidthDisplay.textContent = width + 'px';
+      columnViewportFrame.style.maxWidth = width + 'px';
+      
+      const bp = getBreakpoint(parseInt(width));
+      columnCurrentBreakpoint.textContent = bp;
+      
+      updateColumnPreview();
+    });
+
+    // Add column button
+    document.getElementById('addColumnBtn').addEventListener('click', () => {
+      columns.push({
+        id: columnIdCounter++,
+        xs: 12, sm: 12, md: 6, lg: 4, xl: 4, xxl: 4
+      });
+      updateColumnUI();
+    });
+
+    // Reset button
+    document.getElementById('resetColumnsBtn').addEventListener('click', () => {
+      columns = [
+        { id: columnIdCounter++, xs: 12, sm: 12, md: 6, lg: 6, xl: 6, xxl: 6 },
+        { id: columnIdCounter++, xs: 12, sm: 12, md: 6, lg: 6, xl: 6, xxl: 6 }
+      ];
+      updateColumnUI();
+    });
+
+    // Initialize columns
+    updateColumnUI();
+    columnViewportSlider.dispatchEvent(new Event('input'));
+
+    // ============================================
+    // TAB 3: UTILITY BUILDER
+    // ============================================
+    let visibility = {
+      xs: true, sm: true, md: true, lg: true, xl: true, xxl: true
+    };
+
+    document.querySelectorAll('.utility-cell.selectable').forEach(cell => {
+      cell.addEventListener('click', function() {
+        const bp = this.dataset.bp;
+        visibility[bp] = !visibility[bp];
+        this.dataset.visible = visibility[bp];
+        
+        if (visibility[bp]) {
+          this.classList.remove('selected');
+          this.querySelector('.cell-icon').textContent = '👁️';
+        } else {
+          this.classList.add('selected');
+          this.querySelector('.cell-icon').textContent = '🚫';
+        }
+        
+        updateUtilityClasses();
+      });
+    });
+
+    function updateUtilityClasses() {
+      const bps = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl'];
+      const classes = [];
+      
+      // Determine the pattern
+      let prevVisible = null;
+      
+      bps.forEach((bp, index) => {
+        const visible = visibility[bp];
+        
+        if (index === 0) {
+          // First breakpoint (xs) - no infix
+          classes.push(visible ? 'd-block' : 'd-none');
+        } else if (visible !== prevVisible) {
+          // State changed
+          classes.push(visible ? `d-${bp}-block` : `d-${bp}-none`);
+        }
+        
+        prevVisible = visible;
+      });
+      
+      document.getElementById('utilityClasses').textContent = classes.join(' ');
+      
+      // Update preview
+      const preview = document.getElementById('utilityPreview');
+      preview.innerHTML = bps.map(bp => `
+        <div class="preview-bp ${visibility[bp] ? 'visible' : 'hidden'}">
+          ${bp}<br>${visibility[bp] ? 'visible' : 'hidden'}
+        </div>
+      `).join('');
+    }
+
+    // Initialize
+    updateUtilityClasses();
+
+    // ============================================
+    // TAB 4: MEDIA QUERY BUILDER
+    // ============================================
+    const mqDirection = document.getElementById('mqDirection');
+    const mqBreakpoint = document.getElementById('mqBreakpoint');
+    const mqMin = document.getElementById('mqMin');
+    const mqMax = document.getElementById('mqMax');
+    const mqSingleRow = document.getElementById('mqSingleRow');
+    const mqBetweenRow = document.getElementById('mqBetweenRow');
+    const mqOutput = document.getElementById('mqOutput');
+    const mqExplanation = document.getElementById('mqExplanation');
+
+    function updateMediaQuery() {
+      const direction = mqDirection.value;
+      let output = '';
+      let explanation = '';
+
+      if (direction === 'min') {
+        mqSingleRow.style.display = 'flex';
+        mqBetweenRow.style.display = 'none';
+        
+        const bp = mqBreakpoint.value;
+        output = `@media (min-width: ${bp}px) {\n  /* Your styles here */\n}`;
+        explanation = `Styles inside this query will apply when the viewport is <strong>${bp}px or wider</strong>. This is the mobile-first approach Bootstrap uses.`;
+        
+      } else if (direction === 'max') {
+        mqSingleRow.style.display = 'flex';
+        mqBetweenRow.style.display = 'none';
+        
+        const bp = mqBreakpoint.value;
+        const maxVal = (parseFloat(bp) - 0.02).toFixed(2);
+        output = `@media (max-width: ${maxVal}px) {\n  /* Your styles here */\n}`;
+        explanation = `Styles inside this query will apply when the viewport is <strong>${maxVal}px or narrower</strong> (below the ${bp}px breakpoint).`;
+        
+      } else if (direction === 'between') {
+        mqSingleRow.style.display = 'none';
+        mqBetweenRow.style.display = 'flex';
+        
+        const minVal = mqMin.value;
+        const maxVal = mqMax.value;
+        output = `@media (min-width: ${minVal}px) and (max-width: ${maxVal}px) {\n  /* Your styles here */\n}`;
+        explanation = `Styles inside this query will apply when the viewport is <strong>between ${minVal}px and ${maxVal}px</strong>.`;
+      }
+
+      mqOutput.textContent = output;
+      mqExplanation.innerHTML = explanation;
+    }
+
+    mqDirection.addEventListener('change', updateMediaQuery);
+    mqBreakpoint.addEventListener('change', updateMediaQuery);
+    mqMin.addEventListener('change', updateMediaQuery);
+    mqMax.addEventListener('change', updateMediaQuery);
+
+    // Initialize
+    updateMediaQuery();
+
+  </script>
+
+</body>
+</html>

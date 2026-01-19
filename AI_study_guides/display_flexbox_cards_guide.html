@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Display, Flexbox & Cards: Layout Fundamentals</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #ff6b35 0%, #d4532a 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      margin: 0.5rem 0 0 0;
+      color: white;
+    }
+
+    /* ============================================
+       NAVIGATION TABS
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      padding: 1rem 1.25rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #ff6b35;
+      color: white;
+      border-bottom: 3px solid #4ecca3;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       INTRO BOX
+       ============================================ */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #ff6b35;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #ff6b35;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    .intro-box p + p {
+      margin-top: 1rem;
+    }
+
+    .intro-box code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       COMPARISON CONTAINER
+       ============================================ */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1000px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      min-height: 500px;
+    }
+
+    .panel-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .panel.problem .panel-header {
+      background: linear-gradient(135deg, #e94560, #c73e54);
+      color: white;
+    }
+
+    .panel.solution .panel-header {
+      background: linear-gradient(135deg, #4ecca3, #3db892);
+      color: #1a1a2e;
+    }
+
+    /* ============================================
+       LAYER BOX SYSTEM
+       ============================================ */
+    .box {
+      position: relative;
+      border-radius: 6px;
+      padding: 0.6rem;
+      padding-top: 2rem;
+      margin-bottom: 0.5rem;
+      min-height: 40px;
+    }
+
+    .box.dashed { border: 2px dashed; }
+    .box.solid { border: 2px solid; }
+
+    /* Color palette */
+    .box.red { border-color: #e94560; background-color: rgba(233, 69, 96, 0.03); }
+    .box.orange { border-color: #f7931e; background-color: rgba(247, 147, 30, 0.03); }
+    .box.purple { border-color: #a855f7; background-color: rgba(168, 85, 247, 0.03); }
+    .box.blue { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.03); }
+    .box.teal { border-color: #14b8a6; background-color: rgba(20, 184, 166, 0.03); }
+    .box.green { border-color: #4ecca3; background-color: rgba(78, 204, 163, 0.03); }
+    .box.gray { border-color: #6b7280; background-color: rgba(107, 114, 128, 0.03); }
+    .box.yellow { border-color: #fbbf24; background-color: rgba(251, 191, 36, 0.03); }
+
+    /* Label (top-left) */
+    .box-label {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.5rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .box.red .box-label { color: #e94560; }
+    .box.orange .box-label { color: #f7931e; }
+    .box.purple .box-label { color: #a855f7; }
+    .box.blue .box-label { color: #3b82f6; }
+    .box.teal .box-label { color: #14b8a6; }
+    .box.green .box-label { color: #4ecca3; }
+    .box.gray .box-label { color: #6b7280; }
+    .box.yellow .box-label { color: #fbbf24; }
+
+    /* Verdict badge (top-right) */
+    .verdict {
+      position: absolute;
+      top: 0.35rem;
+      right: 0.5rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.55rem;
+      font-weight: bold;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .verdict.bad {
+      background-color: rgba(233, 69, 96, 0.3);
+      color: #e94560;
+    }
+
+    .verdict.warn {
+      background-color: rgba(251, 191, 36, 0.3);
+      color: #fbbf24;
+    }
+
+    .verdict.good {
+      background-color: rgba(78, 204, 163, 0.3);
+      color: #4ecca3;
+    }
+
+    .verdict.info {
+      background-color: rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+    }
+
+    /* Annotation (below label, smaller) */
+    .annotation {
+      font-family: monospace;
+      font-size: 0.6rem;
+      color: #8892b0;
+      margin-top: 0.25rem;
+      line-height: 1.4;
+    }
+
+    .annotation .prop { color: #4ecca3; }
+    .annotation .val { color: #f7931e; }
+    .annotation .comment { color: #6b7280; font-style: italic; }
+
+    /* Flex row for side-by-side children */
+    .row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.4rem;
+    }
+
+    .row > .box {
+      flex: 1;
+    }
+
+    .row > .box.narrow {
+      flex: 0 0 30%;
+      min-width: 80px;
+    }
+
+    /* Content placeholder */
+    .content {
+      background-color: rgba(96, 165, 250, 0.15);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      border-radius: 4px;
+      padding: 0.4rem;
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: #60a5fa;
+      margin-top: 0.3rem;
+    }
+
+    .content.dim { opacity: 0.5; }
+    .content.green {
+      background-color: rgba(78, 204, 163, 0.15);
+      border-color: rgba(78, 204, 163, 0.4);
+      color: #4ecca3;
+    }
+    .content.orange {
+      background-color: rgba(247, 147, 30, 0.15);
+      border-color: rgba(247, 147, 30, 0.4);
+      color: #f7931e;
+    }
+    .content.red {
+      background-color: rgba(233, 69, 96, 0.15);
+      border-color: rgba(233, 69, 96, 0.4);
+      color: #e94560;
+    }
+    .content.purple {
+      background-color: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #a855f7;
+    }
+
+    /* Ellipsis indicator */
+    .ellipsis {
+      text-align: center;
+      color: #6b7280;
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      letter-spacing: 4px;
+    }
+
+    /* Summary box */
+    .summary {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .panel.problem .summary {
+      background-color: rgba(233, 69, 96, 0.1);
+      border-left: 3px solid #e94560;
+      color: #f8b4c0;
+    }
+
+    .panel.solution .summary {
+      background-color: rgba(78, 204, 163, 0.1);
+      border-left: 3px solid #4ecca3;
+      color: #a8e6cf;
+    }
+
+    .summary strong {
+      color: white;
+    }
+
+    /* Key insight callout */
+    .key-insight {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .key-insight.warning {
+      border-color: #e94560;
+    }
+
+    .key-insight h3 {
+      font-family: 'Arial', sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .key-insight.warning h3 {
+      color: #e94560;
+    }
+
+    .key-insight ul {
+      color: #b8c5d6;
+      padding-left: 1.5rem;
+      line-height: 1.8;
+    }
+
+    .key-insight p {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin-bottom: 0.75rem;
+    }
+
+    .key-insight p:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-insight code {
+      background-color: #1a1a2e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.85rem;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       STEP BY STEP STYLING
+       ============================================ */
+    .step-container {
+      counter-reset: step-counter;
+    }
+
+    .step {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      counter-increment: step-counter;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #ff6b35, #d4532a);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Arial', sans-serif;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .step-number::before {
+      content: counter(step-counter);
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h4 {
+      font-family: 'Arial', sans-serif;
+      color: #e8e8e8;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .step-content p {
+      color: #b8c5d6;
+      margin: 0 0 1rem 0;
+      line-height: 1.7;
+    }
+
+    .step-content code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       CODE BLOCKS
+       ============================================ */
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-header {
+      padding: 0.5rem 1rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .code-header.html {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .code-header.css {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .code-header.good {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .code-header.bad {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #b8c5d6;
+    }
+
+    .code-block .tag { color: #e94560; }
+    .code-block .attr { color: #4ecca3; }
+    .code-block .val { color: #f7931e; }
+    .code-block .comment { color: #6b7280; }
+    .code-block .selector { color: #a855f7; }
+    .code-block .prop { color: #4ecca3; }
+
+    /* ============================================
+       SECTION HEADERS
+       ============================================ */
+    .section-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.2rem;
+      margin: 2.5rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #0f3460;
+    }
+
+    .section-header.green { color: #4ecca3; }
+    .section-header.orange { color: #ff6b35; }
+    .section-header.red { color: #e94560; }
+    .section-header.blue { color: #3b82f6; }
+    .section-header.purple { color: #a855f7; }
+
+    /* ============================================
+       EXPLANATION PARAGRAPHS
+       ============================================ */
+    .explanation {
+      color: #b8c5d6;
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .explanation strong {
+      color: #e8e8e8;
+    }
+
+    .explanation code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       TWO COLUMN COMPARISON
+       ============================================ */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    @media (max-width: 800px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================
+       REFERENCE TABLE
+       ============================================ */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 1.5rem 0;
+    }
+
+    .ref-table th {
+      background-color: #16213e;
+      padding: 0.75rem;
+      text-align: left;
+      font-family: 'Arial', sans-serif;
+      color: #e8e8e8;
+      border-bottom: 2px solid #3b82f6;
+    }
+
+    .ref-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #0f3460;
+      color: #b8c5d6;
+      vertical-align: top;
+    }
+
+    .ref-table tr:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    .ref-table code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+      font-size: 0.8rem;
+    }
+
+    /* ============================================
+       VISUAL DEMO BOXES
+       ============================================ */
+    .demo-container {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .demo-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .demo-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .demo-box {
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .demo-box.block {
+      background-color: rgba(78, 204, 163, 0.2);
+      border: 2px solid #4ecca3;
+      color: #4ecca3;
+      width: 100%;
+    }
+
+    .demo-box.inline {
+      background-color: rgba(168, 85, 247, 0.2);
+      border: 2px solid #a855f7;
+      color: #a855f7;
+    }
+
+    .demo-box.flex-child {
+      background-color: rgba(59, 130, 246, 0.2);
+      border: 2px solid #3b82f6;
+      color: #3b82f6;
+      flex: 1;
+    }
+
+    .demo-box.flex-fixed {
+      background-color: rgba(247, 147, 30, 0.2);
+      border: 2px solid #f7931e;
+      color: #f7931e;
+      flex: 0 0 100px;
+    }
+
+    .demo-box.none {
+      background-color: rgba(107, 114, 128, 0.2);
+      border: 2px dashed #6b7280;
+      color: #6b7280;
+      opacity: 0.5;
+    }
+
+    /* Flex demo */
+    .flex-demo-parent {
+      background-color: rgba(78, 204, 163, 0.1);
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .flex-demo-parent.row-dir {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .flex-demo-parent.col-dir {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .flex-demo-child {
+      background-color: rgba(59, 130, 246, 0.2);
+      border: 2px solid #3b82f6;
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #3b82f6;
+      text-align: center;
+    }
+
+    .flex-demo-child.grow {
+      flex: 1;
+      background-color: rgba(247, 147, 30, 0.2);
+      border-color: #f7931e;
+      color: #f7931e;
+    }
+
+    .flex-demo-child.fixed {
+      flex: 0 0 80px;
+      background-color: rgba(168, 85, 247, 0.2);
+      border-color: #a855f7;
+      color: #a855f7;
+    }
+
+    /* Grid demo for cards */
+    .grid-demo {
+      display: grid;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .grid-demo.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-demo.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-demo.cols-2-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 600px) {
+      .grid-demo.cols-2-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .grid-item {
+      background-color: rgba(78, 204, 163, 0.2);
+      border: 2px solid #4ecca3;
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: #4ecca3;
+      text-align: center;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      border-top: 1px solid #0f3460;
+      padding: 1.5rem 3rem;
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+    footer p {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #4a5568;
+    }
+
+    /* Diagram container */
+    .diagram-container {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <span class="header-label">Study Guide · Layout Fundamentals</span>
+      <h1>Display, Flexbox & Cards</h1>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="display">Display Property</button>
+      <button class="tab-btn" data-tab="flexbox">Flexbox</button>
+      <button class="tab-btn" data-tab="cards">Building Cards</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+
+    <!-- ==================== TAB 1: DISPLAY PROPERTY ==================== -->
+    <div id="display" class="tab-content active">
+
+      <div class="intro-box">
+        <h2>The Display Property</h2>
+        <p>
+          Every HTML element creates a "box." The <code>display</code> property answers one question:
+          <strong>How does this box behave in relation to other boxes?</strong>
+        </p>
+        <p>
+          Understanding this is the foundation for understanding flexbox, Bootstrap's <code>d-*</code> utilities, 
+          and why your original card structure was overcomplicated.
+        </p>
+      </div>
+
+      <h3 class="section-header green">The Five Display Values You Need to Know</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Value</th>
+            <th>Behavior</th>
+            <th>Width</th>
+            <th>Default For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>block</code></td>
+            <td>Stacks vertically. Takes full width available.</td>
+            <td>Can set width/height</td>
+            <td><code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>, <code>&lt;section&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>inline</code></td>
+            <td>Sits side-by-side. Only as wide as content.</td>
+            <td>Cannot set width/height</td>
+            <td><code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>inline-block</code></td>
+            <td>Sits side-by-side. Only as wide as content.</td>
+            <td>CAN set width/height</td>
+            <td><code>&lt;img&gt;</code>, <code>&lt;button&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>flex</code></td>
+            <td>Children sit side-by-side with alignment controls.</td>
+            <td>Children can grow/shrink</td>
+            <td>Nothing (you apply it)</td>
+          </tr>
+          <tr>
+            <td><code>none</code></td>
+            <td>Element disappears completely from the page.</td>
+            <td>N/A</td>
+            <td>Nothing (you apply it)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header blue">Visual: Block vs Inline</h3>
+
+      <div class="demo-container">
+        <div class="demo-label">display: block — stacks vertically, takes full width</div>
+        <div class="demo-box block">div 1</div>
+        <div class="demo-box block">div 2</div>
+        <div class="demo-box block">div 3</div>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-label">display: inline — sits side-by-side, only as wide as content</div>
+        <span class="demo-box inline">span 1</span>
+        <span class="demo-box inline">span 2</span>
+        <span class="demo-box inline">span 3</span>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-label">display: inline-block — side-by-side AND can set width/height</div>
+        <div style="display: inline-block; width: 100px;" class="demo-box inline">100px</div>
+        <div style="display: inline-block; width: 150px;" class="demo-box inline">150px</div>
+        <div style="display: inline-block; width: 80px;" class="demo-box inline">80px</div>
+      </div>
+
+      <h3 class="section-header purple">Bootstrap's Display Utilities</h3>
+
+      <p class="explanation">
+        Bootstrap's <code>d-*</code> classes are just shortcuts for setting the CSS <code>display</code> property.
+        They're not magic — they're one-line CSS rules.
+      </p>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Bootstrap Class</th>
+            <th>CSS Equivalent</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>d-none</code></td>
+            <td><code>display: none</code></td>
+            <td>Hides element completely</td>
+          </tr>
+          <tr>
+            <td><code>d-block</code></td>
+            <td><code>display: block</code></td>
+            <td>Makes element a block (stacks vertically)</td>
+          </tr>
+          <tr>
+            <td><code>d-inline</code></td>
+            <td><code>display: inline</code></td>
+            <td>Makes element inline (sits side-by-side)</td>
+          </tr>
+          <tr>
+            <td><code>d-inline-block</code></td>
+            <td><code>display: inline-block</code></td>
+            <td>Inline but can have width/height</td>
+          </tr>
+          <tr>
+            <td><code>d-flex</code></td>
+            <td><code>display: flex</code></td>
+            <td>Makes children flex items (see Flexbox tab)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header orange">Responsive Display Utilities</h3>
+
+      <p class="explanation">
+        Add a breakpoint to make display change at different screen sizes:
+      </p>
+
+      <div class="code-block">
+        <div class="code-header html">Your Sidebar Code (from index.html)</div>
+        <pre><code><span class="tag">&lt;nav</span> <span class="attr">class</span>=<span class="val">"sidebar d-none d-lg-flex"</span><span class="tag">&gt;</span>
+  ...
+<span class="tag">&lt;/nav&gt;</span>
+
+<span class="comment">&lt;!-- 
+  d-none      = display: none (hidden by default)
+  d-lg-flex   = display: flex when viewport ≥ 992px
+
+  Result: Hidden on mobile, visible as flex container on desktop
+--&gt;</span></code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header html">Your Mobile Navbar (from index.html)</div>
+        <pre><code><span class="tag">&lt;nav</span> <span class="attr">class</span>=<span class="val">"navbar d-lg-none"</span><span class="tag">&gt;</span>
+  ...
+<span class="tag">&lt;/nav&gt;</span>
+
+<span class="comment">&lt;!-- 
+  d-lg-none   = display: none when viewport ≥ 992px
+
+  Result: Visible on mobile, hidden on desktop (opposite of sidebar)
+--&gt;</span></code></pre>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 The Key Insight</h3>
+        <p>
+          <strong>Block elements stack. Inline elements sit side-by-side.</strong>
+        </p>
+        <p>
+          When you wanted a logo and company name side-by-side, you used Bootstrap <code>row</code>/<code>col</code> 
+          because <code>&lt;div&gt;</code>s are <code>display: block</code> and stack vertically by default.
+        </p>
+        <p>
+          But you could have just changed the display property — either <code>inline-block</code> on the children, 
+          or <code>flex</code> on the parent. That's what the Flexbox tab covers.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 2: FLEXBOX ==================== -->
+    <div id="flexbox" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Flexbox: The Modern Way to Layout</h2>
+        <p>
+          When you put <code>display: flex</code> on a parent element, its direct children sit side-by-side 
+          (like inline) but can have width/height (like block). Plus you get powerful alignment controls.
+        </p>
+        <p>
+          This is what Bootstrap's <code>row</code> uses under the hood — but you can use it directly without the column math.
+        </p>
+      </div>
+
+      <h3 class="section-header green">Basic Flex: Parent Controls Children</h3>
+
+      <div class="demo-container">
+        <div class="demo-label">Without flex: divs stack vertically (display: block)</div>
+        <div>
+          <div class="demo-box block" style="width: auto; margin-bottom: 0.5rem;">Child 1</div>
+          <div class="demo-box block" style="width: auto; margin-bottom: 0.5rem;">Child 2</div>
+          <div class="demo-box block" style="width: auto;">Child 3</div>
+        </div>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-label">With display: flex on parent: children sit side-by-side</div>
+        <div class="flex-demo-parent row-dir">
+          <div class="flex-demo-child">Child 1</div>
+          <div class="flex-demo-child">Child 2</div>
+          <div class="flex-demo-child">Child 3</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header css">CSS — One Line Changes Everything</div>
+        <pre><code><span class="selector">.parent</span> {
+  <span class="prop">display</span>: <span class="val">flex</span>;   <span class="comment">/* children now sit side-by-side */</span>
+  <span class="prop">gap</span>: <span class="val">1rem</span>;       <span class="comment">/* space between children */</span>
+}</code></pre>
+      </div>
+
+      <h3 class="section-header orange">Flex Properties on the Parent</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>What It Controls</th>
+            <th>Common Values</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>justify-content</code></td>
+            <td>Horizontal alignment</td>
+            <td><code>flex-start</code>, <code>center</code>, <code>flex-end</code>, <code>space-between</code></td>
+          </tr>
+          <tr>
+            <td><code>align-items</code></td>
+            <td>Vertical alignment</td>
+            <td><code>flex-start</code>, <code>center</code>, <code>flex-end</code>, <code>stretch</code></td>
+          </tr>
+          <tr>
+            <td><code>gap</code></td>
+            <td>Space between children</td>
+            <td><code>1rem</code>, <code>20px</code>, etc.</td>
+          </tr>
+          <tr>
+            <td><code>flex-wrap</code></td>
+            <td>Whether children wrap to new lines</td>
+            <td><code>nowrap</code> (default), <code>wrap</code></td>
+          </tr>
+          <tr>
+            <td><code>flex-direction</code></td>
+            <td>Direction of layout</td>
+            <td><code>row</code> (default), <code>column</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header blue">Flex Properties on the Children</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>What It Controls</th>
+            <th>Common Values</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>flex-grow</code></td>
+            <td>How much this child grows to fill extra space</td>
+            <td><code>0</code> (don't grow), <code>1</code> (grow)</td>
+          </tr>
+          <tr>
+            <td><code>flex-shrink</code></td>
+            <td>How much this child shrinks if space is tight</td>
+            <td><code>0</code> (don't shrink), <code>1</code> (shrink)</td>
+          </tr>
+          <tr>
+            <td><code>flex-basis</code></td>
+            <td>Starting width before grow/shrink</td>
+            <td><code>auto</code>, <code>200px</code>, <code>50%</code></td>
+          </tr>
+          <tr>
+            <td><code>flex</code></td>
+            <td>Shorthand for grow/shrink/basis</td>
+            <td><code>flex: 1</code> = "grow to fill space"</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header purple">Visual: Fixed Width + Flexible Width</h3>
+
+      <div class="demo-container">
+        <div class="demo-label">Logo (fixed 80px) + Title (flex: 1 = fills remaining space)</div>
+        <div class="flex-demo-parent row-dir" style="align-items: center;">
+          <div class="flex-demo-child fixed">Logo<br><span style="font-size: 0.6rem;">80px fixed</span></div>
+          <div class="flex-demo-child grow">Company Name / Job Title<br><span style="font-size: 0.6rem;">flex: 1 (fills the rest)</span></div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header css">CSS — Your Card Header</div>
+        <pre><code><span class="selector">.card-header</span> {
+  <span class="prop">display</span>: <span class="val">flex</span>;
+  <span class="prop">align-items</span>: <span class="val">center</span>;    <span class="comment">/* vertically center */</span>
+  <span class="prop">gap</span>: <span class="val">1rem</span>;
+}
+
+<span class="selector">.card-logo</span> {
+  <span class="prop">width</span>: <span class="val">80px</span>;            <span class="comment">/* fixed size */</span>
+  <span class="prop">flex-shrink</span>: <span class="val">0</span>;         <span class="comment">/* don't shrink */</span>
+}
+
+<span class="selector">.card-titles</span> {
+  <span class="prop">flex</span>: <span class="val">1</span>;                <span class="comment">/* take remaining space */</span>
+}</code></pre>
+      </div>
+
+      <h3 class="section-header red">Why This Replaces Your Bootstrap Grid</h3>
+
+      <div class="comparison">
+        <div>
+          <div class="code-block">
+            <div class="code-header bad">❌ Your Original (Bootstrap Grid)</div>
+            <pre><code><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"row card_heading"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-md-4"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"corporate_logo"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;img&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-md-8"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"row"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-md-6"</span><span class="tag">&gt;</span>Name<span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-md-6"</span><span class="tag">&gt;</span>Title<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- 5 levels of nesting! --&gt;</span></code></pre>
+          </div>
+          <p class="explanation" style="margin-top: 0.5rem;">
+            <strong>Problem:</strong> Logo is 33% of row (col-4), not a specific size. 
+            Vertical centering is awkward. 5 levels deep.
+          </p>
+        </div>
+
+        <div>
+          <div class="code-block">
+            <div class="code-header good">✓ Flexbox Version</div>
+            <pre><code><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card-header"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">class</span>=<span class="val">"card-logo"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card-titles"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h3&gt;</span>Name<span class="tag">&lt;/h3&gt;</span>
+    <span class="tag">&lt;p&gt;</span>Title<span class="tag">&lt;/p&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+
+
+<span class="comment">&lt;!-- 2 levels! --&gt;</span></code></pre>
+          </div>
+          <p class="explanation" style="margin-top: 0.5rem;">
+            <strong>Better:</strong> Logo is exactly 80px. Text fills the rest. 
+            Vertically centered with one property. 2 levels deep.
+          </p>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 When to Use Flex vs Bootstrap Grid</h3>
+        <ul>
+          <li><strong>Flexbox:</strong> When you have 2-3 items that need to be side-by-side with specific sizing (logo + text, icon + label)</li>
+          <li><strong>Bootstrap Grid:</strong> When you have many items that need to reflow into a grid at different breakpoints (card grids, image galleries, skill badges)</li>
+        </ul>
+        <p style="margin-top: 1rem;">
+          The rule: <strong>Flexbox for component-level layout. Bootstrap grid for content-level grids.</strong>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 3: CARDS ==================== -->
+    <div id="cards" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Building Cards Properly</h2>
+        <p>
+          Your original cards were nested 5+ levels deep with Bootstrap rows and columns inside each one. 
+          Here's how to build the same visual result with cleaner, flatter structure using flexbox.
+        </p>
+      </div>
+
+      <h3 class="section-header red">❌ Your Original Card Structure</h3>
+
+      <div class="diagram-container">
+        <div class="box dashed red" style="padding-top: 2.5rem;">
+          <span class="box-label">.card</span>
+          <span class="verdict bad">level 1</span>
+
+          <div class="box dashed orange" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+            <span class="box-label">.card_heading_container</span>
+            <span class="verdict bad">level 2</span>
+
+            <div class="box dashed purple" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+              <span class="box-label">.row.card_heading</span>
+              <span class="verdict bad">level 3</span>
+
+              <div class="row">
+                <div class="box dashed blue" style="padding-top: 2rem;">
+                  <span class="box-label">.col-md-4</span>
+                  <span class="verdict bad">level 4</span>
+                  <div class="box dashed teal" style="padding-top: 2rem; margin-top: 0.3rem;">
+                    <span class="box-label">.corporate_logo</span>
+                    <span class="verdict bad">level 5</span>
+                    <div class="content">img</div>
+                  </div>
+                </div>
+                <div class="box dashed blue" style="padding-top: 2rem;">
+                  <span class="box-label">.col-md-8</span>
+                  <span class="verdict bad">level 4</span>
+                  <div class="row" style="margin-top: 0.3rem;">
+                    <div class="box dashed teal" style="padding-top: 1.8rem;">
+                      <span class="box-label">.col-md-6</span>
+                      <div class="content dim">company</div>
+                    </div>
+                    <div class="box dashed teal" style="padding-top: 1.8rem;">
+                      <span class="box-label">.col-md-6</span>
+                      <div class="content dim">title</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="box dashed gray" style="padding-top: 2rem; margin-top: 0.5rem;">
+            <span class="box-label">.card_body</span>
+            <div class="content dim">description</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explanation">
+        Five levels of nesting just to put a logo next to a company name! Every <code>.row</code> and <code>.col-md-*</code> 
+        is another wrapper you have to manage.
+      </p>
+
+      <h3 class="section-header green">✓ The Clean Card Structure</h3>
+
+      <div class="diagram-container">
+        <div class="box solid green" style="padding-top: 2.5rem;">
+          <span class="box-label">.card</span>
+          <span class="verdict good">level 1</span>
+
+          <div class="box solid blue" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+            <span class="box-label">.card-header</span>
+            <span class="verdict good">level 2</span>
+            <div class="annotation">
+              <span class="prop">display:</span> <span class="val">flex</span><br>
+              <span class="prop">align-items:</span> <span class="val">center</span><br>
+              <span class="prop">gap:</span> <span class="val">1rem</span>
+            </div>
+
+            <div class="row" style="margin-top: 0.5rem;">
+              <div class="content green" style="flex: 0 0 80px;">img<br><span style="font-size: 0.5rem;">80px fixed</span></div>
+              <div class="box solid teal" style="padding-top: 2rem; flex: 1;">
+                <span class="box-label">.card-titles</span>
+                <span class="verdict good">level 3</span>
+                <div class="annotation"><span class="prop">flex:</span> <span class="val">1</span></div>
+                <div class="content green" style="margin-top: 0.3rem;">company + title stacked</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="box solid orange" style="padding-top: 2rem; margin-top: 0.5rem;">
+            <span class="box-label">.card-body</span>
+            <span class="verdict good">level 2</span>
+            <div class="content green">description</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explanation">
+        Three levels max. The header uses <code>display: flex</code> instead of Bootstrap grid. 
+        The logo and title sit side-by-side because of flex — no columns needed.
+      </p>
+
+      <h3 class="section-header orange">The Code</h3>
+
+      <div class="two-col">
+        <div class="code-block">
+          <div class="code-header html">HTML (custom class names, not Bootstrap)</div>
+          <pre><code><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card-header"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"logo.png"</span>
+         <span class="attr">class</span>=<span class="val">"card-logo"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card-titles"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h3&gt;</span>Company Name<span class="tag">&lt;/h3&gt;</span>
+      <span class="tag">&lt;p&gt;</span>Your Title<span class="tag">&lt;/p&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+  
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card-body"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;p&gt;</span>Description...<span class="tag">&lt;/p&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header css">CSS (your custom styles)</div>
+          <pre><code><span class="selector">.card-header</span> {
+  <span class="prop">display</span>: <span class="val">flex</span>;
+  <span class="prop">gap</span>: <span class="val">1rem</span>;
+  <span class="prop">padding</span>: <span class="val">1.5rem</span>;
+  <span class="prop">align-items</span>: <span class="val">center</span>;
+}
+
+<span class="selector">.card-logo</span> {
+  <span class="prop">width</span>: <span class="val">80px</span>;
+  <span class="prop">height</span>: <span class="val">80px</span>;
+  <span class="prop">object-fit</span>: <span class="val">contain</span>;
+  <span class="prop">flex-shrink</span>: <span class="val">0</span>;
+}
+
+<span class="selector">.card-titles</span> {
+  <span class="prop">flex</span>: <span class="val">1</span>;
+}
+
+<span class="selector">.card-body</span> {
+  <span class="prop">padding</span>: <span class="val">1.5rem</span>;
+}</code></pre>
+        </div>
+      </div>
+
+      <h3 class="section-header blue">When You Actually Need Bootstrap Grid in Cards</h3>
+
+      <p class="explanation">
+        Bootstrap grid is useful when you have a <strong>true grid of repeating items</strong> inside a card — 
+        like skill badges, image galleries, or feature lists that should reflow at different screen sizes.
+      </p>
+
+      <div class="diagram-container">
+        <div class="demo-label">✓ Good Use Case: Skill Badges That Reflow</div>
+        
+        <div class="box solid green" style="padding-top: 2.5rem;">
+          <span class="box-label">.card</span>
+
+          <div class="box solid blue" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+            <span class="box-label">.card-body</span>
+            
+            <div style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+              <span style="font-family: monospace; font-size: 0.65rem; color: #f7931e;">&lt;h4&gt;Skills&lt;/h4&gt;</span>
+            </div>
+
+            <div class="box solid orange" style="padding-top: 2.5rem;">
+              <span class="box-label">.row.g-2 (Bootstrap grid)</span>
+              <span class="verdict good">true grid!</span>
+              <div class="annotation">
+                <span class="comment">Many items that need to reflow</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.75rem;">
+                <div class="grid-item">.col-6.col-md-4<br>JavaScript</div>
+                <div class="grid-item">.col-6.col-md-4<br>Python</div>
+                <div class="grid-item">.col-6.col-md-4<br>React</div>
+                <div class="grid-item">.col-6.col-md-4<br>Node.js</div>
+                <div class="grid-item">.col-6.col-md-4<br>SQL</div>
+                <div class="grid-item">.col-6.col-md-4<br>Git</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top: 1.5rem;">
+        <div>
+          <div class="demo-container">
+            <div class="demo-label">Mobile (col-6 = 2 columns)</div>
+            <div class="grid-demo cols-2">
+              <div class="grid-item">JavaScript</div>
+              <div class="grid-item">Python</div>
+              <div class="grid-item">React</div>
+              <div class="grid-item">Node.js</div>
+              <div class="grid-item">SQL</div>
+              <div class="grid-item">Git</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="demo-container">
+            <div class="demo-label">Desktop (col-md-4 = 3 columns)</div>
+            <div class="grid-demo cols-3">
+              <div class="grid-item">JavaScript</div>
+              <div class="grid-item">Python</div>
+              <div class="grid-item">React</div>
+              <div class="grid-item">Node.js</div>
+              <div class="grid-item">SQL</div>
+              <div class="grid-item">Git</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header html">HTML — Bootstrap Grid Inside Card Body</div>
+        <pre><code><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"card-body"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;h4&gt;</span>Skills<span class="tag">&lt;/h4&gt;</span>
+  
+  <span class="comment">&lt;!-- Bootstrap row/col IS appropriate here: true grid of repeating items --&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"row g-2"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-6 col-md-4"</span><span class="tag">&gt;</span><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"badge"</span><span class="tag">&gt;</span>JavaScript<span class="tag">&lt;/span&gt;&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-6 col-md-4"</span><span class="tag">&gt;</span><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"badge"</span><span class="tag">&gt;</span>Python<span class="tag">&lt;/span&gt;&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-6 col-md-4"</span><span class="tag">&gt;</span><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"badge"</span><span class="tag">&gt;</span>React<span class="tag">&lt;/span&gt;&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-6 col-md-4"</span><span class="tag">&gt;</span><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"badge"</span><span class="tag">&gt;</span>Node.js<span class="tag">&lt;/span&gt;&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-6 col-md-4"</span><span class="tag">&gt;</span><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"badge"</span><span class="tag">&gt;</span>SQL<span class="tag">&lt;/span&gt;&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"col-6 col-md-4"</span><span class="tag">&gt;</span><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"badge"</span><span class="tag">&gt;</span>Git<span class="tag">&lt;/span&gt;&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></code></pre>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 Card Structure Rules</h3>
+        <ul>
+          <li><strong>Flexbox for header layout</strong> — logo + text side-by-side. One <code>display: flex</code> replaces multiple rows and columns.</li>
+          <li><strong>Max 3 levels of nesting</strong> — Card → Header/Body → Content. Deeper = rethink the structure.</li>
+          <li><strong>Bootstrap grid only for true grids</strong> — many repeating items that need to reflow (badges, galleries, feature lists).</li>
+          <li><strong>Name your wrappers</strong> — if you can't describe what <code>.card_heading_container</code> does that <code>.card-header</code> doesn't, you don't need it.</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Layout Fundamentals Study Guide · Display, Flexbox & Cards</p>
+  </footer>
+
+  <!-- Tab Script -->
+  <script>
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

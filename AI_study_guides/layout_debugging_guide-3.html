@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why Your Layout Broke: Fixed Positioning + Bootstrap</title>
+  <style>
+    /* ============================================
+       BASE STYLES
+       ============================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      margin: 0.5rem 0 0 0;
+      color: white;
+    }
+
+    /* ============================================
+       NAVIGATION TABS
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #e94560;
+      color: white;
+      border-bottom: 3px solid #4ecca3;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       INTRO BOX
+       ============================================ */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #e94560;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #e94560;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    .intro-box p + p {
+      margin-top: 1rem;
+    }
+
+    .intro-box code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       SECTION HEADERS
+       ============================================ */
+    .section-header {
+      font-family: 'Arial', sans-serif;
+      color: #4ecca3;
+      font-size: 1.2rem;
+      margin: 2.5rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #0f3460;
+    }
+
+    .section-header.problem {
+      color: #e94560;
+    }
+
+    .section-header.solution {
+      color: #4ecca3;
+    }
+
+    /* ============================================
+       VISUAL DIAGRAM SYSTEM
+       ============================================ */
+    .diagram-container {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .diagram-title {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
+    .diagram-title.neutral {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .diagram-title.problem {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .diagram-title.solution {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .diagram-title.info {
+      background-color: #f7931e;
+      color: #1a1a2e;
+    }
+
+    /* Box system */
+    .box {
+      position: relative;
+      border-radius: 6px;
+      padding: 0.75rem;
+      padding-top: 2.5rem;
+      margin-bottom: 0.5rem;
+      min-height: 50px;
+    }
+
+    .box.dashed { border: 2px dashed; }
+    .box.solid { border: 2px solid; }
+    .box.thick { border-width: 3px; }
+
+    /* Colors */
+    .box.red { border-color: #e94560; background-color: rgba(233, 69, 96, 0.05); }
+    .box.orange { border-color: #f7931e; background-color: rgba(247, 147, 30, 0.05); }
+    .box.yellow { border-color: #fbbf24; background-color: rgba(251, 191, 36, 0.05); }
+    .box.green { border-color: #4ecca3; background-color: rgba(78, 204, 163, 0.05); }
+    .box.blue { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+    .box.purple { border-color: #a855f7; background-color: rgba(168, 85, 247, 0.05); }
+    .box.teal { border-color: #14b8a6; background-color: rgba(20, 184, 166, 0.05); }
+    .box.gray { border-color: #6b7280; background-color: rgba(107, 114, 128, 0.05); }
+
+    /* Label */
+    .box-label {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.6rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .box.red .box-label { color: #e94560; }
+    .box.orange .box-label { color: #f7931e; }
+    .box.yellow .box-label { color: #fbbf24; }
+    .box.green .box-label { color: #4ecca3; }
+    .box.blue .box-label { color: #3b82f6; }
+    .box.purple .box-label { color: #a855f7; }
+    .box.teal .box-label { color: #14b8a6; }
+    .box.gray .box-label { color: #6b7280; }
+
+    /* Verdict */
+    .verdict {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.6rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .verdict.bad { background-color: rgba(233, 69, 96, 0.3); color: #e94560; }
+    .verdict.warn { background-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+    .verdict.good { background-color: rgba(78, 204, 163, 0.3); color: #4ecca3; }
+    .verdict.info { background-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+
+    /* Content placeholder */
+    .content {
+      background-color: rgba(96, 165, 250, 0.15);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      border-radius: 4px;
+      padding: 0.5rem;
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: #60a5fa;
+    }
+
+    .content.dim { opacity: 0.4; }
+    .content.green { 
+      background-color: rgba(78, 204, 163, 0.15);
+      border-color: rgba(78, 204, 163, 0.4);
+      color: #4ecca3;
+    }
+    .content.orange {
+      background-color: rgba(247, 147, 30, 0.15);
+      border-color: rgba(247, 147, 30, 0.4);
+      color: #f7931e;
+    }
+    .content.red {
+      background-color: rgba(233, 69, 96, 0.15);
+      border-color: rgba(233, 69, 96, 0.4);
+      color: #e94560;
+    }
+    .content.purple {
+      background-color: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #a855f7;
+    }
+
+    /* Annotation */
+    .annotation {
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: #8892b0;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .annotation .prop { color: #4ecca3; }
+    .annotation .val { color: #f7931e; }
+    .annotation .comment { color: #6b7280; font-style: italic; }
+    .annotation .bad { color: #e94560; }
+    .annotation .good { color: #4ecca3; }
+
+    /* Row layout */
+    .diagram-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .diagram-row > .box { flex: 1; }
+    .diagram-row > .box.narrow { flex: 0 0 25%; min-width: 100px; }
+    .diagram-row > .box.wide { flex: 0 0 75%; }
+
+    /* ============================================
+       SIDE BY SIDE COMPARISON
+       ============================================ */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================
+       CODE BLOCKS
+       ============================================ */
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-header {
+      padding: 0.5rem 1rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .code-header.bad {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .code-header.good {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .code-header.neutral {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #b8c5d6;
+    }
+
+    .code-block .prop { color: #4ecca3; }
+    .code-block .val { color: #f7931e; }
+    .code-block .comment { color: #6b7280; }
+    .code-block .selector { color: #a855f7; }
+    .code-block .tag { color: #e94560; }
+    .code-block .class { color: #60a5fa; }
+
+    /* ============================================
+       KEY INSIGHT BOX
+       ============================================ */
+    .key-insight {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .key-insight.warning {
+      border-color: #e94560;
+    }
+
+    .key-insight h4 {
+      font-family: 'Arial', sans-serif;
+      color: #4ecca3;
+      margin: 0 0 0.75rem 0;
+      font-size: 1rem;
+    }
+
+    .key-insight.warning h4 {
+      color: #e94560;
+    }
+
+    .key-insight p {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin: 0 0 0.75rem 0;
+    }
+
+    .key-insight p:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-insight code {
+      background-color: #1a1a2e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       VIEWPORT SIMULATION
+       ============================================ */
+    .viewport-sim {
+      position: relative;
+      background-color: #0a0a14;
+      border: 3px solid #3b82f6;
+      border-radius: 8px;
+      height: 300px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .viewport-label {
+      position: absolute;
+      top: -0.6rem;
+      left: 1rem;
+      background-color: #0a0a14;
+      padding: 0 0.5rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.7rem;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .viewport-ruler {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: linear-gradient(90deg, 
+        transparent 24.9%, #e94560 25%, #e94560 25.1%, 
+        transparent 25.2%, transparent 74.9%, 
+        #e94560 75%, #e94560 75.1%, transparent 75.2%);
+      border-bottom: 1px solid #3b82f6;
+    }
+
+    .ruler-label {
+      position: absolute;
+      font-family: monospace;
+      font-size: 0.6rem;
+      top: 3px;
+    }
+
+    .ruler-label.left { left: 5px; color: #6b7280; }
+    .ruler-label.q1 { left: 25%; transform: translateX(-50%); color: #e94560; }
+    .ruler-label.mid { left: 50%; transform: translateX(-50%); color: #6b7280; }
+    .ruler-label.q3 { left: 75%; transform: translateX(-50%); color: #e94560; }
+    .ruler-label.right { right: 5px; color: #6b7280; }
+
+    /* ============================================
+       EXPLANATION PARAGRAPHS
+       ============================================ */
+    .explanation {
+      color: #b8c5d6;
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .explanation strong {
+      color: #e8e8e8;
+    }
+
+    .explanation code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       STEP BY STEP
+       ============================================ */
+    .steps {
+      counter-reset: step-counter;
+      margin: 1.5rem 0;
+    }
+
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      counter-increment: step-counter;
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      background-color: #e94560;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Arial', sans-serif;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .step-number::before {
+      content: counter(step-counter);
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h4 {
+      font-family: 'Arial', sans-serif;
+      color: #e8e8e8;
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    .step-content p {
+      color: #b8c5d6;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .step-content code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       YOUR CODE CALLOUT
+       ============================================ */
+    .your-code {
+      background-color: rgba(233, 69, 96, 0.1);
+      border: 1px solid #e94560;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .your-code-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #e94560;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.75rem;
+    }
+
+    .your-code pre {
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.8rem;
+      color: #b8c5d6;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      border-top: 1px solid #0f3460;
+      padding: 1.5rem 3rem;
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+    footer p {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #4a5568;
+    }
+
+    /* ============================================
+       FLOATING ELEMENT DEMO
+       ============================================ */
+    .float-demo {
+      position: relative;
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      min-height: 200px;
+      margin: 1rem 0;
+    }
+
+    .float-demo .floating {
+      position: absolute;
+      background-color: rgba(168, 85, 247, 0.9);
+      border: 2px solid #a855f7;
+      color: white;
+      padding: 0.75rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      border-radius: 4px;
+      z-index: 10;
+    }
+
+    .float-demo .in-flow {
+      background-color: rgba(78, 204, 163, 0.2);
+      border: 2px solid #4ecca3;
+      padding: 0.75rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: #4ecca3;
+      border-radius: 4px;
+    }
+
+    /* Table */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 1.5rem 0;
+    }
+
+    .ref-table th {
+      background-color: #16213e;
+      padding: 0.75rem;
+      text-align: left;
+      font-family: 'Arial', sans-serif;
+      color: #e8e8e8;
+      border-bottom: 2px solid #3b82f6;
+    }
+
+    .ref-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #0f3460;
+      color: #b8c5d6;
+      vertical-align: top;
+    }
+
+    .ref-table code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <span class="header-label">Study Guide · Layout Debugging</span>
+      <h1>Why Your Layout Broke: Percentages, Fixed, & Bootstrap</h1>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="percentages">Why % Didn't Work</button>
+      <button class="tab-btn" data-tab="fixed-bootstrap">Fixed + Bootstrap = Chaos</button>
+      <button class="tab-btn" data-tab="the-fix">The Correct Pattern</button>
+      <button class="tab-btn" data-tab="downstream">The Downstream Hacks</button>
+      <button class="tab-btn" data-tab="reference">Quick Reference</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- ==================== TAB 1: PERCENTAGES ==================== -->
+    <div id="percentages" class="tab-content active">
+
+      <div class="intro-box">
+        <h2>The Core Misunderstanding</h2>
+        <p>
+          You thought <code>width: 50%</code> meant "50% of the screen." It doesn't.
+          <strong>Percentages are relative to the parent element, not the viewport.</strong>
+          This one fact explains almost all of your confusion.
+        </p>
+      </div>
+
+      <h3 class="section-header">How Percentages Actually Work</h3>
+
+      <p class="explanation">
+        When you write <code>width: 50%</code>, CSS asks: "50% of <em>what</em>?" 
+        The answer is always: <strong>the parent element's content width.</strong>
+      </p>
+
+      <div class="diagram-container">
+        <span class="diagram-title info">Percentage Width = % of Parent</span>
+
+        <div class="box solid blue thick" style="padding-top: 3rem;">
+          <span class="box-label">viewport (1200px wide)</span>
+          
+          <div class="box solid green" style="padding-top: 2.5rem; width: 80%; margin: 0.5rem auto;">
+            <span class="box-label">parent container (960px = 80% of 1200)</span>
+            
+            <div class="box solid orange" style="padding-top: 2.5rem; width: 50%; margin-top: 0.5rem;">
+              <span class="box-label">child (width: 50%)</span>
+              <span class="verdict info">480px</span>
+              <div class="annotation">
+                <span class="comment">50% of parent (960px) = 480px</span><br>
+                <span class="bad">NOT 50% of viewport (600px)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header problem">What Happened In Your Code</h3>
+
+      <p class="explanation">
+        Your sidebar was in a <code>col-md-3</code>, which is 25% of its row. Your main content was in <code>col-md-9</code>, which is 75% of its row.
+        So when you set <code>width: 50%</code> on something inside the main content, you got 50% of 75% — not 50% of the screen.
+      </p>
+
+      <div class="diagram-container">
+        <span class="diagram-title problem">Your Structure: Nested Percentages</span>
+
+        <div class="box solid blue thick" style="padding-top: 3rem;">
+          <span class="box-label">viewport (1200px)</span>
+          
+          <div class="box solid gray" style="padding-top: 2.5rem;">
+            <span class="box-label">.container_one → .row</span>
+
+            <div class="diagram-row" style="margin-top: 0.5rem;">
+              <div class="box dashed red narrow" style="padding-top: 2.5rem;">
+                <span class="box-label">.col-md-3</span>
+                <span class="verdict bad">25%</span>
+                <div class="annotation">
+                  <span class="val">300px</span>
+                </div>
+                <div class="content red" style="margin-top: 0.5rem;">
+                  sidebar<br>(but fixed, so...)
+                </div>
+              </div>
+
+              <div class="box solid orange wide" style="padding-top: 2.5rem;">
+                <span class="box-label">.col-md-9</span>
+                <span class="verdict warn">75%</span>
+                <div class="annotation">
+                  <span class="val">900px</span> <span class="comment">— this is now the "parent" for everything inside</span>
+                </div>
+
+                <div class="box solid yellow" style="padding-top: 2.5rem; width: 50%; margin-top: 0.5rem;">
+                  <span class="box-label">element with width: 50%</span>
+                  <span class="verdict warn">450px!</span>
+                  <div class="annotation">
+                    <span class="comment">50% of 900px = 450px</span><br>
+                    <span class="bad">You expected 600px (50% of viewport)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-insight warning">
+        <h4>⚠️ This Is Why You Reached for vw/vh</h4>
+        <p>
+          When your percentages didn't produce the sizes you expected, you switched to <code>vw</code> (viewport width) and <code>vh</code> (viewport height). These ARE relative to the viewport, not the parent.
+        </p>
+        <p>
+          <code>width: 50vw</code> = 50% of viewport, always. That's why it "worked."
+        </p>
+        <p>
+          But this was treating the symptom, not the disease. The real problem was your structure — the sidebar inside Bootstrap columns with <code>position: fixed</code>. Let's look at that next.
+        </p>
+      </div>
+
+      <h3 class="section-header">vw/vh vs % — The Difference</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Unit</th>
+            <th>Relative To</th>
+            <th>Example (1200px viewport)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>%</code></td>
+            <td>Parent element's size</td>
+            <td><code>width: 50%</code> inside a 900px parent = <strong>450px</strong></td>
+          </tr>
+          <tr>
+            <td><code>vw</code></td>
+            <td>Viewport width</td>
+            <td><code>width: 50vw</code> anywhere = <strong>600px</strong></td>
+          </tr>
+          <tr>
+            <td><code>vh</code></td>
+            <td>Viewport height</td>
+            <td><code>height: 100vh</code> = full viewport height</td>
+          </tr>
+          <tr>
+            <td><code>px</code></td>
+            <td>Nothing (absolute)</td>
+            <td><code>width: 300px</code> = <strong>300px</strong> always</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+    <!-- ==================== TAB 2: FIXED + BOOTSTRAP ==================== -->
+    <div id="fixed-bootstrap" class="tab-content">
+
+      <div class="intro-box">
+        <h2>The Structural Problem</h2>
+        <p>
+          You put a <code>position: fixed</code> element inside a Bootstrap column. This creates a paradox that breaks layout math. Let me show you exactly what happened.
+        </p>
+      </div>
+
+      <h3 class="section-header problem">Your Actual Code</h3>
+
+      <div class="your-code">
+        <div class="your-code-header">From your index.html (lines 34-36)</div>
+        <pre>&lt;div class="col-md-3"&gt;
+    &lt;div class="nav ... col-md-3"
+        style="height: 100vh; <span style="color: #e94560; font-weight: bold;">position:fixed;</span>"&gt;</pre>
+      </div>
+
+      <p class="explanation">
+        Look closely: You have <code>col-md-3</code> as a wrapper, and then <em>another</em> <code>col-md-3</code> class on the nav itself, plus <code>position: fixed</code> inline.
+      </p>
+
+      <h3 class="section-header problem">What This Actually Did</h3>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number"></div>
+          <div class="step-content">
+            <h4>Bootstrap creates the column</h4>
+            <p>The outer <code>.col-md-3</code> takes up 25% of the row. So far so good.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number"></div>
+          <div class="step-content">
+            <h4>You add position: fixed to the nav inside it</h4>
+            <p><code>position: fixed</code> removes the nav from the document flow. It now positions relative to the <strong>viewport</strong>, not its parent column.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number"></div>
+          <div class="step-content">
+            <h4>The nav ignores the column completely</h4>
+            <p>The <code>col-md-3</code> class on the nav doesn't do what you think. A fixed element doesn't care about Bootstrap percentages — it's not in the flow. It sizes based on its content or explicit width.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number"></div>
+          <div class="step-content">
+            <h4>The outer column becomes empty</h4>
+            <p>The wrapper <code>.col-md-3</code> now has no in-flow content. But Bootstrap still reserves 25% of the row for it.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number"></div>
+          <div class="step-content">
+            <h4>Main content gets confused</h4>
+            <p><code>.col-md-9</code> thinks it should be 75% wide, starting after the 25% sidebar column. But the actual sidebar (fixed) is floating separately. Things overlap or misalign.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual showing the disconnect -->
+      <div class="diagram-container">
+        <span class="diagram-title problem">The Disconnect: Bootstrap Grid vs Fixed Element</span>
+
+        <div style="position: relative; min-height: 280px;">
+          <!-- What Bootstrap "sees" -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-family: Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">What Bootstrap grid calculates:</div>
+            <div class="box solid gray" style="padding-top: 2.5rem;">
+              <span class="box-label">.row</span>
+              <div class="diagram-row">
+                <div class="box dashed red narrow" style="padding-top: 2.5rem; min-height: 80px;">
+                  <span class="box-label">.col-md-3</span>
+                  <span class="verdict bad">empty!</span>
+                  <div class="annotation">
+                    <span class="comment">reserves 25%</span><br>
+                    <span class="bad">but nothing is here</span>
+                  </div>
+                </div>
+                <div class="box solid orange wide" style="padding-top: 2.5rem;">
+                  <span class="box-label">.col-md-9</span>
+                  <div class="annotation">
+                    <span class="comment">thinks it starts at 25% mark</span>
+                  </div>
+                  <div class="content orange" style="margin-top: 0.5rem;">main content</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- What actually renders -->
+          <div>
+            <div style="font-family: Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">What actually renders on screen:</div>
+            <div class="box solid blue thick" style="padding-top: 2.5rem; position: relative; min-height: 100px;">
+              <span class="box-label">viewport</span>
+              
+              <!-- Fixed sidebar floating -->
+              <div style="position: absolute; top: 2rem; left: 0.75rem; width: 25%; background-color: rgba(168, 85, 247, 0.9); border: 2px solid #a855f7; border-radius: 4px; padding: 0.5rem; z-index: 10;">
+                <div style="font-family: monospace; font-size: 0.7rem; color: white;">
+                  nav (fixed)<br>
+                  <span style="font-size: 0.6rem; opacity: 0.8;">glued to viewport edge</span>
+                </div>
+              </div>
+
+              <!-- Main content starting at wrong place -->
+              <div style="margin-left: 25%; background-color: rgba(247, 147, 30, 0.2); border: 2px solid #f7931e; border-radius: 4px; padding: 0.75rem;">
+                <div style="font-family: monospace; font-size: 0.7rem; color: #f7931e;">
+                  main content<br>
+                  <span style="font-size: 0.6rem; opacity: 0.8;">starts at 25% because Bootstrap reserved space for empty column</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="annotation" style="text-align: center; margin-top: 1rem;">
+          <span class="bad">The sidebar and the space reserved for it aren't connected anymore!</span>
+        </div>
+      </div>
+
+      <h3 class="section-header problem">Why Your Sizing Went Wrong</h3>
+
+      <p class="explanation">
+        Because your main content was inside <code>col-md-9</code> (75% of the row), anything using percentages inside it was calculating based on that 75%, not the full viewport.
+      </p>
+
+      <p class="explanation">
+        But your fixed sidebar wasn't actually taking up the 25% that <code>col-md-3</code> reserved. It was floating on top. So you had:
+      </p>
+
+      <ul style="color: #b8c5d6; margin: 1rem 0 1rem 2rem; line-height: 2;">
+        <li>An empty column taking up 25% of space (doing nothing)</li>
+        <li>Main content squeezed into 75%, making all your % calculations wrong</li>
+        <li>A fixed sidebar that might overlap or leave gaps</li>
+        <li>No clear relationship between the sidebar width and the content offset</li>
+      </ul>
+
+      <div class="your-code">
+        <div class="your-code-header">Your own comment from the code (lines 161-162)</div>
+        <pre>&lt;!--TO FIX 3: section headings either go too far to the right 
+(and have to be cut off with an overflow hidden) or not far 
+enough to the left (gap between edge and sidebar) perhaps 
+related to bootstrap column divider width or maybe due to 
+sidebar custom width--&gt;
+
+&lt;!--TO FIX 4: % not working in a lot of places but vw and vh 
+do, this is weird--&gt;</pre>
+      </div>
+
+      <div class="key-insight warning">
+        <h4>⚠️ You Diagnosed It Yourself!</h4>
+        <p>
+          Your comment says "% not working in a lot of places but vw and vh do, this is weird." Now you know why:
+        </p>
+        <p>
+          <strong>Percentages were working correctly</strong> — they were calculating based on the parent (<code>col-md-9</code> = 75% of viewport). You expected them to be based on the full viewport, so the numbers seemed wrong.
+        </p>
+        <p>
+          <strong>vw/vh worked</strong> because they always reference the viewport directly, bypassing the parent.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 3: THE FIX ==================== -->
+    <div id="the-fix" class="tab-content">
+
+      <div class="intro-box">
+        <h2>The Correct Pattern</h2>
+        <p>
+          Fixed elements should be <strong>outside</strong> the Bootstrap grid entirely. They don't participate in the flow, so they shouldn't be inside flow-based layout systems. Then you offset your main content with CSS, not Bootstrap columns.
+        </p>
+      </div>
+
+      <h3 class="section-header solution">The Structure That Works</h3>
+
+      <div class="comparison">
+        <!-- Wrong -->
+        <div class="diagram-container">
+          <span class="diagram-title problem">❌ Your Original Structure</span>
+
+          <div class="box solid gray" style="padding-top: 2.5rem;">
+            <span class="box-label">body</span>
+
+            <div class="box dashed red" style="padding-top: 2.5rem;">
+              <span class="box-label">.container_one → .row</span>
+              <span class="verdict bad">fixed inside grid</span>
+
+              <div class="diagram-row" style="margin-top: 0.5rem;">
+                <div class="box dashed red narrow" style="padding-top: 2rem;">
+                  <span class="box-label">.col-md-3</span>
+                  <div class="content red" style="margin-top: 0.25rem; font-size: 0.6rem;">
+                    nav (fixed)<br>inside column
+                  </div>
+                </div>
+                <div class="box dashed orange wide" style="padding-top: 2rem;">
+                  <span class="box-label">.col-md-9</span>
+                  <div class="content dim" style="margin-top: 0.25rem;">main</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right -->
+        <div class="diagram-container">
+          <span class="diagram-title solution">✓ The Correct Structure</span>
+
+          <div class="box solid gray" style="padding-top: 2.5rem;">
+            <span class="box-label">body</span>
+
+            <div class="box solid purple" style="padding-top: 2.5rem; margin-bottom: 0.5rem;">
+              <span class="box-label">nav.sidebar</span>
+              <span class="verdict good">fixed, outside grid</span>
+              <div class="annotation">
+                <span class="prop">position:</span> <span class="val">fixed</span><br>
+                <span class="prop">width:</span> <span class="val">280px</span>
+              </div>
+            </div>
+
+            <div class="box solid green" style="padding-top: 2.5rem;">
+              <span class="box-label">main.main-content</span>
+              <span class="verdict good">offset with CSS</span>
+              <div class="annotation">
+                <span class="prop">margin-left:</span> <span class="val">280px</span><br>
+                <span class="comment">matches sidebar width exactly</span>
+              </div>
+              <div class="content green" style="margin-top: 0.5rem;">
+                content (use Bootstrap grid inside here if needed)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header solution">The Code</h3>
+
+      <div class="comparison">
+        <div class="code-block">
+          <div class="code-header good">HTML Structure</div>
+          <pre><code><span class="tag">&lt;body&gt;</span>
+  <span class="comment">&lt;!-- Sidebar: OUTSIDE any grid --&gt;</span>
+  <span class="tag">&lt;nav</span> <span class="class">class="sidebar"</span><span class="tag">&gt;</span>
+    ...logo, nav links...
+  <span class="tag">&lt;/nav&gt;</span>
+
+  <span class="comment">&lt;!-- Mobile nav: also outside --&gt;</span>
+  <span class="tag">&lt;nav</span> <span class="class">class="navbar d-lg-none"</span><span class="tag">&gt;</span>
+    ...mobile menu...
+  <span class="tag">&lt;/nav&gt;</span>
+
+  <span class="comment">&lt;!-- Main content: sibling, not nested --&gt;</span>
+  <span class="tag">&lt;main</span> <span class="class">class="main-content"</span><span class="tag">&gt;</span>
+    ...all your content...
+  <span class="tag">&lt;/main&gt;</span>
+<span class="tag">&lt;/body&gt;</span></code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header good">CSS</div>
+          <pre><code><span class="selector">.sidebar</span> {
+  <span class="prop">position</span>: <span class="val">fixed</span>;
+  <span class="prop">top</span>: <span class="val">0</span>;
+  <span class="prop">left</span>: <span class="val">0</span>;
+  <span class="prop">width</span>: <span class="val">280px</span>;     <span class="comment">/* explicit width */</span>
+  <span class="prop">height</span>: <span class="val">100vh</span>;
+  <span class="prop">z-index</span>: <span class="val">1000</span>;
+}
+
+<span class="selector">.main-content</span> {
+  <span class="prop">margin-left</span>: <span class="val">280px</span>; <span class="comment">/* matches sidebar */</span>
+}
+
+<span class="comment">/* On mobile: no sidebar, no offset */</span>
+<span class="selector">@media (max-width: 991px)</span> {
+  <span class="selector">.sidebar</span> { <span class="prop">display</span>: <span class="val">none</span>; }
+  <span class="selector">.main-content</span> { <span class="prop">margin-left</span>: <span class="val">0</span>; }
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h4>🔑 Why This Works</h4>
+        <p>
+          <strong>The sidebar has an explicit pixel width (280px).</strong> Not a percentage, not a Bootstrap column fraction. A fixed number.
+        </p>
+        <p>
+          <strong>The main content's margin-left matches exactly.</strong> 280px sidebar width = 280px offset. They're coordinated.
+        </p>
+        <p>
+          <strong>No Bootstrap grid needed for this layout.</strong> Bootstrap grid is great for laying out content <em>inside</em> your main content area. It's not the right tool for the page-level sidebar/main split when the sidebar is fixed.
+        </p>
+      </div>
+
+      <h3 class="section-header">Now Percentages Work As Expected</h3>
+
+      <p class="explanation">
+        With this structure, if you set <code>width: 50%</code> on something inside <code>.main-content</code>, what is it 50% of?
+      </p>
+
+      <div class="diagram-container">
+        <span class="diagram-title solution">Clean Parent Chain</span>
+
+        <div class="box solid blue thick" style="padding-top: 3rem;">
+          <span class="box-label">viewport (1200px)</span>
+
+          <div style="display: flex; gap: 0;">
+            <!-- Sidebar (fixed, doesn't affect flow) -->
+            <div style="width: 280px; flex-shrink: 0; position: relative;">
+              <div class="box solid purple" style="padding-top: 2rem; height: 100%;">
+                <span class="box-label">.sidebar (fixed)</span>
+                <div class="annotation">
+                  <span class="val">280px</span><br>
+                  <span class="comment">out of flow</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main content -->
+            <div style="flex: 1;">
+              <div class="box solid green" style="padding-top: 2.5rem;">
+                <span class="box-label">.main-content</span>
+                <span class="verdict good">920px</span>
+                <div class="annotation">
+                  <span class="comment">1200px - 280px margin = 920px available</span>
+                </div>
+
+                <div class="box solid orange" style="padding-top: 2rem; width: 50%; margin-top: 0.5rem;">
+                  <span class="box-label">element with width: 50%</span>
+                  <span class="verdict good">460px</span>
+                  <div class="annotation">
+                    <span class="good">50% of 920px = 460px ✓</span><br>
+                    <span class="comment">Predictable! Makes sense!</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header">When To Use Bootstrap Grid</h3>
+
+      <p class="explanation">
+        Bootstrap grid is still useful — just not for the sidebar/main split. Use it <strong>inside</strong> your main content for laying out cards, columns of content, etc.
+      </p>
+
+      <div class="code-block">
+        <div class="code-header neutral">Bootstrap Grid Inside Main Content</div>
+        <pre><code><span class="tag">&lt;main</span> <span class="class">class="main-content"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;section</span> <span class="class">class="content-section"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="class">class="section-content"</span><span class="tag">&gt;</span>
+      
+      <span class="comment">&lt;!-- NOW you can use Bootstrap grid --&gt;</span>
+      <span class="tag">&lt;div</span> <span class="class">class="row g-4"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="col-md-6"</span><span class="tag">&gt;</span>Card 1<span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="col-md-6"</span><span class="tag">&gt;</span>Card 2<span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+      
+    <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;/section&gt;</span>
+<span class="tag">&lt;/main&gt;</span></code></pre>
+      </div>
+
+      <p class="explanation">
+        Now <code>col-md-6</code> means 50% of the <code>.row</code> inside <code>.section-content</code> inside <code>.main-content</code>. The parent chain is clear and predictable.
+      </p>
+
+    </div>
+
+    <!-- ==================== TAB 4: DOWNSTREAM HACKS ==================== -->
+    <div id="downstream" class="tab-content">
+
+      <div class="intro-box">
+        <h2>The Ripple Effect</h2>
+        <p>
+          When the foundation is broken, every floor you build on top requires its own hacks.
+          Here are the specific workarounds from your CSS that were <em>symptoms</em> of the structural problem — 
+          not the problem itself.
+        </p>
+      </div>
+
+      <!-- HACK 1: vw everywhere -->
+      <h3 class="section-header problem">Hack #1: Using vw Instead of %</h3>
+
+      <div class="your-code">
+        <div class="your-code-header">From your style.css</div>
+        <pre>#mainsection{
+  width:<span style="color: #e94560; font-weight: bold;">100vw</span> !important;
+}
+.fullbox{
+  box-sizing:content-box !important;
+  width:<span style="color: #e94560; font-weight: bold;">100vw</span> !important;
+}
+.titlepanel{
+  width:<span style="color: #e94560; font-weight: bold;">100vw</span>;  <span style="color: #6b7280;">/* mobile */</span>
+  width:<span style="color: #e94560; font-weight: bold;">75vw</span>;   <span style="color: #6b7280;">/* desktop */</span>
+}
+.section_heading{
+  width:<span style="color: #e94560; font-weight: bold;">100vw</span>;
+}</pre>
+      </div>
+
+      <div class="diagram-container">
+        <span class="diagram-title problem">Why You Reached for vw</span>
+
+        <div class="box solid blue thick" style="padding-top: 3rem;">
+          <span class="box-label">viewport (1200px)</span>
+
+          <div class="diagram-row">
+            <div class="box dashed gray narrow" style="padding-top: 2.5rem;">
+              <span class="box-label">.col-md-3</span>
+              <div class="annotation"><span class="val">300px</span> reserved</div>
+            </div>
+            <div class="box solid orange wide" style="padding-top: 2.5rem;">
+              <span class="box-label">.col-md-9 (your parent)</span>
+              <span class="verdict warn">900px</span>
+              
+              <div class="box dashed red" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+                <span class="box-label">.section_heading</span>
+                <div class="annotation">
+                  <span class="comment">You wanted this to span the full viewport width...</span><br><br>
+                  <span class="bad">width: 100%</span> = <span class="val">900px</span> <span class="comment">(only spans parent)</span><br>
+                  <span class="good">width: 100vw</span> = <span class="val">1200px</span> <span class="comment">(escapes parent!)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="annotation" style="text-align: center; margin-top: 1rem;">
+          <span class="bad">Using vw "worked" but caused horizontal overflow. That's why you needed overflow: hidden everywhere.</span>
+        </div>
+      </div>
+
+      <p class="explanation">
+        The diagram shows your content trapped inside <code>col-md-9</code>, which is only 75% of the viewport (900px on a 1200px screen). 
+        When you wrote <code>width: 100%</code>, you expected full-screen width, but you got 100% of the parent — only 900px. 
+        So you switched to <code>100vw</code>, which ignores the parent entirely and always means "full viewport width." 
+        It solved the immediate problem, but created a new one: the element was now wider than its container, causing horizontal scroll. 
+        <strong>The fix from "The Correct Pattern" tab:</strong> If main content isn't trapped inside a Bootstrap column, <code>width: 100%</code> works as expected.
+      </p>
+
+      <div class="key-insight warning">
+        <h4>⚠️ The Real Problem</h4>
+        <p>
+          You wanted full-width section headers, but your content was trapped inside <code>col-md-9</code>.
+          Instead of fixing the structure, you used <code>100vw</code> to "break out" of the parent.
+          But <code>100vw</code> includes the scrollbar width, so it actually overflows — hence <code>overflow: hidden</code> on the container.
+        </p>
+      </div>
+
+      <!-- HACK 2: The gridline_container mess -->
+      <h3 class="section-header problem">Hack #2: Three Properties Doing One Job</h3>
+
+      <div class="your-code">
+        <div class="your-code-header">From your style.css (lines 205-212)</div>
+        <pre>.gridline_container{
+    margin-left:<span style="color: #e94560; font-weight: bold;">3vw</span>!important;
+    margin-right:<span style="color: #e94560; font-weight: bold;">3vw</span>;
+    margin-top:1vh;
+    margin-bottom:1vh;
+    display:block;
+    max-width:<span style="color: #e94560; font-weight: bold;">92%</span>;
+}</pre>
+      </div>
+
+      <div class="diagram-container">
+        <span class="diagram-title problem">The Math Doesn't Add Up</span>
+
+        <div class="box solid blue thick" style="padding-top: 3rem;">
+          <span class="box-label">parent container</span>
+
+          <div style="display: flex; align-items: center; margin-top: 0.5rem;">
+            <div style="width: 3%; background: rgba(233, 69, 96, 0.3); border: 1px dashed #e94560; padding: 0.5rem 0; text-align: center;">
+              <span style="font-family: monospace; font-size: 0.6rem; color: #e94560;">3vw</span>
+            </div>
+            <div class="box solid orange" style="flex: 1; padding-top: 2.5rem; margin: 0;">
+              <span class="box-label">.gridline_container</span>
+              <span class="verdict warn">max-width: 92%</span>
+              <div class="annotation">
+                <span class="comment">But 92% of what? The parent (col-md-9)?</span><br>
+                <span class="comment">Plus 3vw margins... which are viewport-based...</span><br>
+                <span class="bad">These units don't relate to each other!</span>
+              </div>
+            </div>
+            <div style="width: 3%; background: rgba(233, 69, 96, 0.3); border: 1px dashed #e94560; padding: 0.5rem 0; text-align: center;">
+              <span style="font-family: monospace; font-size: 0.6rem; color: #e94560;">3vw</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison" style="margin-top: 1.5rem;">
+          <div style="background-color: rgba(233, 69, 96, 0.1); border: 1px solid #e94560; border-radius: 8px; padding: 1rem;">
+            <div style="font-family: Arial, sans-serif; font-size: 0.8rem; color: #e94560; margin-bottom: 0.5rem;">❌ What you did</div>
+            <div style="font-family: monospace; font-size: 0.75rem; color: #b8c5d6;">
+              max-width: 92%<br>
+              margin-left: 3vw<br>
+              margin-right: 3vw<br>
+              <span style="color: #6b7280;">// 3 properties, 2 different units, hoping it works</span>
+            </div>
+          </div>
+          <div style="background-color: rgba(78, 204, 163, 0.1); border: 1px solid #4ecca3; border-radius: 8px; padding: 1rem;">
+            <div style="font-family: Arial, sans-serif; font-size: 0.8rem; color: #4ecca3; margin-bottom: 0.5rem;">✓ What you needed</div>
+            <div style="font-family: monospace; font-size: 0.75rem; color: #b8c5d6;">
+              max-width: 1200px;<br>
+              margin: 0 auto;<br>
+              padding: 0 2rem;<br>
+              <span style="color: #6b7280;">// Centered, constrained, with breathing room</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explanation">
+        You were trying to create a centered container with some breathing room on the sides. But you used three different properties with two different unit systems: 
+        <code>max-width: 92%</code> (parent-relative), plus <code>margin-left: 3vw</code> and <code>margin-right: 3vw</code> (viewport-relative). 
+        These units don't coordinate — at different screen sizes, the math breaks down in unpredictable ways.
+        <strong>The fix:</strong> Use a consistent system. Set <code>max-width</code> in pixels for the maximum size you want, 
+        <code>margin: 0 auto</code> to center it, and <code>padding</code> for internal breathing room. All working together, all predictable.
+      </p>
+
+      <!-- HACK 3: The divider spacer -->
+      <h3 class="section-header problem">Hack #3: The Divider Spacer</h3>
+
+      <div class="your-code">
+        <div class="your-code-header">From your style.css — three different values!</div>
+        <pre><span style="color: #6b7280;">/* Base (line 100-102) */</span>
+.divider{
+  padding-top:<span style="color: #e94560; font-weight: bold;">93vh</span>;
+}
+
+<span style="color: #6b7280;">/* Mobile media query (line 37-39) */</span>
+.divider{
+  padding-top:<span style="color: #e94560; font-weight: bold;">100vh</span>!important;
+}
+
+<span style="color: #6b7280;">/* Desktop media query (line 87-89) */</span>
+.divider{
+  padding-top:<span style="color: #e94560; font-weight: bold;">100vh</span>!important;
+}</pre>
+      </div>
+
+      <div class="diagram-container">
+        <span class="diagram-title problem">Why You Needed This</span>
+
+        <div class="box solid gray" style="padding-top: 2.5rem; position: relative; min-height: 280px;">
+          <span class="box-label">.titlecontainer</span>
+
+          <!-- The absolute hero floating -->
+          <div style="position: absolute; top: 2.5rem; left: 0.75rem; right: 0.75rem; height: 120px; background: rgba(168, 85, 247, 0.2); border: 2px dashed #a855f7; border-radius: 4px; z-index: 2;">
+            <div style="padding: 0.5rem; font-family: monospace; font-size: 0.7rem; color: #a855f7;">
+              .titlepanel (position: absolute)<br>
+              <span style="font-size: 0.6rem; opacity: 0.8;">height: 93vh — but takes up NO space in flow</span>
+            </div>
+          </div>
+
+          <!-- The collapsed container -->
+          <div style="margin-top: 0.5rem; background: rgba(233, 69, 96, 0.2); border: 2px solid #e94560; border-radius: 4px; padding: 0.5rem; height: 30px;">
+            <div style="font-family: monospace; font-size: 0.65rem; color: #e94560;">
+              Container collapses to ~0 height (nothing in flow)
+            </div>
+          </div>
+
+          <!-- The divider hack -->
+          <div class="box solid yellow" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+            <span class="box-label">.divider</span>
+            <span class="verdict warn">THE HACK</span>
+            <div class="annotation">
+              <span class="prop">padding-top:</span> <span class="val">93vh</span><br>
+              <span class="comment">"I manually recreate the space the hero should have occupied"</span>
+            </div>
+          </div>
+
+          <!-- Content after -->
+          <div class="box solid green" style="padding-top: 2rem; margin-top: 0.5rem;">
+            <span class="box-label">main content</span>
+            <div class="annotation">
+              <span class="good">Now appears below hero (thanks to divider)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explanation">
+        This hack is caused by a <strong>different structural problem</strong> than the sidebar issue. 
+        Your <code>.titlepanel</code> was <code>position: absolute</code>, which removed it from the document flow. 
+        Its parent container collapsed to zero height because it had no in-flow children. 
+        The main content rushed up and appeared behind the hero. 
+        Your solution: create a <code>.divider</code> element with <code>padding-top: 93vh</code> to manually push content down.
+        <strong>The fix from the Positioning study guide:</strong> Keep the hero container in normal flow with an explicit <code>height: 100vh</code>. 
+        Only make the children (image, text overlay) absolute. Then no spacer is needed — the container itself reserves the space.
+      </p>
+
+      <div class="key-insight warning">
+        <h4>⚠️ The Fragility</h4>
+        <p>
+          The divider's <code>padding-top: 93vh</code> had to match the hero's <code>height: 93vh</code>.
+          You had different values at different breakpoints (93vh base, 100vh in media queries).
+          If you ever changed the hero height, you'd have to remember to change the divider too.
+          <strong>Two values that must stay in sync = a bug waiting to happen.</strong>
+        </p>
+      </div>
+
+      <!-- HACK 4: !important everywhere -->
+      <h3 class="section-header problem">Hack #4: !important Everywhere</h3>
+
+      <div class="your-code">
+        <div class="your-code-header">Count the !important declarations in your CSS</div>
+        <pre>width:100vw <span style="color: #e94560; font-weight: bold;">!important</span>;
+box-sizing:content-box <span style="color: #e94560; font-weight: bold;">!important</span>;
+width:100vw <span style="color: #e94560; font-weight: bold;">!important</span>;
+width:100%<span style="color: #e94560; font-weight: bold;">!important</span>;
+padding-top:100vh<span style="color: #e94560; font-weight: bold;">!important</span>;
+overflow:hidden<span style="color: #e94560; font-weight: bold;">!important</span>;
+text-align: center<span style="color: #e94560; font-weight: bold;">!important</span>;
+text-align:right<span style="color: #e94560; font-weight: bold;">!important</span>;
+padding-top:100vh<span style="color: #e94560; font-weight: bold;">!important</span>;
+margin-left:3vw<span style="color: #e94560; font-weight: bold;">!important</span>;
+font-style:normal<span style="color: #e94560; font-weight: bold;">!important</span>;
+padding-left:0px<span style="color: #e94560; font-weight: bold;">!important</span>;
+padding:0<span style="color: #e94560; font-weight: bold;">!important</span>;
+
+<span style="color: #6b7280;">// That's 13+ !important declarations in one stylesheet</span></pre>
+      </div>
+
+      <div class="diagram-container">
+        <span class="diagram-title problem">What !important Actually Means</span>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px; background: rgba(233, 69, 96, 0.1); border: 1px solid #e94560; border-radius: 8px; padding: 1rem;">
+            <div style="font-family: Arial, sans-serif; font-size: 0.85rem; color: #e94560; margin-bottom: 0.75rem; font-weight: bold;">What you think it means:</div>
+            <p style="font-size: 0.85rem; color: #b8c5d6; margin: 0;">"Make sure this style applies"</p>
+          </div>
+          <div style="flex: 1; min-width: 250px; background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; border-radius: 8px; padding: 1rem;">
+            <div style="font-family: Arial, sans-serif; font-size: 0.85rem; color: #fbbf24; margin-bottom: 0.75rem; font-weight: bold;">What it actually means:</div>
+            <p style="font-size: 0.85rem; color: #b8c5d6; margin: 0;">"Something else is overriding me and I don't know how to fix it properly, so I'm using a sledgehammer"</p>
+          </div>
+        </div>
+
+        <div class="annotation" style="text-align: center; margin-top: 1.5rem;">
+          <span class="comment">Every <code>!important</code> is a sign you're fighting against something — usually Bootstrap or your own earlier styles.</span><br>
+          <span class="bad">With the correct structure, the revL CSS has almost zero !important declarations.</span>
+        </div>
+      </div>
+
+      <p class="explanation">
+        Every <code>!important</code> in your CSS was a red flag — a sign that something else was overriding your styles and you didn't know how to fix it properly.
+        Most of these were fighting Bootstrap. When you put your content inside Bootstrap columns, Bootstrap's styles applied. 
+        When those styles conflicted with what you wanted, you escalated with <code>!important</code>.
+        <strong>The fix:</strong> When you stop misusing Bootstrap's grid (sidebar outside grid, main content not trapped in columns), 
+        you stop fighting Bootstrap's styles. The cascade works with you instead of against you. No sledgehammers needed.
+      </p>
+
+      <!-- HACK 5: Magic numbers -->
+      <h3 class="section-header problem">Hack #5: Magic Numbers</h3>
+
+      <div class="your-code">
+        <div class="your-code-header">Unexplained values scattered throughout</div>
+        <pre><span style="color: #6b7280;">/* In mobile media query */</span>
+.card{
+    margin-left:<span style="color: #e94560; font-weight: bold;">28px</span>;  <span style="color: #6b7280;">/* Why 28? */</span>
+}
+
+<span style="color: #6b7280;">/* Hero positioning */</span>
+.mainimage{
+  left:<span style="color: #e94560; font-weight: bold;">20vw</span>;      <span style="color: #6b7280;">/* Why 20? */</span>
+  height:<span style="color: #e94560; font-weight: bold;">140vw</span>;   <span style="color: #6b7280;">/* Why 140? */</span>
+}
+
+<span style="color: #6b7280;">/* Desktop hero */</span>
+.titlepanel{
+    width:<span style="color: #e94560; font-weight: bold;">75vw</span>;    <span style="color: #6b7280;">/* Trying to match col-md-9 (75%)? */</span>
+}</pre>
+      </div>
+
+      <div class="diagram-container">
+        <span class="diagram-title info">The 75vw Mystery</span>
+
+        <div class="box solid blue thick" style="padding-top: 3rem;">
+          <span class="box-label">viewport (1200px)</span>
+
+          <div class="diagram-row">
+            <div class="box dashed red narrow" style="padding-top: 2.5rem;">
+              <span class="box-label">.col-md-3</span>
+              <div class="annotation"><span class="val">25%</span> = 300px</div>
+            </div>
+            <div class="box dashed orange wide" style="padding-top: 2.5rem;">
+              <span class="box-label">.col-md-9</span>
+              <div class="annotation"><span class="val">75%</span> = 900px</div>
+            </div>
+          </div>
+
+          <div class="box dashed purple" style="padding-top: 2.5rem; margin-top: 1rem; width: 75%;">
+            <span class="box-label">.titlepanel</span>
+            <span class="verdict warn">width: 75vw</span>
+            <div class="annotation">
+              <span class="comment">You used 75vw trying to match the col-md-9 width.</span><br>
+              <span class="bad">But vw is viewport-relative, not parent-relative.</span><br>
+              <span class="comment">At 1200px viewport: 75vw = 900px. It happens to match!</span><br>
+              <span class="bad">At 1400px viewport: 75vw = 1050px. col-md-9 = 1050px. Still matches!</span><br>
+              <span class="comment">You got lucky — but only because you were inside a full-width container.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="explanation">
+        "Magic numbers" are values that work but have no obvious reason for existing. Why 28px margin on cards? Why 20vw left position? Why 140vw height? 
+        These were arrived at by trial and error — you adjusted values until things looked right on your screen.
+        The 75vw for <code>.titlepanel</code> is particularly interesting: you were trying to match Bootstrap's <code>col-md-9</code> (75%), and <code>75vw</code> happens to equal 75% 
+        when the container is full-width. You got lucky that the math worked out.
+        <strong>The fix:</strong> With a clear structure, values have clear reasons. Sidebar is 280px because that's your design decision. 
+        Main content offset is 280px because it matches the sidebar. No guessing, no trial-and-error, no magic.
+      </p>
+
+      <!-- Summary -->
+      <h3 class="section-header">The Pattern</h3>
+
+      <div class="key-insight">
+        <h4>🔑 Every Hack Was Compensation</h4>
+        <p><strong>vw units:</strong> Compensating for being trapped inside col-md-9</p>
+        <p><strong>Overlapping properties:</strong> Compensating for unpredictable parent widths</p>
+        <p><strong>Divider spacer:</strong> Compensating for absolute hero removing itself from flow</p>
+        <p><strong>!important:</strong> Compensating for fighting Bootstrap's cascade</p>
+        <p><strong>Magic numbers:</strong> Compensating by trial-and-error until it "looked right"</p>
+        <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(78, 204, 163, 0.3);">
+          <strong>None of these were wrong instincts.</strong> You were solving real problems. 
+          But you were solving symptoms instead of the disease. Fix the structure, and most of these hacks become unnecessary.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 5: REFERENCE ==================== -->
+    <div id="reference" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Quick Reference</h2>
+        <p>
+          The key rules from this guide, collected for easy reference.
+        </p>
+      </div>
+
+      <h3 class="section-header">Percentage Units: What's the Parent?</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>If you write...</th>
+            <th>It's relative to...</th>
+            <th>Watch out for...</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>width: 50%</code></td>
+            <td>Parent's content width</td>
+            <td>Nested containers (columns inside columns)</td>
+          </tr>
+          <tr>
+            <td><code>height: 50%</code></td>
+            <td>Parent's content height</td>
+            <td>Parent must have explicit height!</td>
+          </tr>
+          <tr>
+            <td><code>padding: 5%</code></td>
+            <td>Parent's width (even vertical padding!)</td>
+            <td>Responsive padding trick</td>
+          </tr>
+          <tr>
+            <td><code>margin: 5%</code></td>
+            <td>Parent's width</td>
+            <td>Same as padding</td>
+          </tr>
+          <tr>
+            <td><code>width: 50vw</code></td>
+            <td>Viewport width (always)</td>
+            <td>Ignores parent entirely</td>
+          </tr>
+          <tr>
+            <td><code>height: 50vh</code></td>
+            <td>Viewport height (always)</td>
+            <td>Ignores parent entirely</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header">Fixed Positioning Rules</h3>
+
+      <div class="key-insight">
+        <h4>🔑 Rule 1: Fixed Elements Go Outside Grid Systems</h4>
+        <p>
+          Never put <code>position: fixed</code> elements inside Bootstrap rows/columns. The fixed element will ignore the column's constraints and cause layout math to break.
+        </p>
+      </div>
+
+      <div class="key-insight">
+        <h4>🔑 Rule 2: Coordinate Fixed Width + Content Offset</h4>
+        <p>
+          If your sidebar is <code>width: 280px</code>, your main content needs <code>margin-left: 280px</code>. These must match. Don't use Bootstrap column fractions for this — use explicit pixel values.
+        </p>
+      </div>
+
+      <div class="key-insight">
+        <h4>🔑 Rule 3: Use Media Queries for Responsive</h4>
+        <p>
+          At your mobile breakpoint, hide the sidebar (<code>display: none</code>) and remove the margin offset (<code>margin-left: 0</code>). Show the mobile navbar instead.
+        </p>
+      </div>
+
+      <h3 class="section-header">The Correct Sidebar Pattern</h3>
+
+      <div class="diagram-container">
+        <span class="diagram-title solution">Cheat Sheet: Fixed Sidebar Layout</span>
+
+        <div class="box solid gray" style="padding-top: 2.5rem;">
+          <span class="box-label">body</span>
+
+          <div class="box solid purple" style="padding-top: 2.5rem; width: 30%; min-width: 150px;">
+            <span class="box-label">nav.sidebar</span>
+            <div class="annotation">
+              <span class="prop">position:</span> <span class="val">fixed</span><br>
+              <span class="prop">width:</span> <span class="val">280px</span> <span class="comment">(explicit)</span><br>
+              <span class="prop">height:</span> <span class="val">100vh</span><br>
+              <span class="prop">top:</span> <span class="val">0</span><br>
+              <span class="prop">left:</span> <span class="val">0</span><br>
+              <span class="prop">z-index:</span> <span class="val">1000</span>
+            </div>
+          </div>
+
+          <div class="box solid teal" style="padding-top: 2.5rem;">
+            <span class="box-label">nav.navbar (mobile)</span>
+            <div class="annotation">
+              <span class="prop">d-lg-none</span> <span class="comment">→ hidden on desktop</span><br>
+              <span class="prop">position:</span> <span class="val">fixed</span><br>
+              <span class="prop">top:</span> <span class="val">0</span><br>
+              <span class="prop">width:</span> <span class="val">100%</span>
+            </div>
+          </div>
+
+          <div class="box solid green" style="padding-top: 2.5rem;">
+            <span class="box-label">main.main-content</span>
+            <div class="annotation">
+              <span class="comment">Desktop:</span><br>
+              <span class="prop">margin-left:</span> <span class="val">280px</span> <span class="comment">(matches sidebar)</span><br><br>
+              <span class="comment">Mobile (@media max-width: 991px):</span><br>
+              <span class="prop">margin-left:</span> <span class="val">0</span><br>
+              <span class="prop">padding-top:</span> <span class="val">56px</span> <span class="comment">(navbar height)</span>
+            </div>
+            <div class="content green" style="margin-top: 1rem;">
+              Bootstrap grid okay to use in here!<br>
+              <span style="font-size: 0.6rem;">(for content layout, not page structure)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header">Summary: What Went Wrong & The Fix</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Problem</th>
+            <th>Why It Happened</th>
+            <th>The Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Percentages seemed "broken"</td>
+            <td>They were relative to <code>col-md-9</code> (75%), not viewport</td>
+            <td>Understand parent chain; use <code>vw</code> only when you truly need viewport-relative</td>
+          </tr>
+          <tr>
+            <td>Things overflowed</td>
+            <td>Fixed element + Bootstrap column = conflicting width systems</td>
+            <td>Fixed elements outside grid; explicit pixel widths</td>
+          </tr>
+          <tr>
+            <td>Gaps/overlaps with sidebar</td>
+            <td>Empty <code>col-md-3</code> reserved space; fixed sidebar floated separately</td>
+            <td>No column for sidebar; use <code>margin-left</code> on main content</td>
+          </tr>
+          <tr>
+            <td>Needed <code>!important</code> everywhere</td>
+            <td>Fighting Bootstrap's styles instead of working with structure</td>
+            <td>Correct structure means fewer overrides needed</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Layout Debugging Study Guide · Understanding Why Things Break</p>
+  </footer>
+
+  <!-- Tab Script -->
+  <script>
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

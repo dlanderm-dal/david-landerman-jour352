@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Positioning: The Complete Visual Guide</title>
+  <style>
+    /* ============================================
+       BASE STYLES
+       ============================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.5rem;
+      font-weight: normal;
+      margin: 0.5rem 0 0 0;
+      color: white;
+    }
+
+    /* ============================================
+       NAVIGATION TABS
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #7c3aed;
+      color: white;
+      border-bottom: 3px solid #4ecca3;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       INTRO BOX
+       ============================================ */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #a855f7;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #a855f7;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    .intro-box p + p {
+      margin-top: 1rem;
+    }
+
+    /* ============================================
+       VISUAL DIAGRAM SYSTEM
+       ============================================ */
+    .diagram-container {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .diagram-title {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
+    .diagram-title.neutral {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .diagram-title.problem {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .diagram-title.solution {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    /* Box system */
+    .box {
+      position: relative;
+      border-radius: 6px;
+      padding: 0.75rem;
+      padding-top: 2.5rem;
+      margin-bottom: 0.5rem;
+      min-height: 50px;
+    }
+
+    .box.dashed { border: 2px dashed; }
+    .box.solid { border: 2px solid; }
+    .box.thick { border-width: 3px; }
+
+    /* Colors */
+    .box.red { border-color: #e94560; background-color: rgba(233, 69, 96, 0.05); }
+    .box.orange { border-color: #f7931e; background-color: rgba(247, 147, 30, 0.05); }
+    .box.yellow { border-color: #fbbf24; background-color: rgba(251, 191, 36, 0.05); }
+    .box.green { border-color: #4ecca3; background-color: rgba(78, 204, 163, 0.05); }
+    .box.blue { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+    .box.purple { border-color: #a855f7; background-color: rgba(168, 85, 247, 0.05); }
+    .box.teal { border-color: #14b8a6; background-color: rgba(20, 184, 166, 0.05); }
+    .box.gray { border-color: #6b7280; background-color: rgba(107, 114, 128, 0.05); }
+
+    /* Label */
+    .box-label {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.6rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .box.red .box-label { color: #e94560; }
+    .box.orange .box-label { color: #f7931e; }
+    .box.yellow .box-label { color: #fbbf24; }
+    .box.green .box-label { color: #4ecca3; }
+    .box.blue .box-label { color: #3b82f6; }
+    .box.purple .box-label { color: #a855f7; }
+    .box.teal .box-label { color: #14b8a6; }
+    .box.gray .box-label { color: #6b7280; }
+
+    /* Verdict */
+    .verdict {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.6rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .verdict.bad { background-color: rgba(233, 69, 96, 0.3); color: #e94560; }
+    .verdict.warn { background-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+    .verdict.good { background-color: rgba(78, 204, 163, 0.3); color: #4ecca3; }
+    .verdict.info { background-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+    .verdict.purple { background-color: rgba(168, 85, 247, 0.3); color: #a855f7; }
+
+    /* Content placeholder */
+    .content {
+      background-color: rgba(96, 165, 250, 0.15);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      border-radius: 4px;
+      padding: 0.5rem;
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: #60a5fa;
+    }
+
+    .content.dim { opacity: 0.4; }
+    .content.green { 
+      background-color: rgba(78, 204, 163, 0.15);
+      border-color: rgba(78, 204, 163, 0.4);
+      color: #4ecca3;
+    }
+    .content.orange {
+      background-color: rgba(247, 147, 30, 0.15);
+      border-color: rgba(247, 147, 30, 0.4);
+      color: #f7931e;
+    }
+    .content.purple {
+      background-color: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #a855f7;
+    }
+
+    /* Annotation */
+    .annotation {
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: #8892b0;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .annotation .prop { color: #4ecca3; }
+    .annotation .val { color: #f7931e; }
+    .annotation .comment { color: #6b7280; font-style: italic; }
+
+    /* Row layout */
+    .diagram-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .diagram-row > .box { flex: 1; }
+    .diagram-row > .box.narrow { flex: 0 0 30%; }
+
+    /* ============================================
+       SIDE BY SIDE COMPARISON
+       ============================================ */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================
+       POSITION TYPE CARDS
+       ============================================ */
+    .position-card {
+      background-color: #16213e;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid;
+    }
+
+    .position-card.static { border-color: #6b7280; }
+    .position-card.relative { border-color: #3b82f6; }
+    .position-card.absolute { border-color: #e94560; }
+    .position-card.fixed { border-color: #a855f7; }
+    .position-card.sticky { border-color: #f7931e; }
+
+    .position-card h3 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.1rem;
+      margin: 0 0 0.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .position-card.static h3 { color: #6b7280; }
+    .position-card.relative h3 { color: #3b82f6; }
+    .position-card.absolute h3 { color: #e94560; }
+    .position-card.fixed h3 { color: #a855f7; }
+    .position-card.sticky h3 { color: #f7931e; }
+
+    .position-card .subtitle {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #8892b0;
+      margin-bottom: 1rem;
+    }
+
+    .position-card p {
+      color: #b8c5d6;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .position-card .key-point {
+      background-color: #0f3460;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .position-card .key-point strong {
+      color: #4ecca3;
+    }
+
+    /* ============================================
+       FLOW VISUALIZATION
+       ============================================ */
+    .flow-demo {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .flow-demo-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .flow-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .flow-item {
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .flow-item.in-flow {
+      background-color: rgba(78, 204, 163, 0.2);
+      border: 2px solid #4ecca3;
+      color: #4ecca3;
+    }
+
+    .flow-item.out-of-flow {
+      background-color: rgba(233, 69, 96, 0.2);
+      border: 2px dashed #e94560;
+      color: #e94560;
+    }
+
+    .flow-item.ghost {
+      background-color: rgba(107, 114, 128, 0.1);
+      border: 2px dashed #6b7280;
+      color: #6b7280;
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    /* ============================================
+       VIEWPORT SIMULATION
+       ============================================ */
+    .viewport-sim {
+      position: relative;
+      background-color: #0a0a14;
+      border: 3px solid #3b82f6;
+      border-radius: 8px;
+      height: 350px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .viewport-label {
+      position: absolute;
+      top: -0.6rem;
+      left: 1rem;
+      background-color: #0a0a14;
+      padding: 0 0.5rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.7rem;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .viewport-content {
+      height: 100%;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .viewport-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .viewport-content::-webkit-scrollbar-track {
+      background: #16213e;
+    }
+
+    .viewport-content::-webkit-scrollbar-thumb {
+      background: #3b82f6;
+      border-radius: 4px;
+    }
+
+    .fixed-element {
+      position: absolute;
+      background-color: rgba(168, 85, 247, 0.9);
+      border: 2px solid #a855f7;
+      color: white;
+      padding: 0.5rem 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      z-index: 10;
+    }
+
+    .fixed-element.top-left {
+      top: 1rem;
+      left: 1rem;
+    }
+
+    .fixed-element.sidebar {
+      top: 1rem;
+      left: 1rem;
+      bottom: 1rem;
+      width: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    .scroll-content {
+      margin-left: 100px;
+    }
+
+    .scroll-block {
+      background-color: rgba(78, 204, 163, 0.2);
+      border: 1px solid #4ecca3;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: #4ecca3;
+    }
+
+    /* ============================================
+       CODE BLOCKS
+       ============================================ */
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .code-header {
+      background-color: #16213e;
+      padding: 0.5rem 1rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #b8c5d6;
+    }
+
+    .code-block .prop { color: #4ecca3; }
+    .code-block .val { color: #f7931e; }
+    .code-block .comment { color: #6b7280; }
+    .code-block .selector { color: #a855f7; }
+
+    /* ============================================
+       DECISION FRAMEWORK
+       ============================================ */
+    .decision-framework {
+      background-color: #16213e;
+      border: 2px solid #7c3aed;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .decision-framework h3 {
+      font-family: 'Arial', sans-serif;
+      color: #a855f7;
+      margin: 0 0 1.5rem 0;
+      text-align: center;
+    }
+
+    .decision-list {
+      list-style: none;
+    }
+
+    .decision-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      background-color: #0f3460;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+    }
+
+    .decision-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .decision-content p {
+      margin: 0 0 0.25rem 0;
+      color: #e8e8e8;
+    }
+
+    .decision-content .use-case {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #4ecca3;
+    }
+
+    /* ============================================
+       QUICK REFERENCE TABLE
+       ============================================ */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 1.5rem 0;
+    }
+
+    .ref-table th {
+      background-color: #16213e;
+      padding: 0.75rem;
+      text-align: left;
+      font-family: 'Arial', sans-serif;
+      color: #e8e8e8;
+      border-bottom: 2px solid #3b82f6;
+    }
+
+    .ref-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #0f3460;
+      color: #b8c5d6;
+      vertical-align: top;
+    }
+
+    .ref-table tr:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    .ref-table code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.8rem;
+    }
+
+    .ref-table .yes { color: #4ecca3; }
+    .ref-table .no { color: #e94560; }
+    .ref-table .partial { color: #f7931e; }
+
+    /* ============================================
+       KEY INSIGHT BOX
+       ============================================ */
+    .key-insight {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .key-insight h4 {
+      font-family: 'Arial', sans-serif;
+      color: #4ecca3;
+      margin: 0 0 0.75rem 0;
+      font-size: 1rem;
+    }
+
+    .key-insight p {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .key-insight code {
+      background-color: #1a1a2e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      border-top: 1px solid #0f3460;
+      padding: 1.5rem 3rem;
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+    footer p {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #4a5568;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <span class="header-label">Study Guide · Positioning</span>
+      <h1>CSS Positioning: What Actually Happens</h1>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="flow">Normal Flow</button>
+      <button class="tab-btn" data-tab="types">Position Types</button>
+      <button class="tab-btn" data-tab="hero">Your Hero Problem</button>
+      <button class="tab-btn" data-tab="reference">Quick Reference</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- ==================== TAB 1: NORMAL FLOW ==================== -->
+    <div id="flow" class="tab-content active">
+
+      <div class="intro-box">
+        <h2>The One Thing You Must Understand First</h2>
+        <p>
+          Before we talk about <code>absolute</code> or <code>fixed</code>, you need to understand 
+          what they're <em>removing elements from</em>. That thing is called <strong>normal flow</strong>.
+        </p>
+        <p>
+          Normal flow is just: elements stack vertically, one after another, each one pushing the next one down.
+          Block elements take full width. That's it. That's the default.
+        </p>
+      </div>
+
+      <!-- Normal Flow Demo -->
+      <div class="diagram-container">
+        <span class="diagram-title neutral">Normal Flow: Elements Stack</span>
+        
+        <div class="box solid green" style="padding-top: 2rem;">
+          <span class="box-label">header</span>
+          <div class="content green">I'm first. I take up space. Everything after me starts below me.</div>
+        </div>
+
+        <div class="box solid green" style="padding-top: 2rem;">
+          <span class="box-label">hero</span>
+          <div class="content green">I'm second. I know the header is above me because it's in the flow.</div>
+        </div>
+
+        <div class="box solid green" style="padding-top: 2rem;">
+          <span class="box-label">main content</span>
+          <div class="content green">I'm third. I start right where the hero ends. No overlap. Simple.</div>
+        </div>
+
+        <div class="annotation" style="text-align: center; margin-top: 1rem;">
+          <span class="comment">↑ Each element "knows" about the ones before it. They push each other down.</span>
+        </div>
+      </div>
+
+      <!-- What Happens When You Remove From Flow -->
+      <h3 style="color: #e94560; font-family: Arial, sans-serif; margin: 2rem 0 1rem;">What Happens When You Remove Something From Flow</h3>
+
+      <div class="comparison">
+        <!-- Before -->
+        <div class="diagram-container">
+          <span class="diagram-title neutral">Before: Hero in Flow</span>
+          
+          <div class="box solid gray" style="padding-top: 2rem;">
+            <span class="box-label">header</span>
+            <div class="content" style="height: 30px;"></div>
+          </div>
+
+          <div class="box solid blue" style="padding-top: 2rem;">
+            <span class="box-label">hero</span>
+            <span class="verdict info">in flow</span>
+            <div class="content" style="height: 80px;">height: 300px<br>Takes up space ✓</div>
+          </div>
+
+          <div class="box solid gray" style="padding-top: 2rem;">
+            <span class="box-label">main content</span>
+            <div class="content">Starts after hero. No problem.</div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div class="diagram-container">
+          <span class="diagram-title problem">After: Hero position: absolute</span>
+          
+          <div class="box solid gray" style="padding-top: 2rem;">
+            <span class="box-label">header</span>
+            <div class="content" style="height: 30px;"></div>
+          </div>
+
+          <div class="box dashed red" style="padding-top: 2.5rem; position: relative;">
+            <span class="box-label">hero</span>
+            <span class="verdict bad">out of flow!</span>
+            <div class="content orange" style="height: 80px;">
+              position: absolute<br>
+              "I'm a ghost now"
+            </div>
+            <div class="annotation">
+              <span class="comment">Hero floats above everything but takes up ZERO space in the stack</span>
+            </div>
+          </div>
+
+          <div class="box solid gray" style="padding-top: 2rem; margin-top: -90px;">
+            <span class="box-label">main content</span>
+            <span class="verdict bad">behind hero!</span>
+            <div class="content">I moved up! I don't know hero exists!</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h4>🔑 This Is Why You Needed a Spacer</h4>
+        <p>
+          When you made the hero (or its contents) <code>position: absolute</code>, it stopped taking up space.
+          The main content rushed up to fill the gap. Your content was <em>behind</em> the hero, not below it.
+          The spacer div with <code>padding-top: 100vh</code> was you manually recreating the space that the hero 
+          used to occupy naturally.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 2: POSITION TYPES ==================== -->
+    <div id="types" class="tab-content">
+
+      <div class="intro-box">
+        <h2>The Five Position Values</h2>
+        <p>
+          CSS has five position values: <code>static</code>, <code>relative</code>, <code>absolute</code>, 
+          <code>fixed</code>, and <code>sticky</code>. The key question for each: 
+          <strong>Does it stay in the normal flow, or leave it?</strong>
+        </p>
+      </div>
+
+      <!-- STATIC -->
+      <div class="position-card static">
+        <h3>
+          <span>static</span>
+          <span class="verdict good" style="position: static;">default</span>
+        </h3>
+        <div class="subtitle">position: static;</div>
+        <p>
+          This is the default. You never need to write it. Elements stack normally.
+          <code>top</code>, <code>left</code>, <code>right</code>, <code>bottom</code>, and <code>z-index</code> 
+          have <strong>no effect</strong>.
+        </p>
+        <div class="key-point">
+          <strong>In flow?</strong> Yes. Always. That's the whole point.
+        </div>
+      </div>
+
+      <!-- RELATIVE -->
+      <div class="position-card relative">
+        <h3>
+          <span>relative</span>
+          <span class="verdict info" style="position: static;">nudge</span>
+        </h3>
+        <div class="subtitle">position: relative;</div>
+        <p>
+          Element stays in flow and takes up its normal space. BUT you can now use 
+          <code>top</code>, <code>left</code>, etc. to <strong>nudge it visually</strong> from where it would normally be.
+          The space it originally occupied is preserved — other elements don't move.
+        </p>
+        <p>
+          <strong>Most common use:</strong> Not for nudging at all! It's used to create a 
+          <strong>positioning context</strong> for absolute children.
+        </p>
+        <div class="key-point">
+          <strong>In flow?</strong> Yes! It still takes up space. It just <em>looks</em> shifted.
+        </div>
+      </div>
+
+      <!-- Visual for relative as positioning context -->
+      <div class="diagram-container">
+        <span class="diagram-title neutral">Relative Creates a Positioning Context</span>
+        
+        <div class="box solid blue" style="padding-top: 3rem; min-height: 150px;">
+          <span class="box-label">parent (position: relative)</span>
+          <span class="verdict info">anchor point</span>
+          <div class="annotation">
+            <span class="comment">I don't move. But now my absolute children position relative to ME, not the page.</span>
+          </div>
+          
+          <div class="box dashed red" style="padding-top: 2rem; position: absolute; top: 50px; right: 10px; width: 40%;">
+            <span class="box-label">child (position: absolute)</span>
+            <span class="verdict bad">out of flow</span>
+            <div class="annotation">
+              <span class="prop">top:</span> <span class="val">50px</span> — from parent's top, not page top
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABSOLUTE -->
+      <div class="position-card absolute">
+        <h3>
+          <span>absolute</span>
+          <span class="verdict bad" style="position: static;">removed</span>
+        </h3>
+        <div class="subtitle">position: absolute;</div>
+        <p>
+          Element is <strong>removed from flow</strong>. It takes up zero space. Other elements act like it doesn't exist.
+          It positions itself relative to its <strong>nearest positioned ancestor</strong> (an ancestor with 
+          <code>position: relative/absolute/fixed</code>). If none exists, it positions relative to the <code>&lt;html&gt;</code>.
+        </p>
+        <div class="key-point">
+          <strong>In flow?</strong> NO. This is why your content went behind the hero.
+        </div>
+      </div>
+
+      <!-- FIXED -->
+      <div class="position-card fixed">
+        <h3>
+          <span>fixed</span>
+          <span class="verdict purple" style="position: static;">viewport-locked</span>
+        </h3>
+        <div class="subtitle">position: fixed;</div>
+        <p>
+          Like absolute, but positions relative to the <strong>viewport</strong> (the browser window), not any parent.
+          It <strong>doesn't scroll</strong> with the page. Stays stuck in place.
+        </p>
+        <p>
+          <strong>Use for:</strong> Sticky headers, sidebars, floating buttons, modals.
+        </p>
+        <div class="key-point">
+          <strong>In flow?</strong> NO. Also removed. Also needs you to account for its space manually.
+        </div>
+      </div>
+
+      <!-- Fixed Demo -->
+      <div class="viewport-sim">
+        <span class="viewport-label">Viewport (try scrolling ↓)</span>
+        <div class="fixed-element sidebar">fixed sidebar</div>
+        <div class="viewport-content">
+          <div class="scroll-content">
+            <div class="scroll-block">Content block 1 — the sidebar stays fixed as you scroll</div>
+            <div class="scroll-block">Content block 2 — notice the margin-left on this content</div>
+            <div class="scroll-block">Content block 3 — that margin prevents overlap with sidebar</div>
+            <div class="scroll-block">Content block 4 — this is how your resume site works</div>
+            <div class="scroll-block">Content block 5 — sidebar: fixed + main: margin-left</div>
+            <div class="scroll-block">Content block 6 — keep scrolling...</div>
+            <div class="scroll-block">Content block 7 — the sidebar never moves</div>
+            <div class="scroll-block">Content block 8 — that's position: fixed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STICKY -->
+      <div class="position-card sticky">
+        <h3>
+          <span>sticky</span>
+          <span class="verdict warn" style="position: static;">hybrid</span>
+        </h3>
+        <div class="subtitle">position: sticky; top: 0;</div>
+        <p>
+          A hybrid! Stays in flow like <code>relative</code>, UNTIL you scroll past a threshold 
+          (like <code>top: 0</code>). Then it "sticks" like <code>fixed</code> — but only within its parent container.
+        </p>
+        <p>
+          <strong>Use for:</strong> Section headers that stick while scrolling through that section.
+        </p>
+        <div class="key-point">
+          <strong>In flow?</strong> Yes! It takes up normal space. Best of both worlds.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 3: YOUR HERO PROBLEM ==================== -->
+    <div id="hero" class="tab-content">
+
+      <div class="intro-box">
+        <h2>What You Did vs. What You Could Have Done</h2>
+        <p>
+          Your hero had text overlaying an image. That's a legitimate use of <code>absolute</code> positioning.
+          But the way it was structured caused the "content behind hero" problem. Let's compare approaches.
+        </p>
+      </div>
+
+      <!-- THE PROBLEM -->
+      <h3 style="color: #e94560; font-family: Arial, sans-serif; margin-bottom: 1rem;">What Was Happening</h3>
+
+      <div class="diagram-container">
+        <span class="diagram-title problem">❌ The Structure That Caused Problems</span>
+
+        <div class="box solid gray" style="padding-top: 2.5rem;">
+          <span class="box-label">&lt;body&gt;</span>
+
+          <!-- Title Container -->
+          <div class="box dashed orange" style="padding-top: 2.5rem;">
+            <span class="box-label">.titlecontainer</span>
+            <span class="verdict warn">relative</span>
+            <div class="annotation">
+              <span class="prop">position:</span> <span class="val">relative</span> — good, this is the anchor
+            </div>
+
+            <!-- Title Panel - ABSOLUTE -->
+            <div class="box dashed red" style="padding-top: 3rem; margin-top: 0.5rem;">
+              <span class="box-label">.titlepanel</span>
+              <span class="verdict bad">absolute!</span>
+              <div class="annotation">
+                <span class="prop">position:</span> <span class="val">absolute</span><br>
+                <span class="prop">height:</span> <span class="val">93vh</span><br>
+                <span class="comment">This whole panel is out of flow!</span>
+              </div>
+
+              <div class="diagram-row" style="margin-top: 0.75rem;">
+                <div class="box dashed red" style="padding-top: 2rem;">
+                  <span class="box-label">.mainimage</span>
+                  <span class="verdict bad">absolute</span>
+                  <div class="content orange">img</div>
+                </div>
+                <div class="box dashed red" style="padding-top: 2rem;">
+                  <span class="box-label">#titletext</span>
+                  <span class="verdict bad">absolute</span>
+                  <div class="content orange">text overlay</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- The collapse problem -->
+          <div class="box solid gray" style="padding-top: 2rem; margin-top: 0.5rem;">
+            <span class="box-label">.titlecontainer collapses!</span>
+            <div class="content dim" style="height: 20px;">
+              Height ≈ 0 (nothing in flow inside it)
+            </div>
+          </div>
+
+          <!-- Spacer -->
+          <div class="box solid yellow" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+            <span class="box-label">.divider</span>
+            <span class="verdict warn">the hack</span>
+            <div class="annotation">
+              <span class="prop">padding-top:</span> <span class="val">93vh</span><br>
+              <span class="comment">Manual spacer to push content down</span>
+            </div>
+            <div class="content orange" style="margin-top: 0.5rem;">
+              "I exist only to take up the space that the hero should have occupied"
+            </div>
+          </div>
+
+          <!-- Main content -->
+          <div class="box solid gray" style="padding-top: 2rem;">
+            <span class="box-label">main content</span>
+            <div class="content">Finally below the hero (thanks to the spacer)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h4>Why This Happened</h4>
+        <p>
+          The <code>.titlepanel</code> being <code>absolute</code> meant it was removed from flow.
+          Its parent <code>.titlecontainer</code> had no in-flow children, so it collapsed to essentially zero height.
+          The main content rushed up. You fixed it with a spacer div that manually recreated the height.
+          <strong>It works, but it's fragile</strong> — if the hero height changes, you have to update the spacer too.
+        </p>
+      </div>
+
+      <!-- CLEANER APPROACH -->
+      <h3 style="color: #4ecca3; font-family: Arial, sans-serif; margin: 2rem 0 1rem;">A Cleaner Approach</h3>
+
+      <div class="diagram-container">
+        <span class="diagram-title solution">✓ Keep the Container in Flow, Only Absolute What You Must</span>
+
+        <div class="box solid gray" style="padding-top: 2.5rem;">
+          <span class="box-label">&lt;body&gt;</span>
+
+          <!-- Hero Section -->
+          <div class="box solid green" style="padding-top: 3rem;">
+            <span class="box-label">.hero</span>
+            <span class="verdict good">in flow!</span>
+            <div class="annotation">
+              <span class="prop">position:</span> <span class="val">relative</span> <span class="comment">— anchor for absolute children</span><br>
+              <span class="prop">height:</span> <span class="val">100vh</span> <span class="comment">— THIS gives it size in the flow</span><br>
+              <span class="prop">overflow:</span> <span class="val">hidden</span> <span class="comment">— contain the absolute children</span>
+            </div>
+
+            <div class="diagram-row" style="margin-top: 0.75rem;">
+              <div class="box dashed red" style="padding-top: 2.5rem;">
+                <span class="box-label">.hero-image</span>
+                <span class="verdict info">absolute (ok)</span>
+                <div class="annotation">
+                  <span class="comment">Image fills the container</span><br>
+                  <span class="prop">position:</span> <span class="val">absolute</span><br>
+                  <span class="prop">inset:</span> <span class="val">0</span>
+                </div>
+                <div class="content purple" style="margin-top: 0.5rem;">img or background</div>
+              </div>
+              <div class="box dashed red" style="padding-top: 2.5rem;">
+                <span class="box-label">.hero-text</span>
+                <span class="verdict info">absolute (ok)</span>
+                <div class="annotation">
+                  <span class="comment">Text positioned over image</span><br>
+                  <span class="prop">position:</span> <span class="val">absolute</span><br>
+                  <span class="prop">z-index:</span> <span class="val">2</span>
+                </div>
+                <div class="content purple" style="margin-top: 0.5rem;">overlay text</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main content -->
+          <div class="box solid green" style="padding-top: 2rem; margin-top: 0.5rem;">
+            <span class="box-label">main content</span>
+            <span class="verdict good">no spacer needed!</span>
+            <div class="content green">
+              Naturally below hero — because .hero has height: 100vh and is IN the flow
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code comparison -->
+      <h3 style="color: #f7931e; font-family: Arial, sans-serif; margin: 2rem 0 1rem;">The Code Difference</h3>
+
+      <div class="comparison">
+        <div class="code-block">
+          <div class="code-header" style="background-color: #e94560; color: white;">❌ Your Original CSS</div>
+          <pre><code><span class="selector">.titlecontainer</span> {
+  <span class="prop">position</span>: <span class="val">relative</span>;
+}
+
+<span class="selector">.titlepanel</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span>;  <span class="comment">/* removes from flow! */</span>
+  <span class="prop">height</span>: <span class="val">93vh</span>;
+  <span class="prop">width</span>: <span class="val">100vw</span>;
+}
+
+<span class="selector">.divider</span> {
+  <span class="prop">padding-top</span>: <span class="val">93vh</span>;  <span class="comment">/* manual spacer */</span>
+}</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header" style="background-color: #4ecca3; color: #1a1a2e;">✓ Cleaner Approach</div>
+          <pre><code><span class="selector">.hero</span> {
+  <span class="prop">position</span>: <span class="val">relative</span>;  <span class="comment">/* anchor for children */</span>
+  <span class="prop">height</span>: <span class="val">100vh</span>;       <span class="comment">/* THIS stays in flow */</span>
+  <span class="prop">overflow</span>: <span class="val">hidden</span>;
+}
+
+<span class="selector">.hero-image</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span>;
+  <span class="prop">inset</span>: <span class="val">0</span>;           <span class="comment">/* fills parent */</span>
+  <span class="prop">object-fit</span>: <span class="val">cover</span>;
+}
+
+<span class="selector">.hero-text</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span>;
+  <span class="prop">z-index</span>: <span class="val">2</span>;
+  <span class="comment">/* position as needed */</span>
+}
+
+<span class="comment">/* No spacer div needed! */</span></code></pre>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h4>🔑 The Rule</h4>
+        <p>
+          <strong>Keep the container in flow. Only pull out the children that need to overlap.</strong>
+          The parent having an explicit <code>height</code> while staying <code>position: relative</code> (not absolute)
+          means it still occupies space in the document. The absolute children float inside it, 
+          but the parent's box is still "real" to the rest of the page.
+        </p>
+      </div>
+
+      <!-- Alternative: background-image -->
+      <h3 style="color: #3b82f6; font-family: Arial, sans-serif; margin: 2rem 0 1rem;">Even Simpler: background-image</h3>
+
+      <div class="diagram-container">
+        <span class="diagram-title solution">✓ Simplest Hero Structure</span>
+
+        <div class="box solid green" style="padding-top: 3rem;">
+          <span class="box-label">.hero</span>
+          <span class="verdict good">one element!</span>
+          <div class="annotation">
+            <span class="prop">height</span>: <span class="val">100vh</span><br>
+            <span class="prop">background-image</span>: <span class="val">url(...)</span><br>
+            <span class="prop">background-size</span>: <span class="val">cover</span><br>
+            <span class="prop">display</span>: <span class="val">flex</span> <span class="comment">— to center the text</span><br>
+            <span class="prop">align-items</span>: <span class="val">center</span>
+          </div>
+
+          <div class="box solid blue" style="padding-top: 2rem; margin-top: 0.75rem;">
+            <span class="box-label">.hero-text</span>
+            <span class="verdict good">in flow!</span>
+            <div class="annotation">
+              <span class="comment">No absolute needed! Flexbox centers it.</span>
+            </div>
+            <div class="content green">h1, tagline, etc.</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="color: #8892b0; margin-top: 1rem; line-height: 1.7;">
+        If you use <code>background-image</code> on the hero container instead of an <code>&lt;img&gt;</code> element,
+        you might not need <em>any</em> absolute positioning. The image is the background, the text sits inside normally,
+        and you can use flexbox to center it. No layers, no z-index, no spacers.
+      </p>
+
+    </div>
+
+    <!-- ==================== TAB 4: QUICK REFERENCE ==================== -->
+    <div id="reference" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Position Types at a Glance</h2>
+        <p>
+          A quick reference for when you're in the middle of coding and need to remember which position type does what.
+        </p>
+      </div>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Position</th>
+            <th>In Flow?</th>
+            <th>Positioned Relative To</th>
+            <th>Scrolls?</th>
+            <th>Use For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>static</code></td>
+            <td class="yes">Yes</td>
+            <td>N/A (can't use top/left/etc.)</td>
+            <td class="yes">Yes</td>
+            <td>Default. Normal elements.</td>
+          </tr>
+          <tr>
+            <td><code>relative</code></td>
+            <td class="yes">Yes</td>
+            <td>Its own original position</td>
+            <td class="yes">Yes</td>
+            <td>Creating anchor for absolute children. Small nudges.</td>
+          </tr>
+          <tr>
+            <td><code>absolute</code></td>
+            <td class="no">No</td>
+            <td>Nearest positioned ancestor (or html)</td>
+            <td class="yes">Yes (with parent)</td>
+            <td>Overlays, tooltips, badges on corners, layered elements.</td>
+          </tr>
+          <tr>
+            <td><code>fixed</code></td>
+            <td class="no">No</td>
+            <td>The viewport</td>
+            <td class="no">No (stays put)</td>
+            <td>Sticky headers, sidebars, floating buttons, modals.</td>
+          </tr>
+          <tr>
+            <td><code>sticky</code></td>
+            <td class="yes">Yes</td>
+            <td>Scrolls until threshold, then viewport</td>
+            <td class="partial">Hybrid</td>
+            <td>Section headers that stick during scroll.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Decision Framework -->
+      <div class="decision-framework">
+        <h3>When To Use What</h3>
+        <ul class="decision-list">
+          <li class="decision-item">
+            <span class="decision-icon">📍</span>
+            <div class="decision-content">
+              <p><strong>Need something to stay visible while scrolling?</strong></p>
+              <span class="use-case">→ position: fixed (navbar, sidebar, back-to-top button)</span>
+            </div>
+          </li>
+          <li class="decision-item">
+            <span class="decision-icon">🎯</span>
+            <div class="decision-content">
+              <p><strong>Need to layer something on top of another element?</strong></p>
+              <span class="use-case">→ position: absolute on child + position: relative on parent</span>
+            </div>
+          </li>
+          <li class="decision-item">
+            <span class="decision-icon">📌</span>
+            <div class="decision-content">
+              <p><strong>Need a header to stick only within its section?</strong></p>
+              <span class="use-case">→ position: sticky with a top value</span>
+            </div>
+          </li>
+          <li class="decision-item">
+            <span class="decision-icon">↔️</span>
+            <div class="decision-content">
+              <p><strong>Need to nudge something a few pixels without affecting layout?</strong></p>
+              <span class="use-case">→ position: relative with top/left values</span>
+            </div>
+          </li>
+          <li class="decision-item">
+            <span class="decision-icon">✨</span>
+            <div class="decision-content">
+              <p><strong>Just want normal stacking?</strong></p>
+              <span class="use-case">→ Don't set position at all (static is default)</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Spacer Alternatives -->
+      <h3 style="color: #f7931e; font-family: Arial, sans-serif; margin: 2rem 0 1rem;">Alternatives to Spacer Divs</h3>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Situation</th>
+            <th>Instead of a Spacer...</th>
+            <th>Try This</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hero with overlaid text</td>
+            <td><code>padding-top</code> on a div</td>
+            <td>Keep hero container in flow with explicit <code>height</code>. Only children are absolute.</td>
+          </tr>
+          <tr>
+            <td>Content behind fixed header</td>
+            <td><code>margin-top</code> on body</td>
+            <td><code>padding-top</code> on body equal to header height. Or use <code>sticky</code> instead.</td>
+          </tr>
+          <tr>
+            <td>Content behind fixed sidebar</td>
+            <td>Empty column</td>
+            <td><code>margin-left</code> on main content equal to sidebar width.</td>
+          </tr>
+          <tr>
+            <td>Absolute element inside collapsed parent</td>
+            <td>Spacer with matching height</td>
+            <td>Give the parent an explicit <code>height</code> or <code>min-height</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- The Golden Rules -->
+      <div class="key-insight">
+        <h4>🔑 The Golden Rules of Positioning</h4>
+        <p style="margin-bottom: 0.75rem;">
+          <strong>1. Absolute and fixed remove elements from flow.</strong> You must account for the missing space yourself.
+        </p>
+        <p style="margin-bottom: 0.75rem;">
+          <strong>2. Absolute children need a positioned parent.</strong> Otherwise they position relative to the page.
+          Usually <code>position: relative</code> on the parent.
+        </p>
+        <p style="margin-bottom: 0.75rem;">
+          <strong>3. Fixed elements ignore scroll.</strong> They're locked to the viewport. Use for persistent UI.
+        </p>
+        <p style="margin-bottom: 0.75rem;">
+          <strong>4. Don't put fixed elements inside Bootstrap grid columns.</strong> They'll ignore the column anyway and cause layout math to break.
+        </p>
+        <p>
+          <strong>5. Prefer keeping containers in flow.</strong> Only use absolute on the specific elements that need to overlap, not the whole section.
+        </p>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>CSS Positioning Study Guide · Understanding the Flow</p>
+  </footer>
+
+  <!-- Tab Script -->
+  <script>
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

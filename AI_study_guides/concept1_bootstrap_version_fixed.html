@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concept 1: Document Structure — When Do You Actually Need a Wrapper?</title>
+  <style>
+    /* ============================================
+       BASE STYLES
+       ============================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #004e89;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.5rem;
+      font-weight: normal;
+      margin: 0.5rem 0 0 0;
+      color: white;
+    }
+
+    /* ============================================
+       NAVIGATION TABS
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #004e89;
+      color: white;
+      border-bottom: 3px solid #ff6b35;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       REUSABLE COMPONENTS
+       ============================================ */
+    
+    /* Intro/Callout Box */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #ff6b35;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #ff6b35;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    /* Content Card */
+    .content-card {
+      background-color: #16213e;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .content-card h3 {
+      font-family: 'Arial', sans-serif;
+      color: #e94560;
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+    }
+
+    .content-card p {
+      color: #b8c5d6;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    /* Dark Card Variant */
+    .content-card.dark {
+      background-color: #0f3460;
+    }
+
+    .content-card.dark h3 {
+      color: #4ecca3;
+    }
+
+    /* Solution Card Variant */
+    .content-card.solution {
+      border: 2px solid #4ecca3;
+    }
+
+    .content-card.solution h3 {
+      color: #4ecca3;
+    }
+
+    /* Nesting Visualization */
+    .nesting-visual {
+      background-color: #1a1a2e;
+      border-radius: 8px;
+      padding: 1.5rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .nest-level {
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .nest-level-inner {
+      margin-top: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .nest-1 { border: 2px dashed #e94560; }
+    .nest-2 { border: 2px dashed #f7931e; }
+    .nest-3 { border: 2px dashed #4ecca3; }
+    .nest-4 { border: 2px dashed #1a659e; }
+    .nest-5 { border: 2px solid white; display: inline-block; }
+
+    /* Solution nesting - solid borders */
+    .nest-solution-1 { border: 2px solid #4ecca3; }
+    .nest-solution-2 { border: 2px solid #60a5fa; }
+    .nest-solution-3 { border: 2px solid #f7931e; }
+
+    .nest-label-1 { color: #e94560; font-size: 0.75rem; }
+    .nest-label-2 { color: #f7931e; font-size: 0.75rem; }
+    .nest-label-3 { color: #4ecca3; font-size: 0.75rem; }
+    .nest-label-4 { color: #1a659e; font-size: 0.75rem; }
+    .nest-label-5 { color: white; font-size: 0.75rem; }
+
+    .nest-label-solution-1 { color: #4ecca3; font-size: 0.75rem; }
+    .nest-label-solution-2 { color: #60a5fa; font-size: 0.75rem; }
+    .nest-label-solution-3 { color: #f7931e; font-size: 0.75rem; }
+
+    /* Table */
+    .analysis-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .analysis-table tr {
+      border-bottom: 1px solid #1a659e;
+    }
+
+    .analysis-table td {
+      padding: 0.75rem;
+      color: #b8c5d6;
+    }
+
+    .analysis-table td:first-child {
+      color: #f7931e;
+      font-family: monospace;
+      width: 180px;
+    }
+
+    .analysis-table td:last-child {
+      color: #8892b0;
+      font-size: 0.85rem;
+    }
+
+    /* Muted text */
+    .text-muted {
+      color: #8892b0;
+      font-size: 0.9rem;
+    }
+
+    /* ============================================
+       VISUAL LAYER DIAGRAMS
+       ============================================ */
+    .layer-diagram {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .layer-diagram-title {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .layer-diagram-title.problem {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .layer-diagram-title.solution {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    /* Individual layer boxes */
+    .layer-box {
+      position: relative;
+      padding: 1rem;
+      padding-top: 3.5rem; /* Increased to fit label + verdict rows */
+      margin-bottom: 0.75rem;
+      border-radius: 6px;
+      min-height: 70px;
+    }
+
+    .layer-box.unnecessary {
+      border: 2px dashed;
+      opacity: 0.9;
+    }
+
+    .layer-box.needed {
+      border: 2px solid;
+    }
+
+    /* Layer colors */
+    .layer-1 { border-color: #e94560; }
+    .layer-2 { border-color: #f7931e; }
+    .layer-3 { border-color: #a855f7; }
+    .layer-4 { border-color: #1a659e; }
+    .layer-5 { border-color: #4ecca3; }
+
+    .layer-ok-1 { border-color: #4ecca3; }
+    .layer-ok-2 { border-color: #60a5fa; }
+    .layer-ok-3 { border-color: #f7931e; }
+
+    /* Layer label (top left) */
+    .layer-label {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.75rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .layer-1 .layer-label { color: #e94560; }
+    .layer-2 .layer-label { color: #f7931e; }
+    .layer-3 .layer-label { color: #a855f7; }
+    .layer-4 .layer-label { color: #1a659e; }
+    .layer-5 .layer-label { color: #4ecca3; }
+
+    .layer-ok-1 .layer-label { color: #4ecca3; }
+    .layer-ok-2 .layer-label { color: #60a5fa; }
+    .layer-ok-3 .layer-label { color: #f7931e; }
+
+    /* Styles annotation (right side) */
+    .layer-styles {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #8892b0;
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    .layer-styles .prop {
+      color: #4ecca3;
+    }
+
+    .layer-styles .val {
+      color: #f7931e;
+    }
+
+    /* Content placeholder */
+    .layer-content {
+      background-color: rgba(96, 165, 250, 0.2);
+      border: 1px solid #60a5fa;
+      border-radius: 4px;
+      padding: 0.75rem;
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #60a5fa;
+    }
+
+    /* Side by side layers for flexbox children */
+    .layer-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .layer-row .layer-box {
+      flex: 1;
+    }
+
+    .layer-row .layer-box.shrink {
+      flex: 0 0 auto;
+      min-width: 120px;
+    }
+
+    /* Verdict badge - positioned on second row */
+    .layer-verdict {
+      position: absolute;
+      top: 1.75rem; /* Below the label row */
+      left: 0.75rem; /* Left side to avoid collision with styles */
+      font-family: 'Arial', sans-serif;
+      font-size: 0.65rem;
+      font-weight: bold;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .layer-verdict.unnecessary {
+      background-color: rgba(233, 69, 96, 0.3);
+      color: #e94560;
+    }
+
+    .layer-verdict.needed {
+      background-color: rgba(78, 204, 163, 0.3);
+      color: #4ecca3;
+    }
+
+    .layer-verdict.overkill {
+      background-color: rgba(248, 113, 113, 0.3);
+      color: #f87171;
+    }
+
+    /* Comparison grid for visual diagrams - SINGLE COLUMN for more space */
+    .visual-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ============================================
+       CODE COMPARISON SECTION
+       ============================================ */
+    .comparison-section {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .comparison-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .comparison-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .comparison-header h3 {
+      font-family: 'Arial', sans-serif;
+      color: #e8e8e8;
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .badge {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .badge-levels {
+      background-color: rgba(233, 69, 96, 0.2);
+      color: #e94560;
+    }
+
+    .code-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .code-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-block-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 0.5rem 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .code-block.before .code-block-header {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .code-block.after .code-block-header {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .code-block pre {
+      background-color: #0a0a14;
+      padding: 1rem;
+      margin: 0;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      color: #b8c5d6;
+    }
+
+    .code-block pre code {
+      font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+    }
+
+    .code-note {
+      color: #8892b0;
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-top: 0.75rem;
+    }
+
+    /* Code Type Label */
+    .code-type-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #8892b0;
+      margin: 1.5rem 0 0.5rem 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ============================================
+       STYLE BREAKDOWN TABLE
+       ============================================ */
+    .style-breakdown {
+      background-color: #0f3460;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .style-breakdown h4 {
+      font-family: 'Arial', sans-serif;
+      color: #4ecca3;
+      margin: 0 0 1rem 0;
+      font-size: 0.95rem;
+    }
+
+    .style-breakdown table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .style-breakdown th {
+      text-align: left;
+      padding: 0.75rem;
+      background-color: #16213e;
+      color: #e8e8e8;
+      font-family: 'Arial', sans-serif;
+      font-weight: normal;
+      border-bottom: 2px solid #1a659e;
+    }
+
+    .style-breakdown td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #1a659e;
+      vertical-align: top;
+    }
+
+    .style-breakdown td:first-child {
+      color: #f7931e;
+      font-family: monospace;
+      width: 160px;
+    }
+
+    .style-breakdown td:nth-child(2) {
+      color: #60a5fa;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    .style-breakdown td:last-child {
+      color: #8892b0;
+      font-size: 0.8rem;
+    }
+
+    /* ============================================
+       FRAMEWORK SECTION
+       ============================================ */
+    .box-model-container {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .box-model-diagram {
+      flex: 0 0 280px;
+    }
+
+    .box-model-visual {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    /* Box model layers */
+    .box-margin {
+      background-color: rgba(249, 115, 22, 0.3);
+      border: 2px dashed #f97316;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .box-border {
+      background-color: rgba(251, 191, 36, 0.3);
+      border: 3px solid #fbbf24;
+      padding: 1rem;
+    }
+
+    .box-padding {
+      background-color: rgba(74, 222, 128, 0.3);
+      border: 2px dashed #4ade80;
+      padding: 1rem;
+    }
+
+    .box-content {
+      background-color: rgba(96, 165, 250, 0.4);
+      border: 2px solid #60a5fa;
+      padding: 1rem;
+      color: white;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .box-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: absolute;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .box-label.margin-label {
+      top: 2px;
+      left: 2px;
+      color: #f97316;
+    }
+
+    .box-label.border-label {
+      top: 2px;
+      left: 2px;
+      color: #fbbf24;
+      position: relative;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .box-label.padding-label {
+      top: 2px;
+      left: 2px;
+      color: #4ade80;
+      position: relative;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .box-model-explanation {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .box-model-explanation h3 {
+      font-family: 'Arial', sans-serif;
+      color: #ff6b35;
+      font-size: 1.1rem;
+      margin: 0 0 1rem 0;
+    }
+
+    .box-model-explanation p {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    /* Decision Framework */
+    .decision-framework {
+      background-color: #16213e;
+      border: 2px solid #004e89;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .decision-framework h3 {
+      font-family: 'Arial', sans-serif;
+      color: #ff6b35;
+      margin: 0 0 1.5rem 0;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+
+    .decision-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .decision-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      background-color: #0f3460;
+      border-radius: 6px;
+    }
+
+    .decision-number {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background-color: #004e89;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Arial', sans-serif;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .decision-content p {
+      margin: 0;
+      color: #e8e8e8;
+      line-height: 1.5;
+    }
+
+    .decision-content .example {
+      display: block;
+      color: #4ecca3;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ============================================
+       QUESTIONS SECTION
+       ============================================ */
+    .questions-intro {
+      background-color: #16213e;
+      border-left: 4px solid #4ecca3;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .questions-intro h2 {
+      font-family: 'Arial', sans-serif;
+      color: #4ecca3;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .questions-intro p {
+      margin: 0;
+      color: #b8c5d6;
+      line-height: 1.7;
+    }
+
+    .question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .question-item {
+      background-color: #0f3460;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+    }
+
+    .question-item p:first-child {
+      margin: 0 0 0.75rem 0;
+      color: #e8e8e8;
+      line-height: 1.6;
+    }
+
+    .question-item .answer {
+      margin: 0;
+      color: #b8c5d6;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      padding-left: 1rem;
+      border-left: 2px solid #4ecca3;
+    }
+
+    .question-item ul {
+      margin: 0;
+      color: #b8c5d6;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      padding-left: 2rem;
+    }
+
+    /* ============================================
+       PUNT SECTION (Related Concepts)
+       ============================================ */
+    .punt-section {
+      background-color: #16213e;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .punt-section h2 {
+      font-family: 'Arial', sans-serif;
+      color: #f7931e;
+      margin: 0 0 1.5rem 0;
+      font-size: 1.1rem;
+    }
+
+    .punt-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .punt-item {
+      border-left: 3px solid #f7931e;
+      padding-left: 1rem;
+    }
+
+    .punt-item h4 {
+      margin: 0 0 0.25rem 0;
+      color: #e8e8e8;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .punt-item p {
+      margin: 0;
+      color: #8892b0;
+      font-size: 0.9rem;
+    }
+
+    .punt-item .link {
+      display: block;
+      margin-top: 0.25rem;
+      color: #4ecca3;
+      font-size: 0.85rem;
+      font-family: 'Arial', sans-serif;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      border-top: 1px solid #0f3460;
+      padding: 1.5rem 3rem;
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+    footer p {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #4a5568;
+      margin: 0;
+    }
+
+    /* ============================================
+       SIDE BY SIDE VISUALS
+       ============================================ */
+    .visual-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .visual-comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .visual-panel {
+      background-color: #1a1a2e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .visual-panel-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .visual-panel.problem .visual-panel-header {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .visual-panel.solution .visual-panel-header {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <span class="header-label">Study Guide · Concept 1</span>
+      <h1>Document Structure: When Do You Actually Need a Wrapper?</h1>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="problem">The Problem</button>
+      <button class="tab-btn" data-tab="examples">Real Examples</button>
+      <button class="tab-btn" data-tab="framework">When Do You Need a Wrapper?</button>
+      <button class="tab-btn" data-tab="questions">Questions</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- Tab 1: The Problem -->
+    <div id="problem" class="tab-content active">
+      
+      <!-- Intro Box -->
+      <div class="intro-box">
+        <h2>The Nesting Instinct</h2>
+        <p>
+          When you're learning CSS, a common instinct is: <em>"I need some padding here... better wrap it in a div."</em> 
+          Or <em>"I need a border on this section... let me add a container."</em> Before long, you've got 
+          divs nested 5-6 levels deep, and you're not sure which one is actually doing the work.
+        </p>
+      </div>
+
+      <!-- Side-by-side visual comparison -->
+      <div class="visual-comparison">
+        <!-- Problem Visual -->
+        <div class="visual-panel problem">
+          <div class="visual-panel-header">❌ The Problem: 5 Levels Deep</div>
+          <div class="nesting-visual">
+            <div class="nest-level nest-1">
+              <span class="nest-label-1">1. card_heading_container</span>
+              <div class="nest-level-inner nest-level nest-2">
+                <span class="nest-label-2">2. row card_heading</span>
+                <div class="nest-level-inner nest-level nest-3">
+                  <span class="nest-label-3">3. col-md-4</span>
+                  <div class="nest-level-inner nest-level nest-4">
+                    <span class="nest-label-4">4. corporate_logo</span>
+                    <div class="nest-level-inner nest-level nest-5">
+                      <span class="nest-label-5">5. img</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Solution Visual -->
+        <div class="visual-panel solution">
+          <div class="visual-panel-header">✓ The Solution: Clean Bootstrap Structure</div>
+          <div class="nesting-visual">
+            <div class="nest-level nest-solution-1">
+              <span class="nest-label-solution-1">1. row (with utility classes)</span>
+              <div style="display: flex; gap: 1rem; margin-top: 0.75rem; margin-left: 1rem; flex-wrap: wrap;">
+                <div class="nest-level nest-solution-2" style="flex: 0 0 auto;">
+                  <span class="nest-label-solution-2">2a. col-auto</span>
+                  <div class="nest-level-inner nest-level nest-solution-3" style="display: inline-block;">
+                    <span class="nest-label-solution-3">img</span>
+                  </div>
+                </div>
+                <div class="nest-level nest-solution-2" style="flex: 1;">
+                  <span class="nest-label-solution-2">2b. col</span>
+                  <div style="margin-top: 0.5rem; margin-left: 1rem; font-size: 0.7rem; color: #8892b0;">
+                    h3.company-name<br>
+                    p.job-title
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style breakdown for the solution -->
+      <div class="style-breakdown">
+        <h4>What Bootstrap Classes Handle Everything (Revised Approach)</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Bootstrap Classes</th>
+              <th>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>.row</td>
+              <td>row align-items-center g-3 p-3 border-bottom</td>
+              <td>Bootstrap's row IS flexbox. Utilities handle alignment, gap, padding, border — no custom CSS needed!</td>
+            </tr>
+            <tr>
+              <td>.col-auto</td>
+              <td>col-auto</td>
+              <td>Takes only the space its content needs. Logo won't stretch or shrink.</td>
+            </tr>
+            <tr>
+              <td>img</td>
+              <td>(custom CSS: max-width, object-fit)</td>
+              <td>Only the image needs custom CSS for sizing. Everything else is Bootstrap utilities.</td>
+            </tr>
+            <tr>
+              <td>.col</td>
+              <td>col</td>
+              <td>Takes remaining space. No number needed — just "col" means "fill what's left."</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- What each layer was trying to do -->
+      <div class="content-card dark" style="margin-top: 2rem;">
+        <h3>What Was Each Original Layer Trying to Do?</h3>
+        
+        <table class="analysis-table">
+          <tbody>
+            <tr>
+              <td>card_heading_container</td>
+              <td>Add padding around the heading?</td>
+              <td>❌ Use Bootstrap's <code>p-3</code> utility on the row instead</td>
+            </tr>
+            <tr>
+              <td>row card_heading</td>
+              <td>Create columns + add bottom border</td>
+              <td>✓ Keep the row — but add <code>border-bottom</code> utility class</td>
+            </tr>
+            <tr>
+              <td>col-md-4 / col-md-8</td>
+              <td>Fixed width split (33% / 67%)</td>
+              <td>⚠️ Use <code>col-auto</code> + <code>col</code> instead — more flexible</td>
+            </tr>
+            <tr>
+              <td>corporate_logo</td>
+              <td>Wrapper for the logo?</td>
+              <td>❌ Unnecessary — <code>col-auto</code> already wraps the img</td>
+            </tr>
+            <tr>
+              <td>img</td>
+              <td>Display the image</td>
+              <td>✓ Obviously needed</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Tab 2: Real Examples -->
+    <div id="examples" class="tab-content">
+
+      <!-- Example 1: Card Header -->
+      <div class="comparison-section">
+        <div class="comparison-header">
+          <h3>Example 1: Card Header Structure</h3>
+          <span class="badge badge-levels">5 levels → 2 levels</span>
+        </div>
+
+        <!-- VISUAL LAYER DIAGRAMS -->
+        <div class="visual-grid">
+          <!-- Original: 5 nested layers -->
+          <div class="layer-diagram">
+            <span class="layer-diagram-title problem">❌ Original: 5 Layers Deep</span>
+            
+            <div class="layer-box unnecessary layer-1" style="padding-top: 3rem; padding-bottom: 1.5rem;">
+              <span class="layer-label">.card_heading_container</span>
+              <span class="layer-styles"><span class="prop">padding:</span> <span class="val">0 30px</span></span>
+              <span class="layer-verdict unnecessary">UNNECESSARY</span>
+              
+              <div class="layer-box unnecessary layer-2" style="padding-top: 3rem; padding-bottom: 1.5rem; margin-top: 0.5rem;">
+                <span class="layer-label">.row.card_heading</span>
+                <span class="layer-styles"><span class="prop">border-bottom:</span> <span class="val">1px solid</span></span>
+                
+                <div class="layer-row" style="margin-top: 0.75rem;">
+                  <div class="layer-box unnecessary layer-3 shrink" style="min-width: 180px; padding-top: 3rem; padding-bottom: 2rem;">
+                    <span class="layer-label">.col-md-4</span>
+                    <span class="layer-styles"><span class="prop">width:</span> <span class="val">33%</span></span>
+                    <span class="layer-verdict overkill">RIGID</span>
+                    
+                    <div class="layer-box unnecessary layer-4" style="margin-top: 0.5rem; padding-top: 3rem; padding-bottom: 1.5rem;">
+                      <span class="layer-label">.corporate_logo</span>
+                      <span class="layer-styles"><span class="val">(no styles!)</span></span>
+                      <span class="layer-verdict unnecessary">UNNECESSARY</span>
+                      
+                      <div class="layer-content" style="margin-top: 0.5rem;">img</div>
+                    </div>
+                  </div>
+                  
+                  <div class="layer-box unnecessary layer-3" style="padding-top: 3rem; padding-bottom: 1.5rem;">
+                    <span class="layer-label">.col-md-8</span>
+                    <span class="layer-styles"><span class="prop">width:</span> <span class="val">67%</span></span>
+                    <div class="layer-content" style="margin-top: 0.5rem;">h3 + p</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <p style="color: #e94560; font-size: 0.85rem; margin-top: 1rem; text-align: center; font-weight: bold;">
+              5 nested wrappers — but most are just adding padding that could go elsewhere!
+            </p>
+          </div>
+
+          <!-- Revised: Clean Bootstrap structure -->
+          <div class="layer-diagram">
+            <span class="layer-diagram-title solution">✓ Revised: 1 Row with Utility Classes</span>
+            
+            <div class="layer-box needed layer-ok-1" style="padding-top: 5.5rem; padding-bottom: 2rem;">
+              <span class="layer-label">.row</span>
+              <span class="layer-styles" style="line-height: 1.6;">
+                <span class="prop">align-items-center</span> <span class="val">→ vertical center</span><br>
+                <span class="prop">g-3</span> <span class="val">→ gap between cols</span><br>
+                <span class="prop">p-3</span> <span class="val">→ padding all sides</span><br>
+                <span class="prop">border-bottom</span> <span class="val">→ bottom line</span>
+              </span>
+              <span class="layer-verdict needed">ALL STYLES HERE!</span>
+              
+              <div class="layer-row" style="margin-top: 1rem;">
+                <div class="layer-box needed layer-ok-2 shrink" style="min-width: 160px; padding-top: 3rem; padding-bottom: 1.5rem;">
+                  <span class="layer-label">.col-auto</span>
+                  <span class="layer-styles"><span class="val">shrinks to fit</span></span>
+                  <span class="layer-verdict needed">NEEDED</span>
+                  
+                  <div class="layer-content" style="margin-top: 0.5rem;">img<br><span style="font-size: 0.7rem;">max-width: 120px</span></div>
+                </div>
+                
+                <div class="layer-box needed layer-ok-2" style="padding-top: 3rem; padding-bottom: 1.5rem;">
+                  <span class="layer-label">.col</span>
+                  <span class="layer-styles"><span class="val">fills remaining</span></span>
+                  <span class="layer-verdict needed">NEEDED</span>
+                  
+                  <div class="layer-content" style="margin-top: 0.5rem;">h3.company-name<br>p.job-title</div>
+                </div>
+              </div>
+            </div>
+            
+            <p style="color: #4ecca3; font-size: 0.85rem; margin-top: 1rem; text-align: center; font-weight: bold;">
+              Same result — but Bootstrap utilities replace most custom CSS!
+            </p>
+          </div>
+        </div>
+        
+        <!-- ORIGINAL: HTML + CSS together -->
+        <p class="code-type-label">❌ Original Approach</p>
+        <div class="code-grid">
+          <div class="code-block before">
+            <div class="code-block-header">HTML (index.html)</div>
+            <pre><code>&lt;div class="card_heading_container"&gt;
+  &lt;div class="row card_heading"&gt;
+    &lt;div class="col-md-4"&gt;
+      &lt;div class="corporate_logo"&gt;
+        &lt;img src="logo.png" class="logo_image"&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="col-md-8"&gt;
+      &lt;h3 class="corporation_name"&gt;...&lt;/h3&gt;
+      &lt;p class="job_title"&gt;...&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+          
+          <div class="code-block before">
+            <div class="code-block-header">CSS (style.css)</div>
+            <pre><code>.card_heading {
+    padding-bottom: 5px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.card_heading_container {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.logo_image {
+    width: 80px;
+}
+
+.corporation_name {
+    text-align: center;
+}
+
+.job_title {
+    text-align: center;
+}
+
+/* Bootstrap provides row/col layout */</code></pre>
+          </div>
+        </div>
+
+        <!-- REVISED: HTML + CSS together -->
+        <p class="code-type-label">✓ Revised Approach</p>
+        <div class="code-grid">
+          <div class="code-block after">
+            <div class="code-block-header">HTML (Cleaner Bootstrap)</div>
+            <pre><code>&lt;div class="row align-items-center g-3 p-3 border-bottom"&gt;
+  &lt;div class="col-auto"&gt;
+    &lt;img src="logo.png" class="company-logo-img"&gt;
+  &lt;/div&gt;
+  &lt;div class="col"&gt;
+    &lt;h3 class="company-name"&gt;...&lt;/h3&gt;
+    &lt;p class="job-title mb-0"&gt;...&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+          
+          <div class="code-block after">
+            <div class="code-block-header">CSS (Minimal Custom)</div>
+            <pre><code>/* Bootstrap utilities handle most of it:
+   - row = display: flex
+   - align-items-center = vertical centering
+   - g-3 = gap between columns
+   - p-3 = padding all around
+   - border-bottom = bottom border */
+
+/* Only custom CSS needed: image sizing */
+.company-logo-img {
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+/* col-auto = shrink to content
+   col = grow to fill remaining space */</code></pre>
+          </div>
+        </div>
+
+        <p class="code-note">
+          <strong>What changed:</strong> Still using Bootstrap row/col — but now with UTILITY CLASSES instead of custom CSS. 
+          <code>col-auto</code> + <code>col</code> replaces the rigid col-md-4/col-md-8 split. Almost zero custom CSS needed.
+        </p>
+      </div>
+
+      <!-- Example 2: Education Spacing -->
+      <div class="comparison-section">
+        <div class="comparison-header">
+          <h3>Example 2: Section Spacing Strategy</h3>
+          <span class="badge badge-levels">Empty columns → Padding</span>
+        </div>
+
+        <!-- VISUAL LAYER DIAGRAMS -->
+        <div class="visual-grid">
+          <!-- Original: Empty columns as spacers -->
+          <div class="layer-diagram">
+            <span class="layer-diagram-title problem">❌ Original: Empty Column Spacers</span>
+            
+            <div class="layer-box needed layer-2" style="padding-top: 3rem; padding-bottom: 2rem;">
+              <span class="layer-label">.row</span>
+              <span class="layer-styles"><span class="prop">Bootstrap row</span></span>
+              
+              <div class="layer-row" style="margin-top: 0.75rem; align-items: stretch;">
+                <div class="layer-box unnecessary layer-1" style="flex: 0 0 12%; min-width: 80px; padding-top: 2.5rem; padding-bottom: 1rem;">
+                  <span class="layer-label" style="font-size: 0.75rem;">.col-md-1</span>
+                  <span class="layer-verdict unnecessary">EMPTY!</span>
+                </div>
+                
+                <div class="layer-box needed layer-ok-2" style="flex: 1; padding-top: 3rem; padding-bottom: 1rem;">
+                  <span class="layer-label">.col-md-5</span>
+                  <span class="layer-styles"><span class="prop">width:</span> <span class="val">41.67%</span></span>
+                  <div class="layer-content" style="margin-top: 0.25rem;">Card 1</div>
+                </div>
+                
+                <div class="layer-box needed layer-ok-2" style="flex: 1; padding-top: 3rem; padding-bottom: 1rem;">
+                  <span class="layer-label">.col-md-5</span>
+                  <span class="layer-styles"><span class="prop">width:</span> <span class="val">41.67%</span></span>
+                  <div class="layer-content" style="margin-top: 0.25rem;">Card 2</div>
+                </div>
+                
+                <div class="layer-box unnecessary layer-1" style="flex: 0 0 12%; min-width: 80px; padding-top: 2.5rem; padding-bottom: 1rem;">
+                  <span class="layer-label" style="font-size: 0.75rem;">.col-md-1</span>
+                  <span class="layer-verdict unnecessary">EMPTY!</span>
+                </div>
+              </div>
+            </div>
+            
+            <p style="color: #e94560; font-size: 0.85rem; margin-top: 1rem; text-align: center; font-weight: bold;">
+              1 + 5 + 5 + 1 = 12 columns... but why have empty elements just for spacing?
+            </p>
+          </div>
+
+          <!-- Revised: Padding on container -->
+          <div class="layer-diagram">
+            <span class="layer-diagram-title solution">✓ Revised: Padding on Container Instead</span>
+            
+            <div class="layer-box needed layer-ok-1" style="padding-top: 4.5rem; padding-bottom: 2rem;">
+              <span class="layer-label">.section-content</span>
+              <span class="layer-styles" style="line-height: 1.6;">
+                <span class="prop">padding:</span> <span class="val">2rem</span> <span class="val">→ side spacing!</span><br>
+                <span class="prop">max-width:</span> <span class="val">1200px</span><br>
+                <span class="prop">margin:</span> <span class="val">0 auto</span> <span class="val">→ centers it</span>
+              </span>
+              <span class="layer-verdict needed">HANDLES SPACING</span>
+              
+              <div class="layer-box needed layer-ok-2" style="margin-top: 0.5rem; padding-top: 3rem; padding-bottom: 1.5rem;">
+                <span class="layer-label">.row.g-4</span>
+                <span class="layer-styles"><span class="prop">g-4</span> <span class="val">→ gap between cols</span></span>
+                
+                <div class="layer-row" style="margin-top: 0.5rem;">
+                  <div class="layer-box needed layer-ok-3" style="padding-top: 3rem; padding-bottom: 1rem;">
+                    <span class="layer-label">.col-md-6</span>
+                    <span class="layer-styles"><span class="prop">width:</span> <span class="val">50%</span></span>
+                    <div class="layer-content" style="margin-top: 0.25rem;">Card 1</div>
+                  </div>
+                  
+                  <div class="layer-box needed layer-ok-3" style="padding-top: 3rem; padding-bottom: 1rem;">
+                    <span class="layer-label">.col-md-6</span>
+                    <span class="layer-styles"><span class="prop">width:</span> <span class="val">50%</span></span>
+                    <div class="layer-content" style="margin-top: 0.25rem;">Card 2</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <p style="color: #4ecca3; font-size: 0.85rem; margin-top: 1rem; text-align: center; font-weight: bold;">
+              No empty columns! CSS padding on the container creates the side spacing.
+            </p>
+          </div>
+        </div>
+        
+        <!-- ORIGINAL: HTML + CSS together -->
+        <p class="code-type-label">❌ Original Approach</p>
+        <div class="code-grid">
+          <div class="code-block before">
+            <div class="code-block-header">HTML</div>
+            <pre><code>&lt;!-- Using empty columns as spacers --&gt;
+&lt;div class="row"&gt;
+  &lt;div class="col-md-1"&gt;&lt;/div&gt; &lt;!-- empty --&gt;
+  &lt;div class="col-md-5"&gt;Card 1&lt;/div&gt;
+  &lt;div class="col-md-5"&gt;Card 2&lt;/div&gt;
+  &lt;div class="col-md-1"&gt;&lt;/div&gt; &lt;!-- empty --&gt;
+&lt;/div&gt;
+&lt;!-- Math: 1 + 5 + 5 + 1 = 12 ✓ --&gt;</code></pre>
+          </div>
+          
+          <div class="code-block before">
+            <div class="code-block-header">CSS</div>
+            <pre><code>.gridline_container {
+    margin-left: 3vw !important;
+    margin-right: 3vw;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    display: block;
+    max-width: 92%;
+}
+
+/* Empty col-md-1 elements have no 
+   custom CSS — they just take up 
+   space in the Bootstrap grid */</code></pre>
+          </div>
+        </div>
+
+        <!-- REVISED: HTML + CSS together -->
+        <p class="code-type-label">✓ Revised Approach</p>
+        <div class="code-grid">
+          <div class="code-block after">
+            <div class="code-block-header">HTML</div>
+            <pre><code>&lt;!-- Padding on the container instead --&gt;
+&lt;div class="section-content"&gt;
+  &lt;div class="row g-4"&gt;
+    &lt;div class="col-md-6"&gt;Card 1&lt;/div&gt;
+    &lt;div class="col-md-6"&gt;Card 2&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+          
+          <div class="code-block after">
+            <div class="code-block-header">CSS</div>
+            <pre><code>.section-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+}
+
+/* Bootstrap's g-4 utility class adds
+   gap between grid items:
+   --bs-gutter-x: 1.5rem;
+   --bs-gutter-y: 1.5rem; */</code></pre>
+          </div>
+        </div>
+
+        <p class="code-note">
+          <strong>What changed:</strong> Empty col-md-1 spacer columns removed. 
+          Spacing now comes from padding on section-content. The g-4 class adds gutters between cards.
+        </p>
+      </div>
+
+      <!-- Example 3: Section Width -->
+      <div class="comparison-section">
+        <div class="comparison-header">
+          <h3>Example 3: Controlling Section Width</h3>
+          <span class="badge badge-levels">Offset columns → max-width</span>
+        </div>
+
+        <!-- VISUAL LAYER DIAGRAMS -->
+        <div class="visual-grid">
+          <!-- Original: Offset columns -->
+          <div class="layer-diagram">
+            <span class="layer-diagram-title problem">❌ Original: Bootstrap Offset Math</span>
+            
+            <div class="layer-box needed layer-2" style="padding-top: 3rem; padding-bottom: 2rem;">
+              <span class="layer-label">.row</span>
+              <span class="layer-styles"><span class="prop">full viewport width</span></span>
+              
+              <div class="layer-row" style="margin-top: 0.75rem; align-items: stretch;">
+                <div style="flex: 0 0 12%; border: 3px dashed #e94560; border-radius: 6px; padding: 1.25rem 0.5rem; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                  <span style="color: #e94560; font-size: 0.8rem; font-weight: bold;">offset-md-1</span>
+                  <span style="color: #8892b0; font-size: 0.7rem;">(8.33% margin)</span>
+                </div>
+                
+                <div class="layer-box needed layer-ok-2" style="flex: 1; padding-top: 3rem; padding-bottom: 1.5rem;">
+                  <span class="layer-label">.col-md-10</span>
+                  <span class="layer-styles"><span class="prop">width:</span> <span class="val">83.33%</span></span>
+                  <div class="layer-content" style="margin-top: 0.5rem; padding: 1.5rem;">
+                    Your content here...<br>
+                    <span style="font-size: 0.7rem; color: #8892b0;">(locked to Bootstrap %)</span>
+                  </div>
+                </div>
+                
+                <div style="flex: 0 0 12%; border: 3px dashed #666; border-radius: 6px; padding: 1.25rem 0.5rem; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                  <span style="color: #666; font-size: 0.8rem;">(empty)</span>
+                  <span style="color: #666; font-size: 0.7rem;">8.33%</span>
+                </div>
+              </div>
+            </div>
+            
+            <p style="color: #e94560; font-size: 0.85rem; margin-top: 1rem; text-align: center; font-weight: bold;">
+              What if you want exactly 1000px wide? You can't — you're locked to Bootstrap's percentages.
+            </p>
+          </div>
+
+          <!-- Revised: max-width + auto margin -->
+          <div class="layer-diagram">
+            <span class="layer-diagram-title solution">✓ Revised: CSS max-width + margin: auto</span>
+            
+            <div class="layer-box needed layer-ok-1" style="padding-top: 4rem; padding-bottom: 2rem;">
+              <span class="layer-label">.section-content</span>
+              <span class="layer-styles" style="line-height: 1.6;">
+                <span class="prop">max-width:</span> <span class="val">1200px</span> <span class="val">→ caps width</span><br>
+                <span class="prop">margin:</span> <span class="val">0 auto</span> <span class="val">→ centers it</span>
+              </span>
+              <span class="layer-verdict needed">JUST 2 LINES!</span>
+              
+              <div class="layer-content" style="margin-top: 0.75rem; padding: 2rem;">
+                Your content here...<br><br>
+                <span style="font-size: 0.8rem; color: #4ecca3;">
+                  ✓ Exactly 1200px max (or any value)<br>
+                  ✓ Auto-centers on any screen<br>
+                  ✓ No Bootstrap math needed
+                </span>
+              </div>
+            </div>
+            
+            <p style="color: #4ecca3; font-size: 0.85rem; margin-top: 1rem; text-align: center; font-weight: bold;">
+              Pure CSS. You control the exact pixel width. No column math!
+            </p>
+          </div>
+        </div>
+        
+        <!-- ORIGINAL: HTML + CSS together -->
+        <p class="code-type-label">❌ Original Approach</p>
+        <div class="code-grid">
+          <div class="code-block before">
+            <div class="code-block-header">HTML</div>
+            <pre><code>&lt;!-- Using Bootstrap offset for centering --&gt;
+&lt;div class="row"&gt;
+  &lt;div class="col-md-10 offset-md-1"&gt;
+    Content here...
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+          
+          <div class="code-block before">
+            <div class="code-block-header">CSS</div>
+            <pre><code>/* No custom CSS needed — 
+   Bootstrap's col-md-10 = 83.33% width
+   offset-md-1 = 8.33% left margin
+   
+   But this couples your layout width
+   to Bootstrap's 12-column math */</code></pre>
+          </div>
+        </div>
+
+        <!-- REVISED: HTML + CSS together -->
+        <p class="code-type-label">✓ Revised Approach</p>
+        <div class="code-grid">
+          <div class="code-block after">
+            <div class="code-block-header">HTML</div>
+            <pre><code>&lt;!-- Using CSS max-width --&gt;
+&lt;div class="section-content"&gt;
+  Content here...
+&lt;/div&gt;</code></pre>
+          </div>
+          
+          <div class="code-block after">
+            <div class="code-block-header">CSS</div>
+            <pre><code>.section-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* max-width: caps the width at 1200px
+   margin: 0 auto: centers the element
+   
+   Works at any screen size, no math */</code></pre>
+          </div>
+        </div>
+
+        <p class="code-note">
+          <strong>What changed:</strong> Bootstrap's offset column approach replaced with simple CSS. 
+          max-width sets the limit, margin: 0 auto centers it. Easier to read and maintain.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Tab 3: Framework -->
+    <div id="framework" class="tab-content">
+
+      <!-- Box Model Section -->
+      <div class="content-card" style="margin-bottom: 2rem;">
+        <h3 style="color: #ff6b35; font-size: 1.1rem;">The Core Insight: Every Element Is Already a Box</h3>
+        
+        <div class="box-model-container">
+          <div class="box-model-diagram">
+            <div class="box-model-visual">
+              <div class="box-margin">
+                <span class="box-label margin-label">margin</span>
+                <div class="box-border">
+                  <span class="box-label border-label">border</span>
+                  <div class="box-padding">
+                    <span class="box-label padding-label">padding</span>
+                    <div class="box-content">
+                      content
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="box-model-explanation">
+            <h3>You Don't Need a Wrapper to Add Styles</h3>
+            <p>
+              Every HTML element—whether it's a &lt;div&gt;, &lt;img&gt;, &lt;p&gt;, or anything else—already 
+              has these four layers available to you. You don't need to create a new wrapper just to add 
+              padding, a border, or margin.
+            </p>
+            <p style="margin-bottom: 0;">
+              <strong style="color: #4ecca3;">The question isn't "do I need a box for this style?"</strong><br>
+              The question is: "which existing box should hold this style?"
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gap vs Padding vs Margin Section -->
+      <div class="content-card dark" style="margin-bottom: 2rem;">
+        <h3 style="color: #60a5fa;">But Wait — Where Does "gap" Fit In?</h3>
+        
+        <p>
+          The box model describes the layers of <strong>one element</strong>. But <code>gap</code> is different — 
+          it's set on a parent container and creates space <em>between its children</em>. No single child "owns" that space.
+        </p>
+
+        <p style="margin-bottom: 1.5rem;">
+          Think of it this way:
+        </p>
+
+        <table class="analysis-table">
+          <tbody>
+            <tr>
+              <td style="color: #4ade80;">padding</td>
+              <td>Set on parent</td>
+              <td>Space between parent's edge and its children</td>
+            </tr>
+            <tr>
+              <td style="color: #f7931e;">gap</td>
+              <td>Set on parent</td>
+              <td>Space between sibling children</td>
+            </tr>
+            <tr>
+              <td style="color: #f97316;">margin</td>
+              <td>Set on child</td>
+              <td>Space outside that child's own box</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+          <strong style="color: #e8e8e8;">In Bootstrap terms:</strong>
+        </p>
+        <ul style="color: #b8c5d6; padding-left: 1.5rem; margin: 0; line-height: 1.8;">
+          <li><code>p-3</code> (padding utility) → space between the row's edge and the columns inside</li>
+          <li><code>g-3</code> (gap utility) → space between col-auto and col (the two columns)</li>
+        </ul>
+
+        <p style="margin-top: 1.5rem; color: #8892b0; font-size: 0.9rem; border-left: 2px solid #4ecca3; padding-left: 1rem;">
+          <strong style="color: #4ecca3;">Bootstrap's g-* classes ARE gap!</strong> 
+          When you add <code>g-3</code> to a row, Bootstrap is applying <code>gap</code> under the hood. 
+          That's why you don't need margin on your columns for spacing.
+        </p>
+      </div>
+
+      <!-- Decision Framework -->
+      <div class="decision-framework">
+        <h3>Before Adding a Wrapper, Ask These 4 Questions:</h3>
+        
+        <ul class="decision-list">
+          <li class="decision-item">
+            <span class="decision-number">1</span>
+            <div class="decision-content">
+              <p><strong>Can I put this style on an element that already exists?</strong></p>
+              <span class="example">
+                Padding, border, background → usually yes. Try the existing element first.
+              </span>
+            </div>
+          </li>
+          
+          <li class="decision-item">
+            <span class="decision-number">2</span>
+            <div class="decision-content">
+              <p><strong>Am I using this just for spacing?</strong></p>
+              <span class="example">
+                Use margin, padding, or CSS gap instead of empty divs or spacer columns.
+              </span>
+            </div>
+          </li>
+          
+          <li class="decision-item">
+            <span class="decision-number">3</span>
+            <div class="decision-content">
+              <p><strong>Do I need a new layout context?</strong></p>
+              <span class="example">
+                This IS a valid reason—flexbox and grid need a parent element. Go ahead and add one.
+              </span>
+            </div>
+          </li>
+          
+          <li class="decision-item">
+            <span class="decision-number">4</span>
+            <div class="decision-content">
+              <p><strong>Does Bootstrap require this structure?</strong></p>
+              <span class="example">
+                row → col is required for the grid, but you control nesting outside that pattern.
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quick Reference -->
+      <div class="content-card dark">
+        <h3>Quick Reference: Wrapper Needed?</h3>
+        
+        <table class="analysis-table" style="margin-top: 1rem;">
+          <tbody>
+            <tr>
+              <td style="color: #4ecca3;">✓ YES</td>
+              <td>Creating a flex/grid container</td>
+              <td>Need a parent to establish layout context</td>
+            </tr>
+            <tr>
+              <td style="color: #4ecca3;">✓ YES</td>
+              <td>Grouping related elements</td>
+              <td>e.g., company-info groups name + title</td>
+            </tr>
+            <tr>
+              <td style="color: #4ecca3;">✓ YES</td>
+              <td>Bootstrap row/column structure</td>
+              <td>Required for the grid to work</td>
+            </tr>
+            <tr>
+              <td style="color: #e94560;">✗ NO</td>
+              <td>Adding padding or margin</td>
+              <td>Use existing element's padding/margin</td>
+            </tr>
+            <tr>
+              <td style="color: #e94560;">✗ NO</td>
+              <td>Adding a border or background</td>
+              <td>These can go on any existing element</td>
+            </tr>
+            <tr>
+              <td style="color: #e94560;">✗ NO</td>
+              <td>Creating empty spacer columns</td>
+              <td>Use padding on the container instead</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Tab 4: Questions -->
+    <div id="questions" class="tab-content">
+
+      <div class="questions-intro">
+        <h2>Check Your Understanding</h2>
+        <p>
+          These questions test whether you've internalized the concept. Try to answer before revealing the response.
+        </p>
+      </div>
+
+      <div class="question-list">
+        <div class="question-item">
+          <p>
+            <strong style="color: #4ecca3;">1.</strong> Why do extra wrappers make your code harder to maintain?
+          </p>
+          <p class="answer">
+            Extra wrappers make your HTML harder to read and debug. When something looks wrong, you have to trace through multiple layers to find which one has the styling. It also creates specificity confusion in CSS—you end up uncertain which selector to use. Most importantly, it signals you don't know where the style <em>should</em> go, so you're guessing.
+          </p>
+        </div>
+        
+        <div class="question-item">
+          <p>
+            <strong style="color: #4ecca3;">2.</strong> What's the difference between needing a wrapper for <em>layout</em> vs. adding one for <em>styling</em>?
+          </p>
+          <p class="answer">
+            <strong>Layout wrappers are often necessary:</strong> You need a parent element to create a flex or grid context, or to use Bootstrap's row/column structure. <strong>Styling wrappers are usually unnecessary:</strong> Padding, borders, backgrounds, and margins can be applied directly to existing elements. If you're adding a wrapper just for a visual style, stop and ask if an existing element can hold that style instead.
+          </p>
+        </div>
+        
+        <div class="question-item">
+          <p>
+            <strong style="color: #4ecca3;">3.</strong> In the original card header (5 levels deep), which wrappers were actually needed?
+          </p>
+          <ul>
+            <li><strong>row:</strong> ✓ Needed — Bootstrap's row IS your flex container. Keep it!</li>
+            <li><strong>col-auto (for logo):</strong> ✓ Needed — wraps the image and sizes to content</li>
+            <li><strong>col (for info):</strong> ✓ Needed — takes remaining space, groups name + title</li>
+            <li><strong>card_heading_container:</strong> ❌ Unnecessary — use <code>p-3</code> on the row instead</li>
+            <li><strong>corporate_logo div:</strong> ❌ Unnecessary — <code>col-auto</code> already wraps the img</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Punt Section -->
+      <div class="punt-section" style="margin-top: 2rem;">
+        <h2>Concepts to Explore Next:</h2>
+        
+        <div class="punt-list">
+          <div class="punt-item">
+            <h4>1. The CSS Box Model in depth</h4>
+            <p>This will help you understand exactly how padding, border, and margin interact—so you know which property to use and where.</p>
+            <span class="link">→ See Concept 5: The CSS Box Model</span>
+          </div>
+          
+          <div class="punt-item">
+            <h4>2. Bootstrap grid: rows, columns, and utilities</h4>
+            <p>Learn the full vocabulary: <code>col-auto</code>, <code>col</code>, <code>g-*</code> gaps, <code>p-*</code> padding, and when to use each.</p>
+            <span class="link">→ See Concept 6: Bootstrap Grid System & Concept 7: Breakpoints</span>
+          </div>
+          
+          <div class="punt-item">
+            <h4>3. What Bootstrap is doing under the hood (Flexbox)</h4>
+            <p>Bootstrap's row/col system IS flexbox with pre-made classes. Understanding flexbox helps you know WHY Bootstrap classes work.</p>
+            <span class="link">→ See Concept 9: Flexbox Layout</span>
+          </div>
+          
+          <div class="punt-item">
+            <h4>4. Class naming conventions</h4>
+            <p>This will help you name wrappers clearly when you <em>do</em> need them—so their purpose is obvious.</p>
+            <span class="link">→ See Concept 4: Class Naming Conventions</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Web Design Study Guide · Built from your resume project files</p>
+  </footer>
+
+  <!-- Tab Switching Script -->
+  <script>
+    // Get all tab buttons and content panels
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Add click handler to each button
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Get the tab id from the data attribute
+        const tabId = button.getAttribute('data-tab');
+
+        // Remove 'active' class from all buttons and contents
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // Add 'active' class to clicked button and matching content
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

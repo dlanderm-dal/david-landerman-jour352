@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Naming Conventions: Visual Guide</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #ff6b35 0%, #d4532a 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      color: white;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.85);
+      margin-top: 0.5rem;
+    }
+
+    /* ============================================
+       NAVIGATION
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      padding: 1rem 1.25rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #ff6b35;
+      color: white;
+      border-bottom: 3px solid #4ecca3;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       INTRO BOX
+       ============================================ */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #ff6b35;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #ff6b35;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    .intro-box p + p {
+      margin-top: 1rem;
+    }
+
+    .intro-box code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       SECTION HEADERS
+       ============================================ */
+    .section-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.2rem;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid;
+    }
+
+    .section-header.orange { color: #ff6b35; border-color: #ff6b35; }
+    .section-header.teal { color: #4ecca3; border-color: #4ecca3; }
+    .section-header.blue { color: #60a5fa; border-color: #60a5fa; }
+    .section-header.red { color: #e94560; border-color: #e94560; }
+
+    /* ============================================
+       EXPLANATION TEXT
+       ============================================ */
+    .explanation {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .explanation code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       COMPARISON CONTAINER
+       ============================================ */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .panel-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .panel.problem .panel-header {
+      background: linear-gradient(135deg, #e94560, #c73e54);
+      color: white;
+    }
+
+    .panel.solution .panel-header {
+      background: linear-gradient(135deg, #4ecca3, #3db892);
+      color: #1a1a2e;
+    }
+
+    /* ============================================
+       LAYER BOX SYSTEM
+       ============================================ */
+    .box {
+      position: relative;
+      border-radius: 6px;
+      padding: 0.6rem;
+      padding-top: 2rem;
+      margin-bottom: 0.5rem;
+      min-height: 40px;
+    }
+
+    .box.dashed { border: 2px dashed; }
+    .box.solid { border: 2px solid; }
+
+    /* Color palette */
+    .box.red { border-color: #e94560; background-color: rgba(233, 69, 96, 0.05); }
+    .box.orange { border-color: #f7931e; background-color: rgba(247, 147, 30, 0.05); }
+    .box.purple { border-color: #a855f7; background-color: rgba(168, 85, 247, 0.05); }
+    .box.blue { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+    .box.teal { border-color: #14b8a6; background-color: rgba(20, 184, 166, 0.05); }
+    .box.green { border-color: #4ecca3; background-color: rgba(78, 204, 163, 0.05); }
+    .box.gray { border-color: #6b7280; background-color: rgba(107, 114, 128, 0.05); }
+    .box.yellow { border-color: #fbbf24; background-color: rgba(251, 191, 36, 0.05); }
+
+    /* Label (top-left) */
+    .box-label {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.5rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .box.red .box-label { color: #e94560; }
+    .box.orange .box-label { color: #f7931e; }
+    .box.purple .box-label { color: #a855f7; }
+    .box.blue .box-label { color: #3b82f6; }
+    .box.teal .box-label { color: #14b8a6; }
+    .box.green .box-label { color: #4ecca3; }
+    .box.gray .box-label { color: #6b7280; }
+    .box.yellow .box-label { color: #fbbf24; }
+
+    /* Verdict badges */
+    .verdict {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.5rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .verdict.bad {
+      background-color: #e94560;
+      color: white;
+    }
+
+    .verdict.good {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .verdict.meh {
+      background-color: #f7931e;
+      color: #1a1a2e;
+    }
+
+    /* Content placeholder */
+    .content {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      padding: 0.5rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      color: #8892b0;
+      text-align: center;
+    }
+
+    .content.dim {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #6b7280;
+    }
+
+    /* ============================================
+       NAMING COMPARISON TABLE
+       ============================================ */
+    .naming-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .naming-table th,
+    .naming-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border: 1px solid #0f3460;
+    }
+
+    .naming-table th {
+      background-color: #16213e;
+      font-family: Arial, sans-serif;
+      color: #ff6b35;
+      font-size: 0.8rem;
+    }
+
+    .naming-table td {
+      background-color: #0a0a14;
+      color: #b8c5d6;
+      font-family: monospace;
+    }
+
+    .naming-table .bad-name {
+      color: #e94560;
+      text-decoration: line-through;
+      opacity: 0.8;
+    }
+
+    .naming-table .good-name {
+      color: #4ecca3;
+    }
+
+    .naming-table .issue {
+      font-family: Georgia, serif;
+      font-size: 0.8rem;
+      color: #8892b0;
+    }
+
+    /* ============================================
+       FORMULA BOX
+       ============================================ */
+    .formula-box {
+      background-color: #0a0a14;
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+
+    .formula {
+      font-family: monospace;
+      font-size: 1.3rem;
+      color: #e8e8e8;
+      margin-bottom: 1rem;
+    }
+
+    .formula .component { color: #ff6b35; }
+    .formula .separator { color: #8892b0; }
+    .formula .part { color: #4ecca3; }
+
+    .formula-example {
+      font-family: monospace;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #16213e;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 0.25rem;
+    }
+
+    .formula-example .component { color: #ff6b35; }
+    .formula-example .part { color: #4ecca3; }
+
+    /* ============================================
+       KEY INSIGHT BOX
+       ============================================ */
+    .key-insight {
+      background-color: #0a0a14;
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .key-insight h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .key-insight ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .key-insight li {
+      color: #b8c5d6;
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .key-insight li:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-insight code {
+      background-color: #16213e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       RULE CARDS
+       ============================================ */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    @media (max-width: 800px) {
+      .rules-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .rule-card {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      border-top: 3px solid #ff6b35;
+    }
+
+    .rule-card h4 {
+      font-family: Arial, sans-serif;
+      color: #ff6b35;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .rule-card .do {
+      color: #4ecca3;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .rule-card .dont {
+      color: #e94560;
+      font-family: monospace;
+      font-size: 0.85rem;
+      text-decoration: line-through;
+    }
+
+    .rule-card p {
+      color: #8892b0;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    /* ============================================
+       CODE BLOCKS
+       ============================================ */
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-header {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.75rem 1rem;
+    }
+
+    .code-header.html { background-color: #e44d26; color: white; }
+    .code-header.css { background-color: #264de4; color: white; }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .code-block code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      color: #e8e8e8;
+    }
+
+    .comment { color: #6a737d; }
+    .selector { color: #4ecca3; }
+    .prop { color: #79c0ff; }
+    .val { color: #f7931e; }
+    .tag { color: #e94560; }
+    .attr { color: #79c0ff; }
+
+    /* ============================================
+       NESTING DIAGRAM
+       ============================================ */
+    .nesting-demo {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .nesting-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .nesting-indent {
+      width: 30px;
+      flex-shrink: 0;
+    }
+
+    .nesting-line {
+      width: 20px;
+      height: 2px;
+      background-color: #0f3460;
+      margin-right: 10px;
+    }
+
+    .nesting-name {
+      font-family: monospace;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .nesting-name.level-1 {
+      background-color: #ff6b35;
+      color: white;
+    }
+
+    .nesting-name.level-2 {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .nesting-name.level-3 {
+      background-color: #14b8a6;
+      color: white;
+    }
+
+    .nesting-arrow {
+      color: #8892b0;
+      margin: 0 0.5rem;
+    }
+
+    .nesting-desc {
+      color: #8892b0;
+      font-size: 0.8rem;
+      font-style: italic;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #8892b0;
+      font-size: 0.85rem;
+      border-top: 1px solid #0f3460;
+      margin-top: 2rem;
+    }
+
+    /* ============================================
+       PRACTICE TOOL STYLES (NEW VERSION)
+       ============================================ */
+    .practice-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .practice-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .builder-panel,
+    .preview-panel {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .builder-header,
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #ff6b35;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .add-element-btn {
+      background-color: #4ecca3;
+      color: #1a1a2e;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .add-element-btn:hover {
+      background-color: #3db892;
+    }
+
+    /* Elements list */
+    .elements-list {
+      min-height: 200px;
+    }
+
+    .element-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      background-color: #16213e;
+      border-radius: 6px;
+      border-left: 3px solid;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    .element-row.dragging {
+      opacity: 0.5;
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .element-row.drag-over {
+      border-top: 2px solid #4ecca3;
+      margin-top: -2px;
+    }
+
+    .element-row[data-indent="0"] { border-left-color: #ff6b35; margin-left: 0; }
+    .element-row[data-indent="1"] { border-left-color: #3b82f6; margin-left: 20px; }
+    .element-row[data-indent="2"] { border-left-color: #14b8a6; margin-left: 40px; }
+    .element-row[data-indent="3"] { border-left-color: #a855f7; margin-left: 60px; }
+    .element-row[data-indent="4"] { border-left-color: #f59e0b; margin-left: 80px; }
+
+    /* Drag handle */
+    .drag-handle {
+      cursor: grab;
+      color: #6b7280;
+      font-size: 0.9rem;
+      padding: 0.25rem;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .drag-handle:hover {
+      color: #8892b0;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    /* Indent/outdent buttons */
+    .indent-btn,
+    .outdent-btn {
+      background: none;
+      border: 1px solid #0f3460;
+      color: #8892b0;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .indent-btn:hover,
+    .outdent-btn:hover {
+      background-color: #0f3460;
+      color: #e8e8e8;
+    }
+
+    .indent-btn:disabled,
+    .outdent-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Level badge */
+    .level-badge {
+      font-family: Arial, sans-serif;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 0.15rem 0.35rem;
+      border-radius: 3px;
+      flex-shrink: 0;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .level-badge[data-level="0"] { background-color: #ff6b35; color: white; }
+    .level-badge[data-level="1"] { background-color: #3b82f6; color: white; }
+    .level-badge[data-level="2"] { background-color: #14b8a6; color: white; }
+    .level-badge[data-level="3"] { background-color: #a855f7; color: white; }
+    .level-badge[data-level="4"] { background-color: #f59e0b; color: #1a1a2e; }
+
+    /* Element input */
+    .element-input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.35rem 0.5rem;
+      font-family: Georgia, serif;
+      font-size: 0.85rem;
+      background-color: #0a0a14;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #e8e8e8;
+    }
+
+    .element-input:focus {
+      outline: none;
+      border-color: #4ecca3;
+    }
+
+    .element-input::placeholder {
+      color: #6b7280;
+      font-style: italic;
+    }
+
+    /* Delete button */
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #6b7280;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.25rem;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+
+    .delete-btn:hover {
+      color: #e94560;
+    }
+
+    /* Preview panel */
+    .structure-preview {
+      min-height: 150px;
+      padding: 0.5rem;
+    }
+
+    .preview-placeholder {
+      color: #6b7280;
+      font-size: 0.85rem;
+      text-align: center;
+      font-style: italic;
+      padding: 2rem 1rem;
+    }
+
+    .preview-node {
+      border-radius: 6px;
+      padding: 0.4rem;
+      padding-top: 1.6rem;
+      margin-bottom: 0.3rem;
+      position: relative;
+      border: 2px solid;
+      min-height: 30px;
+    }
+
+    .preview-node[data-level="0"] { border-color: #ff6b35; background-color: rgba(255, 107, 53, 0.05); }
+    .preview-node[data-level="1"] { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+    .preview-node[data-level="2"] { border-color: #14b8a6; background-color: rgba(20, 184, 166, 0.05); }
+    .preview-node[data-level="3"] { border-color: #a855f7; background-color: rgba(168, 85, 247, 0.05); }
+    .preview-node[data-level="4"] { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.05); }
+
+    .preview-node-label {
+      position: absolute;
+      top: 0.25rem;
+      left: 0.4rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .preview-node[data-level="0"] .preview-node-label { color: #ff6b35; }
+    .preview-node[data-level="1"] .preview-node-label { color: #3b82f6; }
+    .preview-node[data-level="2"] .preview-node-label { color: #14b8a6; }
+    .preview-node[data-level="3"] .preview-node-label { color: #a855f7; }
+    .preview-node[data-level="4"] .preview-node-label { color: #f59e0b; }
+
+    .preview-node-content {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+      padding: 0.3rem;
+      font-size: 0.65rem;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    /* Class list */
+    .class-list {
+      padding: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .class-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.5rem;
+      margin-bottom: 0.3rem;
+      background-color: #16213e;
+      border-radius: 4px;
+    }
+
+    .class-item-level {
+      font-family: Arial, sans-serif;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .class-item-level[data-level="0"] { background-color: #ff6b35; color: white; }
+    .class-item-level[data-level="1"] { background-color: #3b82f6; color: white; }
+    .class-item-level[data-level="2"] { background-color: #14b8a6; color: white; }
+    .class-item-level[data-level="3"] { background-color: #a855f7; color: white; }
+    .class-item-level[data-level="4"] { background-color: #f59e0b; color: #1a1a2e; }
+
+    .class-item-name {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #4ecca3;
+    }
+
+    .class-item-desc {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-left: auto;
+    }
+
+    /* Naming tips */
+    .naming-tips {
+      background-color: #16213e;
+      border-left: 4px solid #4ecca3;
+      padding: 1.5rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .naming-tips h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .naming-tips ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .naming-tips li {
+      color: #b8c5d6;
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+    }
+
+    .naming-tips code {
+      background-color: #0a0a14;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Class Naming Conventions</h1>
+    <p class="subtitle">How to name things consistently — especially when nesting</p>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="tab-problem">The Problem</button>
+      <button class="tab-btn" data-tab="tab-system">The System</button>
+      <button class="tab-btn" data-tab="tab-nesting">Naming Nested Elements</button>
+      <button class="tab-btn" data-tab="tab-reference">Quick Reference</button>
+      <button class="tab-btn" data-tab="tab-practice">Practice Tool</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============================================
+         TAB 1: THE PROBLEM
+         ============================================ -->
+    <div id="tab-problem" class="tab-content active">
+
+      <div class="intro-box">
+        <h2>Why Does Naming Matter?</h2>
+        <p>When you come back to your code in a month (or someone else reads it), can you tell what <code>.font_1</code> styles? What about <code>.titlecontainer</code> vs <code>.title-container</code> — are those the same convention?</p>
+        <p>Inconsistent naming makes code hard to read, hard to maintain, and hard to debug. A system fixes this.</p>
+      </div>
+
+      <h3 class="section-header red">✗ The Inconsistent Original</h3>
+
+      <p class="explanation">Here's what inconsistent naming looks like. Can you spot all the different conventions mixed together?</p>
+
+      <div class="comparison">
+        <div class="panel problem">
+          <div class="panel-header">Mixed Conventions</div>
+          
+          <div class="box dashed red" style="padding-top: 2.5rem;">
+            <span class="box-label">.titlecontainer</span>
+            <span class="verdict bad">camelCase?</span>
+
+            <div class="box dashed orange" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+              <span class="box-label">.section_heading</span>
+              <span class="verdict bad">underscores</span>
+
+              <div class="box dashed purple" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+                <span class="box-label">.card_body</span>
+                <span class="verdict bad">underscores</span>
+
+                <div class="box dashed gray" style="padding-top: 2rem; margin-top: 0.5rem;">
+                  <span class="box-label">.font_1</span>
+                  <span class="verdict bad">meaningless</span>
+                  <div class="content dim">what text?</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel problem">
+          <div class="panel-header">Problems Found</div>
+          
+          <table class="naming-table">
+            <tr>
+              <th>Class Name</th>
+              <th>Issue</th>
+            </tr>
+            <tr>
+              <td class="bad-name">.titlecontainer</td>
+              <td class="issue">No separator — is it "title container" or "titlecon tainer"?</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.section_heading</td>
+              <td class="issue">Underscores (different from above)</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.card_body</td>
+              <td class="issue">Underscores again, but now we have two conventions</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.font_1</td>
+              <td class="issue">Tells you nothing — font for what? Headers? Body?</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.nav_bar_text</td>
+              <td class="issue">Three words with underscores — verbose</td>
+            </tr>
+            <tr>
+              <td class="bad-name">#maincontainer</td>
+              <td class="issue">ID used for styling (should be class), plus no separator</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 Three Problems to Solve</h3>
+        <ul>
+          <li><strong>Inconsistent separators:</strong> camelCase, underscores, no separation — pick one and stick with it</li>
+          <li><strong>Meaningless names:</strong> <code>.font_1</code> doesn't tell you what it styles; <code>.section-title</code> does</li>
+          <li><strong>No relationship shown:</strong> You can't tell that <code>.card_body</code> is inside <code>.card</code> from the name alone</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         TAB 2: THE SYSTEM
+         ============================================ -->
+    <div id="tab-system" class="tab-content">
+
+      <div class="intro-box">
+        <h2>BEM: Block Element Modifier</h2>
+        <p>BEM is the industry standard naming convention. Every element belongs to a <strong>block</strong> (the component), and is named <strong>flat</strong> relative to that block — no matter how deeply nested in the HTML.</p>
+      </div>
+
+      <div class="formula-box">
+        <div class="formula">
+          .<span class="component">block</span><span class="separator">__</span><span class="part">element</span>
+        </div>
+        <div>
+          <span class="formula-example"><span class="component">card</span>__<span class="part">header</span></span>
+          <span class="formula-example"><span class="component">card</span>__<span class="part">body</span></span>
+          <span class="formula-example"><span class="component">card</span>__<span class="part">title</span></span>
+        </div>
+        <div style="margin-top: 0.75rem;">
+          <span class="formula-example"><span class="component">nav</span>__<span class="part">link</span></span>
+          <span class="formula-example"><span class="component">nav</span>__<span class="part">logo</span></span>
+          <span class="formula-example"><span class="component">hero</span>__<span class="part">title</span></span>
+        </div>
+      </div>
+
+      <h3 class="section-header orange">The Rules</h3>
+
+      <div class="rules-grid">
+        <div class="rule-card">
+          <h4>1. Lowercase + Hyphens</h4>
+          <div class="do">✓ .card__header</div>
+          <div class="do">✓ .nav__menu-item</div>
+          <div class="dont">✗ .cardHeader</div>
+          <div class="dont">✗ .card_header</div>
+          <p>Lowercase always. Hyphens between words within a name. Double underscore separates block from element.</p>
+        </div>
+        <div class="rule-card">
+          <h4>2. Describe Purpose</h4>
+          <div class="do">✓ .card__title</div>
+          <div class="do">✓ .card__company-name</div>
+          <div class="dont">✗ .font_1</div>
+          <div class="dont">✗ .big-blue-text</div>
+          <p>Name what it IS, not what it looks like. Styles can change; purpose doesn't.</p>
+        </div>
+        <div class="rule-card">
+          <h4>3. Flat Elements</h4>
+          <div class="do">✓ .card__title</div>
+          <div class="do">✓ .card__logo</div>
+          <div class="dont">✗ .card__header__title</div>
+          <div class="dont">✗ .card__header__logo</div>
+          <p>ALL elements are flat relative to the block. Never chain with multiple double-underscores.</p>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">✓ The Clean Version</h3>
+
+      <div class="comparison">
+        <div class="panel solution">
+          <div class="panel-header">BEM Naming</div>
+          
+          <div class="box solid green" style="padding-top: 2.5rem;">
+            <span class="box-label">.card</span>
+            <span class="verdict good">block</span>
+
+            <div class="box solid blue" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+              <span class="box-label">.card__header</span>
+              <span class="verdict good">element</span>
+
+              <div class="box solid teal" style="padding-top: 2rem; margin-top: 0.5rem;">
+                <span class="box-label">.card__company-name</span>
+                <span class="verdict good">element (flat!)</span>
+                <div class="content">Acme Corp</div>
+              </div>
+
+              <div class="box solid teal" style="padding-top: 2rem; margin-top: 0.5rem;">
+                <span class="box-label">.card__job-title</span>
+                <span class="verdict good">element (flat!)</span>
+                <div class="content">Software Engineer</div>
+              </div>
+            </div>
+
+            <div class="box solid orange" style="padding-top: 2rem; margin-top: 0.5rem;">
+              <span class="box-label">.card__body</span>
+              <span class="verdict good">element</span>
+              <div class="content">Description text...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel solution">
+          <div class="panel-header">What Changed</div>
+          
+          <table class="naming-table">
+            <tr>
+              <th>Before</th>
+              <th>After (BEM)</th>
+            </tr>
+            <tr>
+              <td class="bad-name">.titlecontainer</td>
+              <td class="good-name">.hero__title-container</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.section_heading</td>
+              <td class="good-name">.section__header</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.card_body</td>
+              <td class="good-name">.card__body</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.font_1</td>
+              <td class="good-name">.card__title</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.font_2</td>
+              <td class="good-name">.card__description</td>
+            </tr>
+            <tr>
+              <td class="bad-name">.nav_bar_text</td>
+              <td class="good-name">.nav__link</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         TAB 3: NAMING NESTED ELEMENTS
+         ============================================ -->
+    <div id="tab-nesting" class="tab-content">
+
+      <div class="intro-box">
+        <h2>The Key BEM Rule: Elements Are Flat</h2>
+        <p>No matter how deeply nested your HTML is, <strong>all elements are named flat relative to the block</strong>. You never chain element names. This is the rule that prevents class name collisions.</p>
+      </div>
+
+      <h3 class="section-header orange">The Wrong Way: Chaining Elements</h3>
+
+      <p class="explanation">Many beginners try to mirror the DOM structure in their class names. This gets out of control fast:</p>
+
+      <div class="nesting-demo">
+        <div class="nesting-row">
+          <span class="nesting-name level-1" style="background-color: #e94560;">.card</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2" style="background-color: #e94560;">.card__header</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-3" style="background-color: #e94560;">.card__header__logo</span>
+          <span class="nesting-arrow">←</span>
+          <span class="nesting-desc" style="color: #e94560;">❌ WRONG — never chain elements!</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-3" style="background-color: #e94560;">.card__header__title</span>
+          <span class="nesting-arrow">←</span>
+          <span class="nesting-desc" style="color: #e94560;">❌ WRONG</span>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">The Right Way: Flat Elements</h3>
+
+      <p class="explanation">ALL elements belong directly to the block, no matter where they sit in the HTML:</p>
+
+      <div class="nesting-demo">
+        <div class="nesting-row">
+          <span class="nesting-name level-1">.card</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">the Block</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.card__header</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of card</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-3">.card__logo</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of card (NOT of header!)</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-3">.card__title</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of card</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-3">.card__subtitle</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of card</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.card__body</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of card</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.card__footer</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of card</span>
+        </div>
+      </div>
+
+      <p class="explanation">The class name <code>.card__logo</code> tells you everything you need: it's the logo element of the card block. You don't need to know it's inside the header — that's a DOM detail, not a naming concern.</p>
+
+      <h3 class="section-header blue">When to Create a New Block</h3>
+
+      <p class="explanation">If your block is getting too many elements (10+), or if a section could be reused elsewhere, consider breaking it into a new block:</p>
+
+      <div class="nesting-demo">
+        <div class="nesting-row">
+          <span class="nesting-name level-1">.card</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">main block</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.card__header</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-1">.company-badge</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">NEW block (reusable component)</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.company-badge__logo</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of company-badge</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.company-badge__name</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">element of company-badge</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-name level-2">.card__body</span>
+        </div>
+      </div>
+
+      <p class="explanation">Now <code>.company-badge</code> can be reused in other places — in a sidebar, in a footer, wherever. It's its own block with its own elements.</p>
+
+      <h3 class="section-header orange">Modifiers: Variations of Blocks or Elements</h3>
+
+      <p class="explanation">BEM also has <strong>modifiers</strong> for variants — use double hyphens (<code>--</code>):</p>
+
+      <div class="nesting-demo">
+        <div class="nesting-row">
+          <span class="nesting-name level-1">.card</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">base block</span>
+        </div>
+        <div class="nesting-row">
+          <span class="nesting-name level-1">.card--featured</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">modifier: a featured card</span>
+        </div>
+        <div class="nesting-row">
+          <span class="nesting-name level-1">.card--compact</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">modifier: a compact card</span>
+        </div>
+        <div class="nesting-row" style="margin-top: 1rem;">
+          <span class="nesting-name level-2">.card__button</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">base element</span>
+        </div>
+        <div class="nesting-row">
+          <span class="nesting-name level-2">.card__button--primary</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">modifier: primary button</span>
+        </div>
+        <div class="nesting-row">
+          <span class="nesting-name level-2">.card__button--disabled</span>
+          <span class="nesting-arrow">→</span>
+          <span class="nesting-desc">modifier: disabled state</span>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">Visual: Flat Naming in Practice</h3>
+
+      <div class="comparison">
+        <div class="panel solution">
+          <div class="panel-header">The HTML (Nested)</div>
+          
+          <div class="box solid green" style="padding-top: 2.5rem;">
+            <span class="box-label">.card</span>
+
+            <div class="box solid blue" style="padding-top: 2.5rem; margin-top: 0.5rem;">
+              <span class="box-label">.card__header</span>
+
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <div class="box solid teal" style="padding-top: 1.8rem; flex: 0 0 60px;">
+                  <span class="box-label">.card__logo</span>
+                </div>
+                <div class="box solid teal" style="padding-top: 1.8rem; flex: 1;">
+                  <span class="box-label">.card__title</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="box solid orange" style="padding-top: 2rem; margin-top: 0.5rem;">
+              <span class="box-label">.card__body</span>
+              <div class="content">content</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel solution">
+          <div class="panel-header">The CSS (Flat Selectors)</div>
+          
+          <div class="code-block" style="margin: 0; background: transparent;">
+            <pre style="font-size: 0.8rem;"><code><span class="selector">.card</span> { ... }
+
+<span class="selector">.card__header</span> { ... }
+
+<span class="selector">.card__logo</span> { ... }
+
+<span class="selector">.card__title</span> { ... }
+
+<span class="selector">.card__body</span> { ... }
+
+<span class="comment">/* All flat, all single-class selectors
+   No nesting, no specificity issues */</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 BEM Naming Summary</h3>
+        <ul>
+          <li><strong>Block:</strong> <code>.card</code> — the standalone component</li>
+          <li><strong>Element:</strong> <code>.card__title</code> — a part of the block (double underscore)</li>
+          <li><strong>Modifier:</strong> <code>.card--featured</code> — a variation (double hyphen)</li>
+          <li><strong>Never chain elements:</strong> <code>.card__header__title</code> is always wrong</li>
+          <li><strong>Too complex?</strong> Break it into a new block instead of nesting deeper</li>
+        </ul>
+      </div>
+
+      <h3 class="section-header orange">Why BEM Solves the Collision Problem</h3>
+
+      <p class="explanation">Remember the problem you found? Two trees, both with an element named "body". With BEM, this is solved automatically:</p>
+
+      <div class="comparison">
+        <div class="panel">
+          <div class="panel-header" style="background: #16213e; color: #e94560;">❌ The Old Problem</div>
+          <div class="code-block" style="margin: 0;">
+            <pre><code><span class="comment">/* Both elements have the same class! */</span>
+<span class="selector">.body</span> { ... }  <span class="comment">/* Which body? */</span>
+<span class="selector">.body</span> { ... }  <span class="comment">/* Collision! */</span></code></pre>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" style="background: #16213e; color: #4ecca3;">✓ BEM Solution</div>
+          <div class="code-block" style="margin: 0;">
+            <pre><code><span class="comment">/* Each element is prefixed with its block */</span>
+<span class="selector">.card__body</span> { ... }
+<span class="selector">.modal__body</span> { ... }
+<span class="comment">/* No collision! */</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <p class="explanation">Every element carries its block name. Even generic names like "body", "header", "title" become unique when prefixed with the block.</p>
+
+    </div>
+
+    <!-- ============================================
+         TAB 4: QUICK REFERENCE
+         ============================================ -->
+    <div id="tab-reference" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Naming Cheat Sheet</h2>
+        <p>A quick reference for when you're writing code and need to name something.</p>
+      </div>
+
+      <h3 class="section-header orange">The Format</h3>
+
+      <div class="rules-grid">
+        <div class="rule-card">
+          <h4>Always</h4>
+          <div class="do">✓ lowercase</div>
+          <div class="do">✓ hyphens-between-words</div>
+          <div class="do">✓ double__underscore for elements</div>
+          <div class="do">✓ double--hyphen for modifiers</div>
+        </div>
+        <div class="rule-card">
+          <h4>Never</h4>
+          <div class="dont">✗ camelCase</div>
+          <div class="dont">✗ single_underscores</div>
+          <div class="dont">✗ block__el__el (chained)</div>
+        </div>
+        <div class="rule-card">
+          <h4>Avoid</h4>
+          <div class="dont">✗ .font-1, .style-2</div>
+          <div class="dont">✗ .big-red-text</div>
+          <div class="dont">✗ generic names without block</div>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">Common Blocks & Their Elements</h3>
+
+      <table class="naming-table">
+        <tr>
+          <th>Block</th>
+          <th>Typical Elements</th>
+        </tr>
+        <tr>
+          <td class="good-name">.card</td>
+          <td class="good-name">.card__header, .card__body, .card__footer, .card__image, .card__title</td>
+        </tr>
+        <tr>
+          <td class="good-name">.nav</td>
+          <td class="good-name">.nav__link, .nav__logo, .nav__toggle, .nav__menu</td>
+        </tr>
+        <tr>
+          <td class="good-name">.hero</td>
+          <td class="good-name">.hero__title, .hero__subtitle, .hero__image, .hero__cta</td>
+        </tr>
+        <tr>
+          <td class="good-name">.form</td>
+          <td class="good-name">.form__group, .form__label, .form__input, .form__button</td>
+        </tr>
+        <tr>
+          <td class="good-name">.modal</td>
+          <td class="good-name">.modal__header, .modal__body, .modal__footer, .modal__close</td>
+        </tr>
+        <tr>
+          <td class="good-name">.sidebar</td>
+          <td class="good-name">.sidebar__header, .sidebar__nav, .sidebar__link, .sidebar__footer</td>
+        </tr>
+      </table>
+
+      <h3 class="section-header blue">BEM Naming Flowchart</h3>
+
+      <div class="nesting-demo">
+        <div class="nesting-row">
+          <span class="nesting-desc" style="font-style: normal; color: #e8e8e8;">1. Is it a standalone component (card, nav, hero, modal)?</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-desc">→ It's a <strong>block</strong>: <code style="color: #4ecca3;">.card</code>, <code style="color: #4ecca3;">.hero</code></span>
+        </div>
+        
+        <div class="nesting-row" style="margin-top: 1rem;">
+          <span class="nesting-desc" style="font-style: normal; color: #e8e8e8;">2. Is it part of a block (no matter how deeply nested)?</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-desc">→ It's an <strong>element</strong>: <code style="color: #4ecca3;">.card__header</code>, <code style="color: #4ecca3;">.card__title</code></span>
+        </div>
+        
+        <div class="nesting-row" style="margin-top: 1rem;">
+          <span class="nesting-desc" style="font-style: normal; color: #e8e8e8;">3. Is it a variation of a block or element?</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-desc">→ It's a <strong>modifier</strong>: <code style="color: #4ecca3;">.card--featured</code>, <code style="color: #4ecca3;">.card__button--primary</code></span>
+        </div>
+        
+        <div class="nesting-row" style="margin-top: 1rem;">
+          <span class="nesting-desc" style="font-style: normal; color: #e8e8e8;">4. Is the block getting too complex (10+ elements)?</span>
+        </div>
+        <div class="nesting-row">
+          <div class="nesting-indent"></div>
+          <span class="nesting-line"></span>
+          <span class="nesting-desc">→ Break it into <strong>smaller blocks</strong></span>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 The Golden Rules of BEM</h3>
+        <ul>
+          <li><strong>Block:</strong> standalone component → <code>.card</code></li>
+          <li><strong>Element:</strong> part of a block → <code>.card__title</code> (double underscore)</li>
+          <li><strong>Modifier:</strong> variation → <code>.card--featured</code> (double hyphen)</li>
+          <li><strong>Flat elements:</strong> <code>.card__title</code> NOT <code>.card__header__title</code></li>
+          <li>The class name should tell you: what block it belongs to, and what it is</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         TAB 5: PRACTICE TOOL
+         ============================================ -->
+    <div id="tab-practice" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Build Your Own Structure</h2>
+        <p>Add elements, drag to reorder, and use ◀ ▶ to indent/outdent. The tool will generate proper class names and show you the nested structure.</p>
+      </div>
+
+      <div class="practice-layout">
+        <div class="builder-panel">
+          <div class="builder-header">
+            <span>Element Builder</span>
+            <button class="add-element-btn" id="addElementBtn">+ Add Element</button>
+          </div>
+
+          <div class="elements-list" id="elementsList">
+            <!-- Elements will be added here dynamically -->
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-header">Structure Preview</div>
+          <div class="structure-preview" id="structurePreview">
+            <p class="preview-placeholder">Add elements and give them names to see the structure</p>
+          </div>
+
+          <div class="preview-header" style="margin-top: 1rem;">Generated Class Names</div>
+          <div class="class-list" id="classList">
+            <p class="preview-placeholder">Class names will appear here</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="naming-tips">
+        <h3>💡 How to Use</h3>
+        <ul>
+          <li><strong>⋮⋮</strong> Drag handle — drag up/down to reorder elements</li>
+          <li><strong>◀</strong> Outdent — move element to a shallower level (more like a sibling)</li>
+          <li><strong>▶</strong> Indent — move element deeper (becomes a child of the element above)</li>
+          <li><strong>✕</strong> Delete — remove the element</li>
+        </ul>
+        <h3 style="margin-top: 1rem;">🔑 BEM Naming Rule</h3>
+        <ul>
+          <li><strong>Level 0 (orange):</strong> The Block — <code>.card</code>, <code>.nav</code>, <code>.hero</code></li>
+          <li><strong>Level 1+ (all others):</strong> Elements are FLAT relative to block — <code>.card__header</code>, <code>.card__title</code>, <code>.card__logo</code></li>
+          <li><strong>Never chain elements:</strong> <code>.card__header__title</code> is WRONG — use <code>.card__title</code> instead</li>
+          <li><strong>Too complex?</strong> Break into a new block rather than nesting deeper</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Class Naming Conventions · Visual Study Guide</p>
+  </footer>
+
+  <script>
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // ============================================
+    // PRACTICE TOOL - NEW VERSION
+    // ============================================
+
+    let elements = [];
+    let elementIdCounter = 0;
+    let draggedElement = null;
+
+    // Convert input to class name
+    function toClassName(input) {
+      if (!input.trim()) return '';
+      return input.trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+
+    // Generate proper class name based on BEM: all elements are flat relative to block
+    function generateClassName(element, allElements) {
+      const name = toClassName(element.name);
+      if (!name) return { className: '', description: '' };
+
+      const indent = element.indent;
+      const idx = allElements.indexOf(element);
+
+      // Level 0: this IS the block
+      if (indent === 0) {
+        return { className: '.' + name, description: 'block' };
+      }
+
+      // Level 1+: find the parent block (most recent level 0) and use block__element
+      // BEM rule: ALL elements are flat relative to their block, no matter how deep
+      let blockName = '';
+      for (let i = idx - 1; i >= 0; i--) {
+        if (allElements[i].indent === 0 && allElements[i].name) {
+          blockName = toClassName(allElements[i].name);
+          break;
+        }
+      }
+      
+      if (blockName) {
+        return { className: '.' + blockName + '__' + name, description: 'element of ' + blockName };
+      }
+      
+      // No block found - warn user
+      return { className: '.' + name, description: '⚠️ no block found' };
+    }
+
+    // Create element row HTML
+    function createElementRow(element) {
+      const row = document.createElement('div');
+      row.className = 'element-row';
+      row.dataset.id = element.id;
+      row.dataset.indent = element.indent;
+      row.draggable = true;
+
+      row.innerHTML = `
+        <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+        <button class="outdent-btn" title="Outdent (◀)" ${element.indent === 0 ? 'disabled' : ''}>◀</button>
+        <button class="indent-btn" title="Indent (▶)" ${element.indent >= 4 ? 'disabled' : ''}>▶</button>
+        <span class="level-badge" data-level="${element.indent}">${element.indent}</span>
+        <input type="text" class="element-input" placeholder="element name..." value="${element.name || ''}">
+        <button class="delete-btn" title="Delete">✕</button>
+      `;
+
+      // Event listeners
+      row.querySelector('.outdent-btn').addEventListener('click', () => {
+        if (element.indent > 0) {
+          element.indent--;
+          updateUI();
+        }
+      });
+
+      row.querySelector('.indent-btn').addEventListener('click', () => {
+        if (element.indent < 4) {
+          element.indent++;
+          updateUI();
+        }
+      });
+
+      row.querySelector('.element-input').addEventListener('input', (e) => {
+        element.name = e.target.value;
+        updatePreviews();
+      });
+
+      row.querySelector('.delete-btn').addEventListener('click', () => {
+        elements = elements.filter(el => el.id !== element.id);
+        updateUI();
+      });
+
+      // Drag events
+      row.addEventListener('dragstart', (e) => {
+        draggedElement = element;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        document.querySelectorAll('.element-row').forEach(r => r.classList.remove('drag-over'));
+        draggedElement = null;
+      });
+
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (draggedElement && draggedElement.id !== element.id) {
+          row.classList.add('drag-over');
+        }
+      });
+
+      row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over');
+      });
+
+      row.addEventListener('drop', (e) => {
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        if (draggedElement && draggedElement.id !== element.id) {
+          // Reorder elements
+          const draggedIdx = elements.findIndex(el => el.id === draggedElement.id);
+          const targetIdx = elements.findIndex(el => el.id === element.id);
+          
+          elements.splice(draggedIdx, 1);
+          elements.splice(targetIdx, 0, draggedElement);
+          
+          updateUI();
+        }
+      });
+
+      return row;
+    }
+
+    // Build nested structure for preview
+    function buildNestedStructure(elements) {
+      if (elements.length === 0) return null;
+
+      const root = { children: [], level: -1 };
+      const stack = [root];
+
+      elements.forEach(el => {
+        if (!el.name) return;
+
+        const node = {
+          element: el,
+          className: generateClassName(el, elements).className,
+          level: el.indent,
+          children: []
+        };
+
+        // Find the right parent
+        while (stack.length > 1 && stack[stack.length - 1].level >= el.indent) {
+          stack.pop();
+        }
+
+        stack[stack.length - 1].children.push(node);
+        stack.push(node);
+      });
+
+      return root.children;
+    }
+
+    // Render nested preview HTML
+    function renderNestedPreview(nodes, depth = 0) {
+      if (!nodes || nodes.length === 0) return '';
+
+      let html = '';
+      nodes.forEach(node => {
+        const hasChildren = node.children && node.children.length > 0;
+        html += `<div class="preview-node" data-level="${node.level}">
+          <span class="preview-node-label">${node.className || '.unnamed'}</span>
+          ${hasChildren ? renderNestedPreview(node.children, depth + 1) : '<div class="preview-node-content">content</div>'}
+        </div>`;
+      });
+      return html;
+    }
+
+    // Update the structure preview
+    function updatePreviews() {
+      const structurePreview = document.getElementById('structurePreview');
+      const classList = document.getElementById('classList');
+
+      const namedElements = elements.filter(el => el.name);
+
+      if (namedElements.length === 0) {
+        structurePreview.innerHTML = '<p class="preview-placeholder">Add elements and give them names to see the structure</p>';
+        classList.innerHTML = '<p class="preview-placeholder">Class names will appear here</p>';
+        return;
+      }
+
+      // Structure preview
+      const nested = buildNestedStructure(elements);
+      structurePreview.innerHTML = renderNestedPreview(nested);
+
+      // Class list
+      let classListHtml = '';
+      elements.forEach(el => {
+        if (!el.name) return;
+        const { className, description } = generateClassName(el, elements);
+        classListHtml += `<div class="class-item">
+          <span class="class-item-level" data-level="${el.indent}">${el.indent}</span>
+          <span class="class-item-name">${className}</span>
+          <span class="class-item-desc">${description}</span>
+        </div>`;
+      });
+      classList.innerHTML = classListHtml;
+    }
+
+    // Full UI update
+    function updateUI() {
+      const list = document.getElementById('elementsList');
+      list.innerHTML = '';
+      
+      elements.forEach(el => {
+        list.appendChild(createElementRow(el));
+      });
+
+      updatePreviews();
+    }
+
+    // Add new element
+    function addElement() {
+      // Determine indent: if there are elements, match the last one's indent
+      let indent = 0;
+      if (elements.length > 0) {
+        indent = Math.min(elements[elements.length - 1].indent + 1, 4);
+      }
+
+      elements.push({
+        id: elementIdCounter++,
+        name: '',
+        indent: indent
+      });
+
+      updateUI();
+
+      // Focus the new input
+      const inputs = document.querySelectorAll('.element-input');
+      if (inputs.length > 0) {
+        inputs[inputs.length - 1].focus();
+      }
+    }
+
+    // Initialize
+    function initPracticeTool() {
+      document.getElementById('addElementBtn').addEventListener('click', addElement);
+
+      // Add starter elements
+      elements = [
+        { id: elementIdCounter++, name: 'card', indent: 0 },
+        { id: elementIdCounter++, name: 'header', indent: 1 },
+        { id: elementIdCounter++, name: 'logo', indent: 2 },
+        { id: elementIdCounter++, name: 'title', indent: 2 },
+        { id: elementIdCounter++, name: 'body', indent: 1 }
+      ];
+
+      updateUI();
+    }
+
+    // Run when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPracticeTool);
+    } else {
+      initPracticeTool();
+    }
+  </script>
+
+</body>
+</html>
