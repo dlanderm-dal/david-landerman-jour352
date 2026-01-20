@@ -1,0 +1,333 @@
+/*
+image hosting url:  https://dlanderm-dal.github.io/david-landerman-jour352/final_project/image_host/
+many elements sized proportionally-ergo weird numbers
+*/
+
+/*citing tutorial source: https://www.youtube.com/watch?v=hky5KPvOBww
+tutorial done in scss which nests so unnested via https://www.testmu.ai/free-online-tools/scss-to-css/, this is for the topper skeleton ONLY after MANY HOURS OF BANGING MY HEAD AGAINST A WALL
+*/
+
+
+.topper {
+  width: 100%;
+  height: 100vh;
+  display: block;
+  border: 1px solid red;
+}
+.topper .topper-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  position: relative;
+  flex-direction: column;
+  font-family:Georgia, 'Times New Roman', Times, serif
+}
+
+
+.topper .topper-text h1 {
+  font-size:5.23vw;
+color:white;
+background-color:blue;
+margin-top: 14vh;
+padding-left:3vw;
+padding-right:3vw;
+padding-top:1vh;
+padding-bottom:1vh;
+border-radius:20px;
+margin-bottom:1px;
+}
+.subhead {
+  text-align: center;
+  font-style: italic;
+  font-size:3.66vw;
+
+}
+
+
+ .byline{
+  text-align: right;
+  margin-left: 30vw;
+  font-size:3vw;
+  margin-bottom:0;
+}
+
+.sub-byline {
+  
+  margin-left: 50vw;
+  font-size:2vw;
+  font-style: italic;
+  color:gray;
+}
+
+.topper .hero {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  z-index: 0;
+}
+.topper .hero #hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+
+.article-lede{
+    font-style:italic;
+    text-align:justify;
+    margin-left:17%;
+    margin-right:17%;
+    font-size:25px;
+    font-family: Helvetica, sans-serif;
+    line-height:1.2em;
+    background-color:rgba(230, 230, 230, 0.7);
+    color:black;
+   
+    padding: 13px;
+    
+}
+
+.body-text{
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    font-size:20px;
+    margin-left:20%;
+    margin-right:20%;
+    margin-bottom: 25px;
+
+}
+
+
+
+.section-heading{
+    font-family:Helvetica;
+    font-weight:bold;
+    font-size:45px;
+    margin-top:40px;
+    margin-left:20%;
+}
+
+#background-canvas{
+    background-image: url("./image_host/wireframe-side-panel.png");
+    background-position: right 30px top;
+    background-repeat: repeat-y;
+    background-size: 22vw auto;
+}
+
+.spacer{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    margin-top:5%;
+    margin-bottom:5%;
+    margin-left:15%;
+    margin-right:15%;
+   
+}
+
+.card-header {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: center;
+}
+
+.card-logo {
+  width: auto;
+  height: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.card-titles {
+  flex: 1;
+}
+
+#nonblue{
+    color:black;
+    text-decoration:none;
+    font-size:20px;
+    
+}
+
+
+/*Abbreviated table*/
+.abbreviated-table{
+    font-family:hevetica, sans-serif;
+    margin-bottom:25px;
+    
+    
+    
+}
+
+.drug-name{
+    background-color:#01DCA6;
+    padding:0;
+    margin:0 auto;
+    border:1.5px solid gray;
+    display:flex;
+    justify-content:center;
+   
+    
+    
+}
+
+.drug-name-text{
+    text-align:center;
+    font-size:20px;
+    margin:0 auto;
+    
+}
+
+.disease{
+    background-color:#FA8C02;
+    border-top:1.5px solid gray;
+    border-bottom:1.5px solid gray;
+    
+}
+
+.disease-text{
+    text-align:left;
+    font-size:20px;
+    color:white;
+     padding:0px;
+    margin-bottom:0;
+}
+.cost-per-pill{
+    border-left:1.5px solid gray;
+    border-bottom:1.5px solid gray;
+    border-right:1.5px solid gray;
+    background-color:white;
+}
+
+.cost-per-pill-label{
+font-size:20px;
+font: weight bold;
+color:black;
+padding-bottom:0;
+margin-bottom:0;
+}
+.cost-per-pill-price{
+font-size:20px;
+font-weight:bolder;
+color:red;
+margin-bottom:0;
+}
+
+.cost-per-patient{
+    border-bottom:1.5px solid gray;
+    background-color:white;
+}
+
+.cost-per-patient-label{
+font-size:20px;
+font: weight bold;
+color:black;
+padding-bottom:0;
+margin-bottom:0;
+}
+.cost-per-patient-price{
+font-size:20px;
+font-weight:bolder;
+color:red;
+margin-bottom:0;
+}
+
+.manufacturer{
+    border:1.5px solid gray;
+    background-color:#039076;
+}
+
+.manufacturer-label{
+    padding-top:5px;
+    color:white;
+    font-size:20px;
+    text-align:left;
+    padding-bottom:0;
+    margin-bottom:0;
+}
+
+.manufacturer-text{
+    color:white;
+    font-size:20px;
+    text-align:center;
+    margin:0;
+    font-weight:bold;
+}
+
+.drug-source{
+    color:white;
+    font-size:10px;
+    text-align:right;
+    margin-top:10px;
+    margin-bottom:0;
+}
+
+.datawrapper-graphic{
+
+ border:2px gray solid;
+ padding:10px;
+  background-color:rgba(255, 255, 255, 0.937);
+}
+
+.pull-quote{
+    float:left;
+    width:40%;
+    background-color:rgba(243, 207, 154, 0.792);
+    padding:1rem;
+    margin-right: 1.5rem;
+    margin-left:-1.5rem;
+    border-radius: 6px;
+}
+
+.pull-quote p {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  font-family:helvetica, sans-serif;
+  letter-spacing: -0.5px;
+  line-height:2rem;
+  font-style: italic;
+  font-weight:lighter;
+
+
+}
+
+.pull-quote footer {
+  font-size: 0.8rem;
+  text-align: right;
+  
+}
+
+.image-breaker{
+    width:80%;
+    display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.imgbreak{
+    width:100%;
+}
+
+.caption{
+    font-size:10px;
+    color:rgb(148, 148, 148)
+
+}
+
+.video-holder{
+   width:60%;
+    display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 767.98px){ 
+    .override-border{
+        border:1.5px solid gray;
+    }
+    .override-border2{
+        border:1.5px solid gray;
+      
+    }
+}
