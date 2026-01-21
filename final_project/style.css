@@ -457,11 +457,11 @@ margin-bottom:1px;
 /*https://cssunitconverter.com/vw-to-px*/
 
     .topper .topper-text h1 {
-  font-size:40px;
+  font-size:35px;
 color:white;
 background-color:blue;
-padding-left:29.7594px;
-padding-right:29.7594px;
+padding-left:10px;
+padding-right:10px;
 padding-top:1vh;
 padding-bottom:1vh;
 border-radius:20px;
@@ -471,7 +471,7 @@ margin-top:5px;
 .subhead {
   text-align: center;
   font-style: italic;
-  font-size:30.3065px;
+  font-size:27px;
 
 }
 
@@ -479,7 +479,7 @@ margin-top:5px;
  .byline{
   text-align: right;
   margin-left: 30vw;
-  font-size:29.7594px;
+  font-size:25px;
   margin-bottom:0;
 }
 
@@ -487,11 +487,51 @@ margin-top:5px;
 .sub-byline {
   
   margin-left: 50vw;
-  font-size:19.8396px;
+  font-size:15px;
   font-style: italic;
   color:gray;
 }
+
+.pull-quote{
+    float:none;
+    width:70%;
+    background-color:rgba(243, 207, 154, 0.792);
+    padding:1rem;
+    
+    border-radius: 6px;
+}
+
+.pull-quote-text{
+    font-size:3.4722vw;
+    padding-right:5px;
+    line-height:4.3403vw;
+}
+
+.section-heading
+{
+    font-size:4.3403vw;
+    
+    
+}
+
+
+
  }
+
+@media (max-width: 425px) { 
+ .section-heading
+{
+    font-size:18.5px;
+    
+}
+
+.pull-quote-text{
+    font-size:14.7569px;
+    padding-right:5px;
+    line-height:18.4463px;
+}
+
+}
 
  @media (max-width: 767.98px) { 
     .article-lede{
