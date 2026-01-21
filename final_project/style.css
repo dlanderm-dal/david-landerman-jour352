@@ -106,6 +106,48 @@ margin-bottom:1px;
 }
  }
 
+
+ @media (max-width: 576px) { 
+
+/*https://cssunitconverter.com/vw-to-px*/
+
+    .topper .topper-text h1 {
+  font-size:40px;
+color:white;
+background-color:blue;
+padding-left:29.7594px;
+padding-right:29.7594px;
+padding-top:1vh;
+padding-bottom:1vh;
+border-radius:20px;
+margin-bottom:1px;
+margin-top:5px;
+}
+.subhead {
+  text-align: center;
+  font-style: italic;
+  font-size:30.3065px;
+
+}
+
+
+ .byline{
+  text-align: right;
+  margin-left: 30vw;
+  font-size:29.7594px;
+  margin-bottom:0;
+}
+
+
+.sub-byline {
+  
+  margin-left: 50vw;
+  font-size:19.8396px;
+  font-style: italic;
+  color:gray;
+}
+ }
+
 .topper .hero {
   width: 100%;
   height: 100%;
@@ -140,6 +182,8 @@ margin-bottom:1px;
         margin-left:5%;
     margin-right:5%;
     }
+    .body-text{
+    background-color:rgba(255, 255, 255, 0.801);
 }
 
 .body-text{
@@ -167,8 +211,8 @@ margin-bottom:1px;
 }
 
 .disclaimer{
-    color:red;
-    font-weight:bold;
+    color:rgb(0, 0, 0);
+    font-style:italic;
     display:flex;
     align-content:center;
     padding-top:40px;
@@ -176,6 +220,7 @@ margin-bottom:1px;
     padding-right:20px;
     padding-bottom:30px;
     margin-bottom:0;
+    
     
 }
 
