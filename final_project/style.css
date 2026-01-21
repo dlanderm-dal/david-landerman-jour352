@@ -556,7 +556,7 @@ max-width:60%;
         background-size: 259px auto;
         background:rgba(255, 255, 255, 0.821)  url("./image_host/wireframe-side-panel.png");
         background-blend-mode: overlay;
-        
+        /*I tried to just get the side background to be more transparent but it accidentally made it a semitransparent background on the whole page which looked better so I went with it, however for some reason now I cant get safari to recognize the white overlay, go figure.*/
         
     }
    .body-text{
