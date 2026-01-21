@@ -554,9 +554,9 @@ max-width:60%;
  @media (max-width: 1178px) { 
     #background-canvas{
         background-size: 259px auto;
-        
         background:rgba(255, 255, 255, 0.821)  url("./image_host/wireframe-side-panel.png");
         background-blend-mode: overlay;
+        
         
     }
    .body-text{
