@@ -397,6 +397,21 @@ margin-bottom:0;
     
 }
 
+.top-disclaimer{
+    color:red;
+    margin-top:5px;
+    margin-bottom:0;
+    padding:0;
+    background-color: white;
+    text-align:center;
+}
+
+.disclaimer-link{
+    color:red;
+    background-color: white;
+    margin-bottom:2px;
+}
+
 
 
 @media (max-width: 767.98px){ 
@@ -539,7 +554,9 @@ margin-top:5px;
     margin-right:5%;
     }
     .body-text{
-    background-color:rgba(255, 255, 255, 0.801);
+    background-color:rgba(255, 255, 255, 0.88);
+    margin-left:10%;
+    margin-right:10%;
 }}
 
 @media (max-width: 767.98px) { 
