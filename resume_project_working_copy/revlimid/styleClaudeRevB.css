@@ -1,0 +1,739 @@
+/*
+image hosting url:  https://dlanderm-dal.github.io/david-landerman-jour352/final_project/image_host/
+many elements sized proportionally-ergo weird numbers
+*/
+
+/*citing tutorial source: https://www.youtube.com/watch?v=hky5KPvOBww
+tutorial done in scss which nests so unnested via https://www.testmu.ai/free-online-tools/scss-to-css/, this is for the topper skeleton ONLY after MANY HOURS OF BANGING MY HEAD AGAINST A WALL
+*/
+
+/* ========================================================
+   ClaudeRevA Changes:
+   1. Color consistency: unified to warmer navy (#1e3a5f)
+   2. Body text: added line-height 1.6em for readability
+   3. Pull-quotes: added left border accent (#c17a28)
+   4. Captions: 12px, #666 for accessibility
+   5. Cards: hover states with lift and shadow
+   6. Mobile topper: 100dvh with 100vh fallback
+   7. Background: replaced pseudo-element with blend-mode
+   + Mid-range pull-quote fixes (576-760px)
+   ======================================================== */
+
+
+
+
+.topper {
+  width: 100%;
+  height: 100vh; /* fallback for older browsers */
+  height: 100dvh; /* dynamic viewport height - fixes mobile browser chrome issue */
+  display: block;
+
+}
+.topper .topper-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  position: relative;
+  flex-direction: column;
+  font-family:Georgia, 'Times New Roman', Times, serif
+}
+
+
+.topper .topper-text h1 {
+  font-size:5.23vw;
+color:white;
+background-color:#1e3a5f; /* warmer navy - unified with heading-holder */
+margin-top: 3vh;
+padding-left:3vw;
+padding-right:3vw;
+padding-top:1vh;
+padding-bottom:1vh;
+border-radius:20px;
+margin-bottom:1px;
+}
+.subhead {
+  text-align: center;
+  font-style: italic;
+  font-size:3.66vw;
+  background-color:rgba(255, 255, 255, 0.797)
+
+}
+
+
+ .byline{
+  text-align: right;
+  margin-left: 30vw;
+  font-size:3vw;
+  margin-bottom:0;
+}
+
+
+.sub-byline {
+  
+  margin-left: 50vw;
+  font-size:2vw;
+  font-style: italic;
+  color:gray;
+}
+
+
+
+.topper .hero {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  z-index: 0;
+}
+.topper .hero .hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom; /* anchor to bottom - crops from top */
+}
+
+
+.article-lede{
+    font-style:italic;
+    text-align:left;
+    margin-left:15%;
+    margin-right:15%;
+    margin-top:0;
+    font-size:25px;
+    font-family: "Tenor Sans", Helvetica, sans-serif;
+    line-height:1.2em;
+    background-color:rgba(230, 230, 230, 0.7);
+    color:black;
+
+    padding: 13px;
+}
+
+
+
+.body-text{
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    font-size:20px;
+    margin-left:20%;
+    margin-right:20%;
+    margin-bottom: 25px;
+    background-color:rgba(255, 255, 255, 0.825);
+    line-height: 1.6em; /* improved readability */
+
+}
+
+
+
+.section-heading{
+    font-family: "Tenor Sans", Helvetica, sans-serif;
+    color:rgb(238, 238, 238);
+    font-size:45px;
+    display:inline-block;
+    padding: 10px 18px; /* more horizontal padding for visual balance */
+    font-style:italic;
+}
+
+.disclaimer{
+    color:rgb(68, 68, 68);
+    font-style:italic;
+    font-size:14px;
+    line-height:1.6;
+    text-align:center;
+    padding:30px 20px;
+    margin:0 auto;
+    max-width:900px;
+}
+
+.page-footer{
+    margin-top:60px;
+    background-color:rgba(240, 240, 240, 0.9);
+    border-top:2px solid rgba(0, 0, 0, 0.1);
+    padding:20px 0;
+}
+
+.heading-holder{
+    
+    display:inline-block;
+    background-color:#1e3a5f; /* warmer navy - unified color */
+    border-radius:10px;
+     margin-top:40px;
+    margin-left:10%;
+    margin-bottom:20px;
+    text-shadow: 1px 1px 2px black;
+
+    /*width:auto;
+    aspect-ratio:521/184;
+    background-image:url("./image_host/white-pill.png");
+    background-size:cover;
+    background-position: center center;*/
+}
+
+
+
+#background-canvas{
+    background-image: url("./image_host/wireframe-side-panel.png");
+    background-position: right 30px top;
+    background-repeat: repeat-y;
+    background-size: 22vw auto;
+}
+
+
+ 
+ 
+
+.spacer{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    margin-top:5%;
+    margin-bottom:5%;
+    margin-left:15%;
+    margin-right:15%;
+   
+}
+
+/* Card hover states for interactivity */
+.card {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    border-radius: 8px;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: center;
+}
+
+.card-logo {
+  width: auto;
+  height: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.card-titles {
+  flex: 1;
+}
+
+.nonblue{
+    color:black;
+    text-decoration:none;
+    font-size:20px;
+    
+}
+
+
+
+/*Abbreviated table*/
+.abbreviated-table{
+    font-family: Helvetica, sans-serif;
+    margin-bottom:25px;
+
+    
+}
+
+.drug-name{
+    background-color:#01DCA6;
+    padding:0;
+    margin:0 auto;
+    border:1.5px solid gray;
+    display:flex;
+    justify-content:center;
+   
+    
+    
+}
+
+.drug-name-text{
+    text-align:center;
+    font-size:20px;
+    margin:0 auto;
+    
+}
+
+.disease{
+    background-color:#FA8C02;
+    border-top:1.5px solid gray;
+    border-bottom:1.5px solid gray;
+    
+}
+
+.disease-text{
+    text-align:left;
+    font-size:20px;
+    color:white;
+     padding:0px;
+    margin-bottom:0;
+}
+.cost-per-pill{
+    border-left:1.5px solid gray;
+    border-bottom:1.5px solid gray;
+    border-right:1.5px solid gray;
+    background-color:white;
+}
+
+.cost-per-pill-label{
+font-size:20px;
+font-weight: bold;
+color:black;
+padding-bottom:0;
+margin-bottom:0;
+}
+.cost-per-pill-price{
+font-size:20px;
+font-weight:bolder;
+color:red;
+margin-bottom:0;
+}
+
+.cost-per-patient{
+    border-bottom:1.5px solid gray;
+    background-color:white;
+}
+
+.cost-per-patient-label{
+font-size:20px;
+font-weight: bold;
+color:black;
+padding-bottom:0;
+margin-bottom:0;
+}
+.cost-per-patient-price{
+font-size:20px;
+font-weight:bolder;
+color:red;
+margin-bottom:0;
+}
+
+.manufacturer{
+    border:1.5px solid gray;
+    background-color:#039076;
+    display:flex !important;
+    flex-direction:column !important;
+    align-self:stretch;
+    justify-content:space-between;
+}
+
+.manufacturer-label{
+    padding-top:5px;
+    color:white;
+    font-size:20px;
+    text-align:center;
+    padding-bottom:0;
+    margin-bottom:0;
+}
+
+.manufacturer-text{
+    color:white;
+    font-size:20px;
+    text-align:center;
+    font-weight:bold;
+    word-wrap:break-word;
+    overflow-wrap:break-word;
+    padding:5px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:1 1 auto;
+    min-height:0;
+}
+
+.drug-source{
+    color:white;
+    font-size:10px;
+    text-align:center;
+    margin-top:0;
+    margin-bottom:0;
+    padding-bottom:5px;
+}
+
+
+.abbreviated-table-carousel{
+    background-color:rgba(255, 255, 255, 0.937);
+}
+
+.datawrapper-graphic{
+    border:2px gray solid;
+    padding:10px;
+    background-color:rgba(255, 255, 255, 0.937);
+    max-width:100%;
+    margin:20px auto;
+    overflow:hidden;
+}
+
+.datawrapper-graphic iframe{
+    max-width:100%;
+    height:auto;
+}
+.timeline-graphic{
+ border:1px gray solid;
+  background-color:rgba(255, 255, 255, 0.937);
+}
+
+.pull-quote{
+    float:left;
+    width:40%;
+    background-color:rgba(243, 207, 154, 0.792);
+    padding:1rem;
+    padding-left: 1.25rem;
+    margin-right: 1.5rem;
+    margin-left:-1.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #c17a28; /* rust/dark orange accent */
+}
+
+
+
+.pull-quote-text {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  font-family: "Tenor Sans", Helvetica, sans-serif;
+  letter-spacing: -0.5px;
+  line-height:2rem;
+  font-style: italic;
+  font-weight:lighter;
+  padding-right:10px;
+
+
+}
+
+.pull-quote .pull-quote-footer {
+  font-size: 0.8rem;
+  text-align: right;
+  
+}
+
+.image-breaker{
+    width:80%;
+    display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.imgbreak{
+    width:100%;
+}
+
+.caption{
+    font-size: 12px; /* was 10px - improved accessibility */
+    color: #666; /* darker for better contrast */
+    background-color:rgba(255, 255, 255, 0.759);
+    line-height: 1.4em;
+    padding: 4px 0;
+
+}
+
+    
+.youtube {
+    aspect-ratio: 16 / 9;
+    width: 100% !important;
+}
+
+
+
+.video-holder{
+  display: flex;
+    justify-content: center;
+    
+}
+
+.top-disclaimer{
+    color:red;
+    margin-top:5px;
+    margin-bottom:0;
+    padding:0;
+    background-color: white;
+    text-align:center;
+    width:90vw;
+}
+
+.disclaimer-link{
+    color:red;
+    background-color: white;
+    margin-bottom:2px;
+}
+
+
+
+@media (max-width: 767.98px){ 
+    .override-border{
+        border:1.5px solid gray;
+    }
+    .override-border2{
+        border:1.5px solid gray;
+      
+    }
+}
+
+
+@media  (max-width: 991.98px) and (min-width:576px) { 
+
+/*https://cssunitconverter.com/vw-to-px*/
+
+    .topper .topper-text h1 {
+  font-size:51.8806px;
+color:white;
+background-color:#1e3a5f; /* warmer navy - unified color */
+margin-top: 6vh;
+padding-left:29.7594px;
+padding-right:29.7594px;
+padding-top:1vh;
+padding-bottom:1vh;
+border-radius:20px;
+margin-bottom:1px;
+}
+.subhead {
+  text-align: center;
+  font-style: italic;
+  font-size:36.3065px;
+
+}
+
+
+ .byline{
+  text-align: right;
+  margin-left: 30vw;
+  font-size:29.7594px;
+  margin-bottom:0;
+}
+
+
+.sub-byline {
+  
+  margin-left: 50vw;
+  font-size:19.8396px;
+  font-style: italic;
+  color:gray;
+}
+ }
+
+
+/* ========================================================
+   ClaudeRevA: Pull-quote fixes for mid-range (576px - 760px)
+   ======================================================== */
+@media (min-width: 576px) and (max-width: 760px) {
+    .pull-quote {
+        /* Constrain height to 80% of viewport */
+        max-height: 80vh;
+        overflow: hidden;
+        
+        /* Fix right margin - more breathing room from body text */
+        margin-right: 2.5rem;
+        margin-left: 0.5rem;
+        
+        /* Slightly narrower width for this cramped range */
+        width: 42%;
+        
+        /* Flexbox for internal layout control */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .pull-quote-text {
+        /* Font scales with viewport height - shrinks if container is constrained */
+        /* clamp(minimum, preferred, maximum) */
+        font-size: 20px;
+        line-height: 28px;
+        
+        padding-right: 8px;
+        margin-bottom: 0.5rem;
+        
+        /* Prevent text overflow */
+        overflow: hidden;
+    }
+    
+    .pull-quote .pull-quote-footer {
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+}
+
+ @media (max-width: 576px) {
+
+/*https://cssunitconverter.com/vw-to-px*/
+
+    .topper .topper-text h1 {
+  font-size:35px;
+color:white;
+background-color:#1e3a5f; /* warmer navy - unified color */
+padding-left:10px;
+padding-right:10px;
+padding-top:1vh;
+padding-bottom:1vh;
+border-radius:20px;
+margin-bottom:1px;
+margin-top:5px;
+}
+.subhead {
+  text-align: center;
+  font-style: italic;
+  font-size:27px;
+
+}
+
+
+ .byline{
+  text-align: right;
+  margin-left: 30vw;
+  font-size:25px;
+  margin-bottom:0;
+}
+
+
+.sub-byline {
+
+  margin-left: 50vw;
+  font-size:15px;
+  font-style: italic;
+  color:gray;
+}
+
+.pull-quote{
+    float:none;
+    width:70%;
+    background-color:rgba(243, 207, 154, 0.792);
+    padding:1rem;
+    padding-left: 1.25rem;
+    margin-left:0;
+    margin-right:0;
+    margin-top:1rem;
+    margin-bottom:1rem;
+    border-radius: 6px;
+    border-left: 4px solid #c17a28; /* rust/dark orange accent */
+}
+
+.pull-quote-text{
+    font-size:3.4722vw;
+    padding-right:5px;
+    line-height:4.3403vw;
+}
+
+.section-heading
+{
+    font-size:2vw;
+
+
+}
+
+
+
+ }
+
+@media (max-width: 425px) {
+    .section-heading{
+        font-size:23px;
+    }
+
+    .pull-quote-text{
+        font-size:20px;
+        padding-right:5px;
+        line-height:25px;
+    }
+    
+    /* Topper text - allow wrapping, maintain centering */
+    .topper .topper-text h1 {
+        text-align: center; /* center text within the blue box */
+        white-space: normal; /* allow wrapping */
+        max-width: 90vw; /* prevent edge-to-edge */
+    }
+    
+    .subhead {
+        text-align: center;
+        white-space: normal;
+        margin-left:10px;
+        margin-right:10px;
+    }
+    
+    .byline {
+        /* keeps margin-left: 30vw from earlier breakpoint */
+        text-align: center; /* centers within the remaining 70vw */
+        white-space: normal;
+    }
+    
+    .sub-byline {
+        /* keeps margin-left: 50vw from earlier breakpoint */
+        text-align: center; /* centers within the remaining 50vw */
+        white-space: normal;
+    }
+
+    .top-disclaimer{
+        font-size:3.2vw;
+    }
+}
+
+ @media (max-width: 767.98px) {
+    .article-lede{
+        margin-left:5%;
+        margin-right:5%;
+        margin-top:0;
+    }
+
+    #background-canvas{
+        margin-top:0;
+        padding-top:0;
+    }
+
+    .body-text{
+        background-color:rgba(255, 255, 255, 0.88);
+        margin-left:10%;
+        margin-right:10%;
+    }
+
+    .datawrapper-graphic{
+        padding:5px;
+        margin:15px auto;
+        border:1px gray solid;
+    }
+}
+
+@media (max-width: 767.98px) { 
+    .heading-holder{
+margin-left:10%;
+margin-right:10%;
+display:inline-block;
+max-width:60%;
+    }
+ }
+
+ @media (max-width: 1178px) and (min-width: 768px) {
+    .manufacturer-text {
+        font-size: 16px;
+    }
+}
+
+ @media (max-width: 1178px) {
+    #background-canvas{
+        /*BACKGROUND OPACITY CONTROL - adjust the 0.7 values below
+          Higher = more faded (0.9 almost invisible)
+          Lower = more visible (0.3 fairly prominent) */
+        background: 
+            linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+            url("./image_host/wireframe-side-panel.png");
+        background-position: left top;
+        background-repeat: repeat;
+        background-size: auto auto;
+    }
+
+   .body-text{
+    background-color:rgba(255, 255, 255, 0.636);
+
+}
+}
+
+@media (max-width: 767.98px) {
+    .pull-quote{
+        margin-left:0;
+        margin-right:0;
+        margin-top:1rem;
+        margin-bottom:1rem;
+        background-color:rgba(243, 207, 154, 0.907);
+        }
+    
+    }
