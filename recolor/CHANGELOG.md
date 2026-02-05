@@ -20,7 +20,8 @@ This document compiles all feature requests, bug fixes, and changes from past co
 | v19 | Origin X buttons, add swatch +, per-swatch pickers, config save/load, responsive layout |
 | v20 | Bug fixes for v19, color tolerance slider, target category labels, category-based grouping |
 | v21 | Per-column bypass toggle, live preview toggle, persistent picker selections |
-| v22 | Current version - Recolored distribution strip, Re-extract fix, Adobe instructions, title update |
+| v22 | Recolored distribution strip, Re-extract fix, Adobe instructions, title update |
+| v23 | Current version - Fixed bidirectional color tolerance re-extract |
 
 ---
 
@@ -265,6 +266,14 @@ When making changes, verify these still work:
 
 ---
 
+## v23 Changes (February 4, 2026)
+
+### Bug Fixes
+
+1. **Color tolerance re-extract now works bidirectionally** - Fixed issue where increasing tolerance and re-extracting would merge colors, but lowering tolerance couldn't restore the original colors. Now stores the raw k-means extraction separately (`rawColorDistribution`) and applies tolerance merging on top of it during re-extract. This allows users to freely adjust tolerance up or down and re-extract to see different merge levels.
+
+---
+
 ## v22 Changes (February 4, 2026)
 
 ### New Features
@@ -277,7 +286,7 @@ When making changes, verify these still work:
 
 ### Bug Fixes
 
-1. **Re-extract no longer overwrites picked colors** - Now only recalculates percentages for existing origin colors instead of running slow k-means and overwriting picks
+1. **Re-extract no longer overwrites picked colors** - Now only recalculates percentages for existing origin colors instead of running slow k-means and overwriting picks (Note: this was changed in v23 to properly support tolerance adjustment)
 
 ---
 

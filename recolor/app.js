@@ -445,6 +445,7 @@ function getNextCategory(currentCategory) {
 }
 let colorPercentages = [];
 let fullColorDistribution = [];
+let rawColorDistribution = []; // Original k-means colors before tolerance merging
 
 // Column-based mapping: originToColumn[originIndex] = columnIndex (or 'locked' or 'bank')
 let originToColumn = [];
@@ -784,9 +785,10 @@ function loadImage(img) {
 
 function extractPalette() {
     showLoading();
-    
+
     setTimeout(() => {
         const colors = extractColorsKMeans(originalImageData, 20);
+        rawColorDistribution = colors.map(c => ({ color: [...c.color], pct: c.pct })); // Store original
         fullColorDistribution = colors;
         
         originalPalette = colors.slice(0, originCount).map(c => [...c.color]);
@@ -982,62 +984,58 @@ function reExtractWithTolerance() {
         return;
     }
 
+    if (rawColorDistribution.length === 0) {
+        setStatus('No raw color data. Reload image first.');
+        return;
+    }
+
     showLoading();
-    setStatus('Recalculating percentages...');
+    setStatus('Re-extracting with tolerance...');
 
     setTimeout(() => {
-        // DON'T re-run k-means - just recalculate percentages for existing origin colors
-        // This preserves the user's picked colors
+        // Get current tolerance from slider
+        colorTolerance = parseInt(document.getElementById('toleranceSlider').value);
 
-        if (originalPalette.length === 0) {
-            hideLoading();
-            setStatus('No colors to recalculate. Pick or extract colors first.');
-            return;
+        // Start from the raw k-means colors and apply tolerance merging
+        const mergedColors = mergeColorsWithTolerance(
+            rawColorDistribution.map(c => ({ color: [...c.color], pct: c.pct })),
+            colorTolerance
+        );
+
+        // Update fullColorDistribution with the merged result
+        fullColorDistribution = mergedColors;
+
+        // Update origin palette with top colors (up to originCount)
+        originalPalette = mergedColors.slice(0, originCount).map(c => [...c.color]);
+        colorPercentages = mergedColors.slice(0, originCount).map(c => c.pct);
+
+        // Also update target palette to match if targets > origins
+        while (targetPalette.length < originCount) {
+            targetPalette.push([128, 128, 128]);
+        }
+        // Set targets to match origins initially (user can change them)
+        for (let i = 0; i < originCount && i < originalPalette.length; i++) {
+            targetPalette[i] = [...originalPalette[i]];
         }
 
-        // Recalculate percentages based on current origin palette
-        const labOrigins = originalPalette.map(c => RGB2LAB(c));
-        const counts = new Array(originalPalette.length).fill(0);
-        let totalSamples = 0;
-
-        // Sample every 16th pixel for speed (i += 64 means every 16th pixel since each pixel is 4 bytes)
-        for (let i = 0; i < originalImageData.data.length; i += 64) {
-            const lab = RGB2LAB([
-                originalImageData.data[i],
-                originalImageData.data[i + 1],
-                originalImageData.data[i + 2]
-            ]);
-
-            // Find closest origin color
-            let minDist = Infinity;
-            let minIdx = 0;
-            for (let j = 0; j < labOrigins.length; j++) {
-                const dist = Math.pow(lab[0] - labOrigins[j][0], 2) +
-                    Math.pow(lab[1] - labOrigins[j][1], 2) +
-                    Math.pow(lab[2] - labOrigins[j][2], 2);
-                if (dist < minDist) {
-                    minDist = dist;
-                    minIdx = j;
-                }
+        // Reset column mapping for the new palette
+        originToColumn = [];
+        for (let i = 0; i < originCount; i++) {
+            if (i < targetCount) {
+                originToColumn[i] = i;
+            } else {
+                originToColumn[i] = 'bank';
             }
-            counts[minIdx]++;
-            totalSamples++;
         }
-
-        // Update percentages
-        colorPercentages = counts.map(c => (c / totalSamples) * 100);
-
-        // Update fullColorDistribution to match current palette
-        fullColorDistribution = originalPalette.map((color, i) => ({
-            color: [...color],
-            pct: colorPercentages[i]
-        }));
 
         renderColorStrip();
         renderColumnMapping();
+        updateHarmonyWheel();
+        renderThemesSortedByMatch();
         hideLoading();
 
-        setStatus(`Recalculated percentages. Origin colors preserved.`);
+        const colorCount = mergedColors.length;
+        setStatus(`Re-extracted ${colorCount} colors with tolerance ${colorTolerance}`);
     }, 50);
 }
 
@@ -3814,6 +3812,7 @@ function removeImage() {
     targetPalette = [];
     colorPercentages = [];
     fullColorDistribution = [];
+    rawColorDistribution = [];
     originToColumn = [];
     columnBypass = [];
 
