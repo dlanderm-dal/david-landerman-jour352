@@ -414,8 +414,6 @@ let originalImageData = null;
 let originalPalette = [];
 let targetPalette = [];
 let selectedSlotIndex = 0;
-let harmonyMode = 'harmony'; // 'harmony' or 'color'
-let lockColorSelectedIdx = 0; // Which target is selected in Lock a Color mode
 let canvas, ctx;
 let displayCanvas, displayCtx; // For high-quality scaled display
 let useHighQualityDisplay = true; // Toggle for high-quality rendering
@@ -1285,24 +1283,9 @@ function renderRecoloredStrip() {
         return;
     }
 
-    // Build effective palette: for bypassed columns, use original colors instead of targets
-    const effectivePalette = targetPalette.map((color, i) => {
-        if (columnBypass[i]) {
-            // Find the first origin mapped to this column and use its original color
-            for (let j = 0; j < originToColumn.length; j++) {
-                if (originToColumn[j] === i && originalPalette[j]) {
-                    return [...originalPalette[j]];
-                }
-            }
-            // Fallback: use the target color itself (shouldn't happen normally)
-            return color ? [...color] : [128, 128, 128];
-        }
-        return color ? [...color] : [128, 128, 128];
-    });
-
-    // Calculate color distribution of the recolored image based on effective palette
-    const labTargets = effectivePalette.map(c => RGB2LAB(c));
-    const counts = new Array(effectivePalette.length).fill(0);
+    // Calculate color distribution of the recolored image based on target palette
+    const labTargets = targetPalette.map(c => RGB2LAB(c));
+    const counts = new Array(targetPalette.length).fill(0);
     let totalSamples = 0;
 
     // Sample every 16th pixel for speed
@@ -1329,8 +1312,8 @@ function renderRecoloredStrip() {
         totalSamples++;
     }
 
-    // Build distribution data using effective palette (originals for bypassed)
-    const recoloredDistribution = effectivePalette.map((color, i) => ({
+    // Build distribution data
+    const recoloredDistribution = targetPalette.map((color, i) => ({
         color: [...color],
         pct: (counts[i] / totalSamples) * 100
     }));
@@ -1676,9 +1659,7 @@ function renderColumnMapping() {
         document.getElementById('hexInput').value = hex;
         document.getElementById('hexPreview').style.background = hex;
     }
-
-    // Refresh lock-a-color swatch pickers (always, so they're ready when user switches mode)
-    if (typeof populateLockColorDropdowns === 'function') populateLockColorDropdowns();
+    
 }
 
 function toggleColumnBypass(colIdx) {
@@ -2145,19 +2126,11 @@ function revertSlot(index) {
 
 function shuffleTargetPalette() {
     for (let i = targetPalette.length - 1; i > 0; i--) {
-        // Skip bypassed columns during shuffle
-        if (columnBypass[i]) continue;
-        let j;
-        do {
-            j = Math.floor(Math.random() * (i + 1));
-        } while (columnBypass[j] && j !== i); // avoid swapping into a bypassed slot
-        if (!columnBypass[j]) {
-            [targetPalette[i], targetPalette[j]] = [targetPalette[j], targetPalette[i]];
-        }
+        const j = Math.floor(Math.random() * (i + 1));
+        [targetPalette[i], targetPalette[j]] = [targetPalette[j], targetPalette[i]];
     }
     renderColumnMapping();
     setStatus('Target colors shuffled');
-    autoRecolorImage();
 }
 
 function applyHexToSelected() {
@@ -2912,34 +2885,6 @@ function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity) {
 // Color Picker Mode
 // ============================================
 
-// Update the Pick Colors button text and style after colors have been picked
-function updatePickColorsButtonState(colorsPicked) {
-    const sidebarBtn = document.getElementById('sidebarPickColorsBtn');
-    const overlayBtn = document.getElementById('pickerToggleBtn');
-
-    if (colorsPicked) {
-        if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span>🎯</span> Pick Colors (add or subtract)';
-            sidebarBtn.classList.add('colors-picked');
-        }
-        if (overlayBtn) {
-            const textSpan = overlayBtn.querySelector('.picker-toggle-text');
-            if (textSpan) textSpan.innerHTML = 'Pick Colors<br><span class="picker-toggle-subtitle">(add or subtract)</span>';
-            overlayBtn.classList.add('colors-picked');
-        }
-    } else {
-        if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span>🎯</span> Pick Colors';
-            sidebarBtn.classList.remove('colors-picked');
-        }
-        if (overlayBtn) {
-            const textSpan = overlayBtn.querySelector('.picker-toggle-text');
-            if (textSpan) textSpan.textContent = 'Pick Colors';
-            overlayBtn.classList.remove('colors-picked');
-        }
-    }
-}
-
 function togglePickerMode() {
     pickerMode = !pickerMode;
     const btn = document.getElementById('pickerToggleBtn');
@@ -2986,20 +2931,10 @@ function togglePickerMode() {
         // Hide picker hints
         if (pickerPanHint) pickerPanHint.classList.add('hidden');
         if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
-        // Hide markers — they'll be rebuilt from pickedPositions when picker is re-engaged
-        document.querySelectorAll('.picker-marker').forEach(m => m.remove());
-
-        // Hide the overlay sub-elements (swatch list, apply, clear) when picker is deactivated
-        // They'll come back when the picker is re-engaged
-        document.getElementById('pickerSwatchesList').classList.add('hidden');
-        document.getElementById('pickerApplyBtn').classList.add('hidden');
-        document.getElementById('pickerClearBtn').classList.add('hidden');
+        // Don't clear markers - keep them visible
     }
 
-    // Only update the overlay list if picker is active (otherwise we just hid everything above)
-    if (pickerMode) {
-        updatePickerOverlay();
-    }
+    updatePickerOverlay();
 }
 
 function clearPickerSelections() {
@@ -3333,10 +3268,11 @@ function applyPickedAsOriginal() {
     // Update data attribute for responsive styling
     document.getElementById('columnMappingContainer').setAttribute('data-target-count', targetCount);
 
-    // Remove markers — data is preserved in pickedPositions/pickedColors arrays
-    // Markers will reappear when the picker is re-engaged
+    // Keep markers on image - keep picked positions and keep marker mode active
+    // Force-remove all existing markers first (regardless of flag), then recreate
     document.querySelectorAll('.picker-marker').forEach(m => m.remove());
-    shouldKeepPickedMarkers = false;
+    shouldKeepPickedMarkers = true;
+    pickedPositions.forEach((_, i) => createMarker(i));
 
     // Turn off picker mode UI completely but keep markers visible
     pickerMode = false;
@@ -3360,9 +3296,6 @@ function applyPickedAsOriginal() {
     // Collapse the picker instructions in the sidebar (colors have been picked)
     const pickerInstructions = document.getElementById('pickerInstructions');
     if (pickerInstructions) pickerInstructions.classList.add('hidden');
-
-    // Update Pick Colors button to reflect that colors have been picked
-    updatePickColorsButtonState(true);
 
     // Progressive UI: show Palette Mapping panel and Target Selector button
     document.getElementById('paletteMappingPanel').classList.remove('hidden');
@@ -3389,10 +3322,6 @@ function activateTargetSelection() {
     // Show Target Choice panel
     document.getElementById('targetChoicePanel').classList.remove('hidden');
 
-    // Collapse the Origin section to save vertical space
-    const originCollapsible = document.getElementById('originCollapsible');
-    if (originCollapsible) originCollapsible.removeAttribute('open');
-
     // Hide early import from Color Analysis (full config section is now visible below)
     const earlyImport = document.getElementById('earlyImportSection');
     if (earlyImport) earlyImport.classList.add('hidden');
@@ -3404,10 +3333,6 @@ function activateTargetSelection() {
     // Show tool legend below image preview
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.remove('hidden');
-
-    // Show quick harmony bar below image preview
-    const quickHarmonyBar = document.getElementById('quickHarmonyBar');
-    if (quickHarmonyBar) quickHarmonyBar.classList.remove('hidden');
 
     // Fill blank targets with origin colors as starting point (so user has something to work with)
     for (let colIdx = 0; colIdx < targetCount; colIdx++) {
@@ -3448,20 +3373,9 @@ function revealFullUI() {
     // Hide the Target Selector button (no longer needed)
     document.getElementById('targetSelectorBtn').classList.add('hidden');
 
-    // Keep Origin section expanded when loading a config (user needs to see the mapping)
-    const originCollapsible = document.getElementById('originCollapsible');
-    if (originCollapsible) originCollapsible.setAttribute('open', '');
-
     // Hide early import from Color Analysis (full config section is now visible below)
     const earlyImport = document.getElementById('earlyImportSection');
     if (earlyImport) earlyImport.classList.add('hidden');
-
-    // Collapse the picker instructions (colors have already been picked or loaded)
-    const pickerInstructions = document.getElementById('pickerInstructions');
-    if (pickerInstructions) pickerInstructions.classList.add('hidden');
-
-    // Update Pick Colors button to reflect that colors have been picked
-    updatePickColorsButtonState(true);
 
     // Show shuffle row and live preview toggle
     document.getElementById('shuffleBtn').classList.remove('hidden');
@@ -3470,10 +3384,6 @@ function revealFullUI() {
     // Show tool legend below image preview
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.remove('hidden');
-
-    // Show quick harmony bar below image preview
-    const quickHarmonyBar = document.getElementById('quickHarmonyBar');
-    if (quickHarmonyBar) quickHarmonyBar.classList.remove('hidden');
 
     // Un-gray the recolored strip
     document.getElementById('recoloredStrip').classList.remove('grayed-out');
@@ -4234,464 +4144,6 @@ function randomizeHarmony() {
     autoRecolorImage();
 }
 
-// ============================================
-// Harmony Mode Toggle (Lock a Harmony / Lock a Color)
-// ============================================
-
-function setHarmonyMode(mode) {
-    harmonyMode = mode;
-    const isColor = mode === 'color';
-
-    // Sidebar toggle
-    document.getElementById('harmonyModeSwitch').classList.toggle('color-mode', isColor);
-    document.getElementById('harmonyModeHarmonyLabel').classList.toggle('active', !isColor);
-    document.getElementById('harmonyModeColorLabel').classList.toggle('active', isColor);
-    document.getElementById('harmonyPanelHarmony').classList.toggle('hidden', isColor);
-    document.getElementById('harmonyPanelColor').classList.toggle('hidden', !isColor);
-
-    // Quick bar toggle
-    const qSwitch = document.getElementById('quickModeSwitch');
-    const qHLabel = document.getElementById('quickModeHarmonyLabel');
-    const qCLabel = document.getElementById('quickModeColorLabel');
-    const qHControls = document.getElementById('quickHarmonyControls');
-    const qCControls = document.getElementById('quickColorControls');
-    if (qSwitch) qSwitch.classList.toggle('color-mode', isColor);
-    if (qHLabel) qHLabel.classList.toggle('active', !isColor);
-    if (qCLabel) qCLabel.classList.toggle('active', isColor);
-    if (qHControls) qHControls.classList.toggle('hidden', isColor);
-    if (qCControls) qCControls.classList.toggle('hidden', !isColor);
-
-    // Hide result labels when switching
-    const resultLabel = document.getElementById('lockColorResultLabel');
-    if (resultLabel) resultLabel.classList.add('hidden');
-    const quickResult = document.getElementById('quickHarmonyResult');
-    if (quickResult) quickResult.classList.add('hidden');
-
-    // Populate the lock-a-color dropdowns when switching to color mode
-    if (isColor) populateLockColorDropdowns();
-}
-
-function toggleHarmonyMode() {
-    setHarmonyMode(harmonyMode === 'harmony' ? 'color' : 'harmony');
-}
-
-// Sync all harmony type selects (sidebar + quick bar)
-function syncHarmonySelects(value) {
-    const sidebar = document.getElementById('harmonyType');
-    const quick = document.getElementById('quickHarmonyType');
-    if (sidebar) sidebar.value = value;
-    if (quick) quick.value = value;
-    updateHarmonyWheel();
-}
-
-// Quick bar randomize (Lock a Harmony mode)
-function quickRandomizeHarmony() {
-    const quickSelect = document.getElementById('quickHarmonyType');
-    if (quickSelect) syncHarmonySelects(quickSelect.value);
-    randomizeHarmony();
-}
-
-// Populate the "Lock a Color" swatch pickers with current target colors
-function populateLockColorDropdowns() {
-    const sidebarPicker = document.getElementById('lockColorSwatchPicker');
-    const quickWrapper = document.getElementById('quickLockColorSelectWrapper');
-
-    // Separate unlocked and locked/bypassed targets
-    const unlocked = [];
-    const lockedTargets = [];
-    for (let i = 0; i < targetCount; i++) {
-        if (!targetPalette[i]) continue;
-        if (columnBypass[i]) {
-            lockedTargets.push(i);
-        } else {
-            unlocked.push(i);
-        }
-    }
-
-    // Gather locked/bank origin colors (from the color bank — not assigned to any target column)
-    const bankOrigins = [];
-    for (let i = 0; i < originToColumn.length; i++) {
-        if ((originToColumn[i] === 'locked' || originToColumn[i] === 'bank') && originalPalette[i]) {
-            bankOrigins.push(i);
-        }
-    }
-
-    // Combine bypassed targets + bank origins into the "locked" section
-    // Use string keys for bank origins: 'origin_5', numeric for target columns
-    const allSelectable = [...unlocked.map(i => i), ...lockedTargets.map(i => i), ...bankOrigins.map(i => 'origin_' + i)];
-
-    // Default selection to first selectable if current selection is invalid
-    if (!allSelectable.includes(lockColorSelectedIdx) && allSelectable.length > 0) {
-        lockColorSelectedIdx = allSelectable[0];
-    }
-
-    // Helper: get color for any selectable index (target column or bank origin)
-    function getSelectableColor(selIdx) {
-        if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
-            const oi = parseInt(selIdx.replace('origin_', ''));
-            return originalPalette[oi] ? rgbToHex(...originalPalette[oi]) : '#888888';
-        } else {
-            // Target column - for bypassed, show the original color mapped to that column
-            if (columnBypass[selIdx]) {
-                for (let j = 0; j < originToColumn.length; j++) {
-                    if (originToColumn[j] === selIdx && originalPalette[j]) {
-                        return rgbToHex(...originalPalette[j]);
-                    }
-                }
-            }
-            return targetPalette[selIdx] ? rgbToHex(...targetPalette[selIdx]) : '#888888';
-        }
-    }
-
-    // Helper: get label for any selectable index
-    function getSelectableLabel(selIdx, short = false) {
-        if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
-            const oi = parseInt(selIdx.replace('origin_', ''));
-            return short ? ('O' + (oi + 1)) : ('Bank Color ' + (oi + 1));
-        }
-        return getTargetCategoryLabel(selIdx, short);
-    }
-
-    // Helper: check if a selectable index is a locked item (bypassed target or bank origin)
-    function isLockedItem(selIdx) {
-        if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) return true;
-        return lockedTargets.includes(selIdx);
-    }
-
-    // Helper: update the quick bar 🔒 button to show the selected locked color's swatch
-    function updateQuickLockedBtnAppearance(selIdx) {
-        if (!quickWrapper) return;
-        const addBtn = quickWrapper.parentElement?.querySelector('.quick-locked-add-btn');
-        if (!addBtn) return;
-
-        if (isLockedItem(selIdx)) {
-            // A locked item is selected — show its color swatch
-            const color = getSelectableColor(selIdx);
-            addBtn.innerHTML = '';
-            addBtn.style.background = color;
-            addBtn.style.borderStyle = 'solid';
-            addBtn.style.borderColor = 'var(--accent)';
-            addBtn.classList.add('has-selection');
-        } else {
-            // An unlocked target is selected — revert to 🔒 placeholder
-            addBtn.innerHTML = '🔒';
-            addBtn.style.background = '';
-            addBtn.style.borderStyle = 'dashed';
-            addBtn.style.borderColor = '';
-            addBtn.classList.remove('has-selection');
-        }
-    }
-
-    // Helper to sync selection across both pickers
-    function syncSelection(idx) {
-        lockColorSelectedIdx = idx;
-        const idxStr = String(idx);
-        if (sidebarPicker) {
-            sidebarPicker.querySelectorAll('.lock-color-option, .lock-color-locked-chip').forEach(el => {
-                el.classList.toggle('selected', el.dataset.idx === idxStr);
-            });
-        }
-        if (quickWrapper) {
-            quickWrapper.querySelectorAll('.quick-lock-color-chip').forEach(el => {
-                el.classList.toggle('selected', el.dataset.idx === idxStr);
-            });
-            // Also update inside the locked dropdown
-            const lockedDropdown = quickWrapper.parentElement?.querySelector('.quick-locked-dropdown');
-            if (lockedDropdown) {
-                lockedDropdown.querySelectorAll('.lock-color-option').forEach(el => {
-                    el.classList.toggle('selected', el.dataset.idx === idxStr);
-                });
-            }
-            // Update the locked button appearance
-            updateQuickLockedBtnAppearance(idx);
-        }
-    }
-
-    // Combined "locked" items for the locked section: bypassed targets + bank origins
-    const lockedItems = [
-        ...lockedTargets.map(i => ({ selIdx: i, type: 'target' })),
-        ...bankOrigins.map(i => ({ selIdx: 'origin_' + i, type: 'bank' }))
-    ];
-
-    // =============================================
-    // SIDEBAR: list-style swatch picker
-    // =============================================
-    if (sidebarPicker) {
-        sidebarPicker.innerHTML = '';
-
-        // --- Unlocked targets: individual rows with swatch + label + hex ---
-        unlocked.forEach(i => {
-            const hex = rgbToHex(...targetPalette[i]);
-            const label = getTargetCategoryLabel(i);
-
-            const option = document.createElement('div');
-            option.className = 'lock-color-option' + (i === lockColorSelectedIdx ? ' selected' : '');
-            option.dataset.idx = String(i);
-            option.onclick = () => syncSelection(i);
-
-            const swatch = document.createElement('div');
-            swatch.className = 'lock-color-swatch';
-            swatch.style.background = hex;
-
-            const info = document.createElement('div');
-            info.className = 'lock-color-info';
-            info.innerHTML = `${label}<br>${hex}`;
-
-            option.appendChild(swatch);
-            option.appendChild(info);
-            sidebarPicker.appendChild(option);
-        });
-
-        // --- Locked/bypassed targets + bank origins: compact horizontal row ---
-        if (lockedItems.length > 0) {
-            const lockedSection = document.createElement('div');
-            lockedSection.className = 'lock-color-locked-section';
-
-            const lockedLbl = document.createElement('div');
-            lockedLbl.className = 'lock-color-locked-label';
-            lockedLbl.textContent = '🔒 Locked';
-            lockedSection.appendChild(lockedLbl);
-
-            const lockedRow = document.createElement('div');
-            lockedRow.className = 'lock-color-locked-row';
-
-            lockedItems.forEach(item => {
-                const selIdx = item.selIdx;
-                const displayColor = getSelectableColor(selIdx);
-                const shortLabel = getSelectableLabel(selIdx, true);
-                const fullLabel = getSelectableLabel(selIdx, false);
-
-                const chip = document.createElement('div');
-                chip.className = 'lock-color-locked-chip' + (selIdx === lockColorSelectedIdx ? ' selected' : '');
-                chip.dataset.idx = String(selIdx);
-                chip.title = fullLabel + ' — ' + displayColor + ' (locked)';
-                chip.onclick = () => syncSelection(selIdx);
-
-                const chipSwatch = document.createElement('div');
-                chipSwatch.className = 'lock-color-locked-chip-swatch';
-                chipSwatch.style.background = displayColor;
-
-                const chipLabel = document.createElement('span');
-                chipLabel.className = 'lock-color-locked-chip-label';
-                chipLabel.textContent = shortLabel;
-
-                chip.appendChild(chipSwatch);
-                chip.appendChild(chipLabel);
-                lockedRow.appendChild(chip);
-            });
-
-            lockedSection.appendChild(lockedRow);
-            sidebarPicker.appendChild(lockedSection);
-        }
-    }
-
-    // =============================================
-    // QUICK BAR: compact chips + locked dropdown
-    // =============================================
-    if (quickWrapper) {
-        quickWrapper.innerHTML = '';
-
-        // --- Unlocked targets: live-updating color chips ---
-        unlocked.forEach(i => {
-            const hex = rgbToHex(...targetPalette[i]);
-            const label = getTargetCategoryLabel(i);
-
-            const chip = document.createElement('div');
-            chip.className = 'quick-lock-color-chip' + (i === lockColorSelectedIdx ? ' selected' : '');
-            chip.style.background = hex;
-            chip.dataset.idx = String(i);
-            chip.title = label + ' — ' + hex;
-            chip.onclick = () => syncSelection(i);
-            quickWrapper.appendChild(chip);
-        });
-
-        // --- Locked targets + bank origins: "🔒" dropdown button (like Add Color bank) ---
-        if (lockedItems.length > 0) {
-            // Remove any previous locked dropdown from parent
-            const existingDropdownWrapper = quickWrapper.parentElement?.querySelector('.quick-locked-btn-wrapper');
-            if (existingDropdownWrapper) existingDropdownWrapper.remove();
-
-            const btnWrapper = document.createElement('div');
-            btnWrapper.className = 'quick-locked-btn-wrapper';
-
-            const addBtn = document.createElement('button');
-            addBtn.className = 'quick-locked-add-btn';
-            addBtn.innerHTML = '🔒';
-            addBtn.title = 'Select a locked/bank color to base harmony on';
-
-            const dropdown = document.createElement('div');
-            dropdown.className = 'quick-locked-dropdown';
-
-            lockedItems.forEach(item => {
-                const selIdx = item.selIdx;
-                const displayColor = getSelectableColor(selIdx);
-                const label = getSelectableLabel(selIdx, false);
-
-                const option = document.createElement('div');
-                option.className = 'lock-color-option' + (selIdx === lockColorSelectedIdx ? ' selected' : '');
-                option.dataset.idx = String(selIdx);
-                option.onclick = (e) => {
-                    e.stopPropagation();
-                    syncSelection(selIdx);
-                    dropdown.classList.remove('visible');
-                };
-
-                const swatch = document.createElement('div');
-                swatch.className = 'lock-color-swatch';
-                swatch.style.background = displayColor;
-
-                const info = document.createElement('div');
-                info.className = 'lock-color-info';
-                info.innerHTML = `${label}<br>${displayColor}`;
-
-                option.appendChild(swatch);
-                option.appendChild(info);
-                dropdown.appendChild(option);
-            });
-
-            addBtn.onclick = (e) => {
-                e.stopPropagation();
-                document.querySelectorAll('.quick-locked-dropdown.visible').forEach(d => d.classList.remove('visible'));
-                dropdown.classList.toggle('visible');
-            };
-
-            // Close on outside click
-            document.addEventListener('click', (e) => {
-                if (!btnWrapper.contains(e.target)) {
-                    dropdown.classList.remove('visible');
-                }
-            }, { once: false });
-
-            btnWrapper.appendChild(addBtn);
-            btnWrapper.appendChild(dropdown);
-
-            // Insert after the quickWrapper's parent controls div
-            quickWrapper.after(btnWrapper);
-
-            // If a locked item is currently selected, show its swatch on the button
-            if (isLockedItem(lockColorSelectedIdx)) {
-                const color = getSelectableColor(lockColorSelectedIdx);
-                addBtn.innerHTML = '';
-                addBtn.style.background = color;
-                addBtn.style.borderStyle = 'solid';
-                addBtn.style.borderColor = 'var(--accent)';
-                addBtn.classList.add('has-selection');
-            }
-        } else {
-            // No locked items — remove any leftover dropdown
-            const existingDropdownWrapper = quickWrapper.parentElement?.querySelector('.quick-locked-btn-wrapper');
-            if (existingDropdownWrapper) existingDropdownWrapper.remove();
-        }
-    }
-}
-
-// "Lock a Color" randomize: lock chosen target/bank color, generate compatible harmony around it
-function randomizeLockColor() {
-    if (targetPalette.length === 0) {
-        setStatus('Load an image first');
-        return;
-    }
-
-    const selIdx = lockColorSelectedIdx;
-
-    // Resolve the locked color: could be a target column index or a bank origin string
-    let lockedColor;
-    let lockedLabel;
-    let lockedTargetIdx = null; // Only set if the locked color IS a target column
-
-    if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
-        const oi = parseInt(selIdx.replace('origin_', ''));
-        lockedColor = originalPalette[oi];
-        lockedLabel = 'Bank Color ' + (oi + 1);
-    } else {
-        lockedTargetIdx = selIdx;
-        lockedColor = targetPalette[selIdx];
-        lockedLabel = getTargetCategoryLabel(selIdx);
-    }
-
-    if (!lockedColor) {
-        setStatus('Selected color not found');
-        return;
-    }
-
-    const [lockedH, lockedS, lockedL] = rgbToHsl(...lockedColor);
-
-    // Pick a random harmony type
-    const harmonyTypes = ['complementary', 'analogous', 'triadic', 'split', 'tetradic'];
-    const chosenHarmony = harmonyTypes[Math.floor(Math.random() * harmonyTypes.length)];
-
-    // Get the distinct hue offsets for this harmony type (relative to the anchor hue)
-    let harmonyOffsets;
-    switch (chosenHarmony) {
-        case 'complementary':
-            harmonyOffsets = [0, 180];
-            break;
-        case 'analogous':
-            harmonyOffsets = [0, -30, 30, -60, 60];
-            break;
-        case 'triadic':
-            harmonyOffsets = [0, 120, 240];
-            break;
-        case 'split':
-            harmonyOffsets = [0, 150, 210];
-            break;
-        case 'tetradic':
-            harmonyOffsets = [0, 90, 180, 270];
-            break;
-    }
-
-    // Collect the target slot indices that will be changed (not bypassed, not the locked target)
-    const changeable = [];
-    for (let i = 0; i < targetPalette.length; i++) {
-        if (!targetPalette[i]) continue;
-        if (columnBypass[i]) continue;
-        if (i === lockedTargetIdx) continue;
-        changeable.push(i);
-    }
-
-    // Assign each changeable slot a random harmony offset
-    // If the locked color IS a target, it implicitly occupies offset 0.
-    // For bank origins, offset 0 is the bank color's hue (not on the target palette).
-    // Either way, distribute the OTHER offsets to changeable slots.
-    // Remove offset 0 from the pool when the locked color is a target (it's already placed).
-    // Keep offset 0 in the pool when it's a bank origin (a target can share the anchor hue).
-    const availableOffsets = (lockedTargetIdx !== null)
-        ? harmonyOffsets.filter(o => o !== 0)   // remove anchor offset; the locked target holds it
-        : [...harmonyOffsets];                   // bank origin: all offsets available for targets
-
-    changeable.forEach(i => {
-        // Pick a random offset from the harmony, add slight variation for visual interest
-        const baseOffset = availableOffsets[Math.floor(Math.random() * availableOffsets.length)];
-        const jitter = (Math.random() - 0.5) * 10; // ±5° hue jitter for natural variation
-        const newHue = (lockedH + baseOffset + jitter + 360) % 360;
-        const sat = 40 + Math.random() * 45;
-        const lit = 30 + Math.random() * 35;
-        targetPalette[i] = hslToRgb(newHue, sat, lit);
-    });
-
-    renderColumnMapping();
-    updateHarmonyWheel();
-    autoRecolorImage();
-
-    const harmonyLabel = chosenHarmony.charAt(0).toUpperCase() + chosenHarmony.slice(1);
-    const statusMsg = harmonyLabel + ' harmony around ' + lockedLabel;
-    setStatus(statusMsg);
-
-    // Show the result label in sidebar
-    const resultLabel = document.getElementById('lockColorResultLabel');
-    if (resultLabel) {
-        resultLabel.textContent = '↳ ' + harmonyLabel;
-        resultLabel.classList.remove('hidden');
-    }
-
-    // Show in quick bar
-    const quickResult = document.getElementById('quickHarmonyResult');
-    if (quickResult) {
-        quickResult.textContent = '↳ ' + harmonyLabel;
-        quickResult.classList.remove('hidden');
-    }
-}
-
 let harmonyDragging = null;
 
 function updateHarmonyWheel() {
@@ -4750,66 +4202,17 @@ function updateHarmonyWheel() {
         });
     }
     
-    // If a bank origin is selected as the lock color, draw its reference marker on the wheel
-    if (harmonyMode === 'color' && typeof lockColorSelectedIdx === 'string' && lockColorSelectedIdx.startsWith('origin_')) {
-        const oi = parseInt(lockColorSelectedIdx.replace('origin_', ''));
-        const bankColor = originalPalette[oi];
-        if (bankColor) {
-            const [bh] = rgbToHsl(...bankColor);
-            const markerDistance = (outerRadius + innerRadius) / 2;
-            const angle = (bh - 90) * Math.PI / 180;
-
-            // Draw a reference line (dashed style)
-            ctx2.save();
-            ctx2.setLineDash([3, 3]);
-            ctx2.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx2.lineWidth = 1.5;
-            ctx2.beginPath();
-            ctx2.moveTo(centerX, centerY);
-            ctx2.lineTo(
-                centerX + markerDistance * Math.cos(angle),
-                centerY + markerDistance * Math.sin(angle)
-            );
-            ctx2.stroke();
-            ctx2.restore();
-
-            // Draw the bank color marker dot
-            const dotX = centerX + markerDistance * Math.cos(angle);
-            const dotY = centerY + markerDistance * Math.sin(angle);
-            ctx2.beginPath();
-            ctx2.arc(dotX, dotY, 6, 0, Math.PI * 2);
-            ctx2.fillStyle = rgbToHex(...bankColor);
-            ctx2.fill();
-            ctx2.strokeStyle = '#fff';
-            ctx2.lineWidth = 2;
-            ctx2.stroke();
-
-            // Draw lock icon indicator (small circle with outline)
-            ctx2.beginPath();
-            ctx2.arc(dotX, dotY, 3, 0, Math.PI * 2);
-            ctx2.fillStyle = '#fff';
-            ctx2.fill();
-        }
-    }
-
-    // Draw selected color in center — show locked bank color if that's the selection
-    let centerColor = null;
-    if (harmonyMode === 'color' && typeof lockColorSelectedIdx === 'string' && lockColorSelectedIdx.startsWith('origin_')) {
-        const oi = parseInt(lockColorSelectedIdx.replace('origin_', ''));
-        if (originalPalette[oi]) centerColor = originalPalette[oi];
-    } else if (targetPalette.length > 0 && targetPalette[selectedSlotIndex] !== null) {
-        centerColor = targetPalette[selectedSlotIndex];
-    }
-    if (centerColor) {
+    // Draw selected color in center
+    if (targetPalette.length > 0 && targetPalette[selectedSlotIndex] !== null) {
         ctx2.beginPath();
         ctx2.arc(centerX, centerY, innerRadius - 8, 0, Math.PI * 2);
-        ctx2.fillStyle = rgbToHex(...centerColor);
+        ctx2.fillStyle = rgbToHex(...targetPalette[selectedSlotIndex]);
         ctx2.fill();
         ctx2.strokeStyle = '#fff';
         ctx2.lineWidth = 2;
         ctx2.stroke();
     }
-
+    
     // Create/update draggable dots for each target color
     updateHarmonyDots();
 }
@@ -5226,13 +4629,8 @@ function saveCurrentConfig() {
         targetPalette: targetPalette.map(c => c ? [...c] : [128, 128, 128]),
         colorPercentages: [...colorPercentages],
         originToColumn: [...originToColumn],
-        columnBypass: {...columnBypass},
         algorithm: selectedAlgorithm,
-        luminosity: parseInt(document.getElementById('luminositySlider').value),
-        // Picked color coordinates for backfilling when same image is loaded
-        pickedColors: pickedColors.map(c => [...c]),
-        pickedPositions: pickedPositions.map(p => ({ x: p.x, y: p.y, color: [...p.color] })),
-        pickedCategories: [...pickedCategories]
+        luminosity: parseInt(document.getElementById('luminositySlider').value)
     };
 
     savedConfigs.push(config);
@@ -5253,24 +4651,9 @@ function loadConfig(configId) {
     targetPalette = config.targetPalette.map(c => [...c]);
     colorPercentages = [...config.colorPercentages];
     originToColumn = [...config.originToColumn];
-    columnBypass = config.columnBypass ? {...config.columnBypass} : {};
     selectedAlgorithm = config.algorithm || 'simple';
     document.getElementById('luminositySlider').value = config.luminosity || 0;
     document.getElementById('luminosityValue').textContent = config.luminosity || 0;
-
-    // Restore picked color selections if saved (backfill the picker)
-    if (config.pickedColors && config.pickedColors.length > 0) {
-        pickedColors = config.pickedColors.map(c => [...c]);
-        pickedPositions = config.pickedPositions
-            ? config.pickedPositions.map(p => ({ x: p.x, y: p.y, color: [...p.color] }))
-            : config.pickedColors.map(c => ({ x: 0, y: 0, color: [...c] }));
-        pickedCategories = config.pickedCategories ? [...config.pickedCategories] : config.pickedColors.map(() => 0);
-
-        // Remove any existing markers — data is preserved in arrays
-        // Markers will reappear when the picker is re-engaged
-        document.querySelectorAll('.picker-marker').forEach(m => m.remove());
-        shouldKeepPickedMarkers = false;
-    }
 
     document.getElementById('originCountDisplay').value = originCount;
     document.getElementById('targetCountDisplay').value = targetCount;

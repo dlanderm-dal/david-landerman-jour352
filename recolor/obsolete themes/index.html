@@ -120,7 +120,7 @@
                     <div class="picker-overlay hidden" id="pickerOverlay">
                         <button class="picker-toggle-btn" id="pickerToggleBtn" onclick="togglePickerMode()">
                             <span>🎯</span>
-                            <span class="picker-toggle-text">Pick Colors</span>
+                            <span>Pick Colors</span>
                         </button>
                         <div class="picker-category-selector hidden" id="pickerCategorySelector">
                             <span class="picker-category-label">Picking for:</span>
@@ -146,36 +146,6 @@
                 </div>
                 <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
 
-                <!-- Quick Harmony Bar (shown when target choice panel is revealed) -->
-                <div class="quick-harmony-bar hidden" id="quickHarmonyBar">
-                    <div class="quick-harmony-bar-row">
-                        <div class="quick-harmony-mode-toggle">
-                            <span class="quick-harmony-mode-label active" id="quickModeHarmonyLabel" onclick="setHarmonyMode('harmony')">Harmony</span>
-                            <div class="quick-harmony-mode-switch" id="quickModeSwitch" onclick="toggleHarmonyMode()"></div>
-                            <span class="quick-harmony-mode-label" id="quickModeColorLabel" onclick="setHarmonyMode('color')">Color</span>
-                        </div>
-                        <!-- Lock a Harmony controls -->
-                        <div class="quick-harmony-controls" id="quickHarmonyControls">
-                            <select class="quick-harmony-select" id="quickHarmonyType" onchange="syncHarmonySelects(this.value)">
-                                <option value="complementary">Complementary</option>
-                                <option value="analogous">Analogous</option>
-                                <option value="triadic">Triadic</option>
-                                <option value="split">Split-Complementary</option>
-                                <option value="tetradic">Tetradic (Square)</option>
-                            </select>
-                            <button class="btn btn-small quick-harmony-btn" onclick="quickRandomizeHarmony()" title="Randomize Harmony">🎲 Randomize</button>
-                        </div>
-                        <!-- Lock a Color controls -->
-                        <div class="quick-harmony-controls hidden" id="quickColorControls">
-                            <div class="quick-lock-color-select-wrapper" id="quickLockColorSelectWrapper">
-                                <!-- Populated dynamically with swatch-style options -->
-                            </div>
-                            <button class="btn btn-small quick-harmony-btn" onclick="randomizeLockColor()" title="Randomize around locked color">🎲 Randomize</button>
-                        </div>
-                    </div>
-                    <div class="quick-harmony-result hidden" id="quickHarmonyResult"></div>
-                </div>
-
                 <!-- Tool Legend (shown when target choice appears) -->
                 <div class="tool-legend-panel hidden" id="toolLegendPanel">
                     <div class="tool-legend-title">Tool Reference</div>
@@ -191,14 +161,6 @@
                         <div class="tool-legend-item">
                             <span class="tool-legend-emoji">↩</span>
                             <span class="tool-legend-desc"><strong>Revert</strong> — Resets the target color back to the original extracted color</span>
-                        </div>
-                        <div class="tool-legend-item">
-                            <span class="tool-legend-emoji">🔀</span>
-                            <span class="tool-legend-desc"><strong>Shuffle</strong> — Randomizes the order of the target swatches</span>
-                        </div>
-                        <div class="tool-legend-item">
-                            <span class="tool-legend-emoji">⟲</span>
-                            <span class="tool-legend-desc"><strong>Reset Zoom</strong> — Resets the zoom level and pan position of the image viewer</span>
                         </div>
                     </div>
                 </div>
@@ -274,23 +236,22 @@
                 <div class="panel hidden" id="paletteMappingPanel">
                     <div class="panel-title">Palette Mapping</div>
 
+                    <!-- Origin label (no +/- counter) -->
+                    <div class="palette-row">
+                        <span class="palette-row-label">Origin</span>
+                    </div>
+
                     <!-- Column-based mapping area -->
                     <div class="column-mapping-container" id="columnMappingContainer">
-                        <!-- Collapsible Origin section -->
-                        <details class="target-tool-section origin-collapsible" id="originCollapsible" open>
-                            <summary class="target-tool-summary">🎨 Origin</summary>
-                            <div class="target-tool-content origin-collapsible-content">
-                                <!-- Overflow bank for locked/extra origins -->
-                                <div class="origin-overflow-bank" id="originOverflowBank">
-                                    <div class="overflow-bank-title">🔒 Extra Colors (Locked - No Change)</div>
-                                    <div class="overflow-origins-grid" id="overflowOriginsGrid"></div>
-                                </div>
-                                <div class="mapping-columns" id="mappingColumns">
-                                    <!-- Columns will be rendered here -->
-                                </div>
-                            </div>
-                        </details>
-                        <!-- Targets row (always visible, outside collapsible) -->
+                        <!-- Overflow bank for locked/extra origins -->
+                        <div class="origin-overflow-bank" id="originOverflowBank">
+                            <div class="overflow-bank-title">🔒 Extra Colors (Locked - No Change)</div>
+                            <div class="overflow-origins-grid" id="overflowOriginsGrid"></div>
+                        </div>
+                        <div class="mapping-columns" id="mappingColumns">
+                            <!-- Columns will be rendered here -->
+                        </div>
+                        <!-- Targets row (aligned horizontally) -->
                         <div class="mapping-targets-row" id="mappingTargetsRow">
                             <!-- Target swatches will be rendered here -->
                         </div>
@@ -401,45 +362,20 @@
                         <summary class="target-tool-summary">🎨 Color Harmony</summary>
                         <div class="target-tool-content">
                             <div class="harmony-section">
-                                <!-- Mode toggle: Lock a Harmony / Lock a Color -->
-                                <div class="harmony-mode-toggle">
-                                    <span class="harmony-mode-label active" id="harmonyModeHarmonyLabel" onclick="setHarmonyMode('harmony')">Lock a Harmony</span>
-                                    <div class="harmony-mode-switch" id="harmonyModeSwitch" onclick="toggleHarmonyMode()"></div>
-                                    <span class="harmony-mode-label" id="harmonyModeColorLabel" onclick="setHarmonyMode('color')">Lock a Color</span>
+                                <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
+                                    Based on selected target color
                                 </div>
-
-                                <!-- Lock a Harmony panel (default) -->
-                                <div class="harmony-mode-panel" id="harmonyPanelHarmony">
-                                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
-                                        All target colors change to match the chosen harmony
-                                    </div>
-                                    <div class="harmony-row">
-                                        <select class="harmony-select" id="harmonyType" onchange="syncHarmonySelects(this.value); updateHarmonyWheel();">
-                                            <option value="complementary">Complementary</option>
-                                            <option value="analogous">Analogous</option>
-                                            <option value="triadic">Triadic</option>
-                                            <option value="split">Split-Complementary</option>
-                                            <option value="tetradic">Tetradic (Square)</option>
-                                        </select>
-                                        <button class="btn" onclick="harmonizePalette()">Harmonize</button>
-                                    </div>
-                                    <button class="btn btn-full btn-randomize-harmony" onclick="randomizeHarmony()">🎲 Randomize Harmony</button>
+                                <div class="harmony-row">
+                                    <select class="harmony-select" id="harmonyType" onchange="updateHarmonyWheel()">
+                                        <option value="complementary">Complementary</option>
+                                        <option value="analogous">Analogous</option>
+                                        <option value="triadic">Triadic</option>
+                                        <option value="split">Split-Complementary</option>
+                                        <option value="tetradic">Tetradic (Square)</option>
+                                    </select>
+                                    <button class="btn" onclick="harmonizePalette()">Harmonize</button>
                                 </div>
-
-                                <!-- Lock a Color panel (hidden by default) -->
-                                <div class="harmony-mode-panel hidden" id="harmonyPanelColor">
-                                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
-                                        Lock one target color and generate compatible colors around it
-                                    </div>
-                                    <div class="lock-color-swatch-picker" id="lockColorSwatchPicker">
-                                        <!-- Populated dynamically with swatch-style color options -->
-                                    </div>
-                                    <button class="btn btn-full btn-randomize-harmony" onclick="randomizeLockColor()">🎲 Randomize Around Locked Color</button>
-                                    <div class="lock-color-result-label hidden" id="lockColorResultLabel">
-                                        <!-- Shows which harmony was selected after randomize -->
-                                    </div>
-                                </div>
-
+                                <button class="btn btn-full btn-randomize-harmony" onclick="randomizeHarmony()">🎲 Randomize Harmony</button>
                                 <div class="harmony-wheel-container">
                                     <canvas id="harmonyWheelCanvas" width="100" height="100"></canvas>
                                 </div>
