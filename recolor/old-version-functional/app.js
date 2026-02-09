@@ -465,9 +465,6 @@ let selectedTheme = '';
 // Algorithm selection: 'simple' or 'rbf'
 let selectedAlgorithm = 'simple';
 
-// Progressive UI stage: 'initial' | 'image-loaded' | 'colors-picked' | 'target-selection' | 'complete'
-let uiStage = 'initial';
-
 // Palette counts
 let originCount = 5;
 let targetCount = 5;
@@ -476,10 +473,11 @@ let targetCount = 5;
 let colorTolerance = 0;
 const DEFAULT_COLOR_TOLERANCE = 0;
 
-// Zoom and pan state (managed by Panzoom)
+// Zoom and pan state
 let zoomLevel = 1;
-let panX = 0, panY = 0;  // kept for compatibility reads, synced from Panzoom
-let panzoomInstance = null;
+let panX = 0, panY = 0;
+let isPanning = false;
+let panStartX = 0, panStartY = 0;
 let draggingMarker = null;
 let altHeld = false;
 let draggedOriginIndex = null;
@@ -550,11 +548,6 @@ document.addEventListener('DOMContentLoaded', function() {
     displayCtx.imageSmoothingEnabled = true;
     displayCtx.imageSmoothingQuality = 'high';
 
-    // Set initial workspace state - centered with no sidebar
-    const workspace = document.getElementById('workspace');
-    workspace.classList.add('centered-initial');
-    uiStage = 'initial';
-
     // Initialize color gradient picker
     initColorGradientPicker();
 
@@ -600,39 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('toleranceSlider').addEventListener('input', function() {
         colorTolerance = parseInt(this.value);
         document.getElementById('toleranceValue').textContent = colorTolerance;
-        // Turn Apply button orange to indicate unapplied change
-        const applyBtn = document.getElementById('toleranceApplyBtn');
-        if (applyBtn) applyBtn.classList.add('tolerance-dirty');
     });
-
-    // Sticky overlay positioning for zoom and picker controls
-    function updateStickyOverlays() {
-        const wrapper = document.getElementById('canvasWrapper');
-        const zoomSlider = document.getElementById('zoomSliderContainer');
-        const pickerOverlay = document.getElementById('pickerOverlay');
-        if (!wrapper) return;
-
-        const wrapperRect = wrapper.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-
-        const visibleTop = Math.max(wrapperRect.top, 0);
-        const visibleBottom = Math.min(wrapperRect.bottom, viewportHeight);
-        const visibleHeight = visibleBottom - visibleTop;
-
-        if (visibleHeight <= 0) return;
-
-        const visibleCenterInWrapper = (visibleTop - wrapperRect.top + visibleBottom - wrapperRect.top) / 2;
-
-        if (zoomSlider) {
-            zoomSlider.style.top = visibleCenterInWrapper + 'px';
-        }
-        if (pickerOverlay) {
-            pickerOverlay.style.top = visibleCenterInWrapper + 'px';
-        }
-    }
-
-    window.addEventListener('scroll', updateStickyOverlays, { passive: true });
-    window.addEventListener('resize', updateStickyOverlays, { passive: true });
 
     // Alt key tracking
     document.addEventListener('keydown', function(e) {
@@ -641,152 +602,85 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('canvasWrapper').classList.add('alt-held');
         }
     });
-
+    
     document.addEventListener('keyup', function(e) {
         if (!e.altKey) {
             altHeld = false;
             document.getElementById('canvasWrapper').classList.remove('alt-held');
         }
     });
-
-    // Ctrl toggle to temporarily hide/show picker overlay & zoom controls (peek underneath)
-    let ctrlOverlaysHidden = false;
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Control' && !e.repeat) {
-            ctrlOverlaysHidden = !ctrlOverlaysHidden;
-            const pickerOverlay = document.getElementById('pickerOverlay');
-            const zoomControls = document.getElementById('zoomControls');
-            const zoomSlider = document.getElementById('zoomSliderContainer');
-
-            if (ctrlOverlaysHidden) {
-                if (pickerOverlay && !pickerOverlay.classList.contains('hidden')) {
-                    pickerOverlay.style.opacity = '0';
-                    pickerOverlay.style.pointerEvents = 'none';
-                }
-                if (zoomControls && !zoomControls.classList.contains('hidden')) {
-                    zoomControls.style.opacity = '0';
-                    zoomControls.style.pointerEvents = 'none';
-                }
-                if (zoomSlider && !zoomSlider.classList.contains('hidden')) {
-                    zoomSlider.style.opacity = '0';
-                    zoomSlider.style.pointerEvents = 'none';
-                }
-            } else {
-                if (pickerOverlay) { pickerOverlay.style.opacity = ''; pickerOverlay.style.pointerEvents = ''; }
-                if (zoomControls) { zoomControls.style.opacity = ''; zoomControls.style.pointerEvents = ''; }
-                if (zoomSlider) { zoomSlider.style.opacity = ''; zoomSlider.style.pointerEvents = ''; }
-            }
-        }
-    });
-
+    
     const canvasInner = document.getElementById('canvasInner');
     const canvasWrapper = document.getElementById('canvasWrapper');
-
-    // Initialize Panzoom on canvasInner — ONLY for panning (translate).
-    // Zoom is handled by us directly via canvas re-render + CSS sizing.
-    // Panzoom scale is always locked at 1.
-    panzoomInstance = Panzoom(canvasInner, {
-        maxScale: 1,
-        minScale: 1,
-        startScale: 1,
-        startX: 0,
-        startY: 0,
-        cursor: 'default',
-        disablePan: true,   // We enable/disable per Alt+drag session
-        disableZoom: true,  // We never use Panzoom zoom
-        noBind: true,
-        pinchAndPan: false,
-    });
-
-    // Ensure clean initial state
-    panzoomInstance.pan(0, 0, { animate: false, force: true });
-
-    // Sync pan position from Panzoom (scale is always 1 — we manage zoom ourselves)
-    function syncFromPanzoom() {
-        const pan = panzoomInstance.getPan();
-        panX = pan.x;
-        panY = pan.y;
-    }
-
-    // Update markers during pan, and clamp pan bounds
-    canvasInner.addEventListener('panzoomchange', function() {
-        syncFromPanzoom();
-        constrainPan();
-        updateMarkers();
-    });
-
+    
     // Canvas click for picker mode
     canvasInner.addEventListener('click', function(e) {
         if (!pickerMode || !originalImageData || draggingMarker !== null) return;
         if (altHeld) return;
         if (e.target.closest('.picker-marker')) return;
-
+        
         const coords = getCanvasCoords(e);
         const x = coords.x;
         const y = coords.y;
-
+        
         if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
-
+        
         const idx = (y * canvas.width + x) * 4;
         const r = originalImageData.data[idx];
         const g = originalImageData.data[idx + 1];
         const b = originalImageData.data[idx + 2];
-
+        
         if (!shouldKeepPickedMarkers) {
             addPickedColor([r, g, b], x, y);
         }
     });
-
-    // Pan functionality — Alt+drag when zoomed
-    let isPanning = false;
+    
+    // Pan functionality
     canvasWrapper.addEventListener('mousedown', function(e) {
-        if (e.target.closest('.picker-marker') || e.target.closest('.zoom-slider-container') ||
+        if (e.target.closest('.picker-marker') || e.target.closest('.zoom-slider-container') || 
             e.target.closest('.zoom-controls') || e.target.closest('.picker-overlay')) return;
         if (zoomLevel <= 1) return;
         if (pickerMode && !altHeld) return;
-        if (!altHeld && pickerMode) return;
-
-        // Enable pan for this drag session
-        panzoomInstance.setOptions({ disablePan: false });
+        
         isPanning = true;
+        panStartX = e.clientX - panX;
+        panStartY = e.clientY - panY;
         canvasWrapper.classList.add('panning');
-        // Trigger Panzoom's pan start
-        panzoomInstance.handleDown(e);
     });
-
+    
     document.addEventListener('mousemove', function(e) {
         if (isPanning) {
-            panzoomInstance.handleMove(e);
+            panX = e.clientX - panStartX;
+            panY = e.clientY - panStartY;
+            constrainPan();
+            updateCanvasTransform();
         }
-
+        
         if (draggingMarker !== null) {
             const coords = getCanvasCoords(e);
             let x = coords.x;
             let y = coords.y;
-
+            
             x = Math.max(0, Math.min(canvas.width - 1, x));
             y = Math.max(0, Math.min(canvas.height - 1, y));
-
+            
             pickedPositions[draggingMarker].x = x;
             pickedPositions[draggingMarker].y = y;
-
+            
             const idx = (y * canvas.width + x) * 4;
             const r = originalImageData.data[idx];
             const g = originalImageData.data[idx + 1];
             const b = originalImageData.data[idx + 2];
             pickedPositions[draggingMarker].color = [r, g, b];
             pickedColors[draggingMarker] = [r, g, b];
-
+            
             updateMarkers();
             updatePickerOverlay();
         }
     });
-
-    document.addEventListener('mouseup', function(e) {
+    
+    document.addEventListener('mouseup', function() {
         if (isPanning) {
-            panzoomInstance.handleUp(e);
-            panzoomInstance.setOptions({ disablePan: true });
             isPanning = false;
             canvasWrapper.classList.remove('panning');
         }
@@ -796,84 +690,31 @@ document.addEventListener('DOMContentLoaded', function() {
             draggingMarker = null;
         }
     });
-
-    // Alt+scroll to zoom — we manage zoom ourselves (canvas re-render),
-    // Panzoom only handles pan (translate).
-    // Zoom-to-cursor: keeps the point under the mouse fixed on screen.
+    
+    // Alt+scroll to zoom at cursor position
     canvasWrapper.addEventListener('wheel', function(e) {
         if (e.altKey) {
             e.preventDefault();
 
-            const wrapper = document.getElementById('canvasWrapper');
+            // Apply zoom
+            const delta = e.deltaY > 0 ? -0.15 : 0.15;
             const oldZoom = zoomLevel;
+            zoomLevel = Math.max(1, Math.min(4, zoomLevel + delta));
 
-            // Calculate new zoom from scroll delta (gentle 7% per tick)
-            const delta = e.deltaY > 0 ? -0.07 : 0.07;
-            let newZoom = Math.max(1, Math.min(4, zoomLevel * (1 + delta)));
-
-            // Snap to exactly 1x if we're very close — avoids partial-zoom limbo
-            if (newZoom < 1.02) newZoom = 1;
-
-            // Ensure wrapper height is locked and layout is in zoomed mode
-            // BEFORE any pan/zoom math (do this once, on first zoom above 1x)
-            if (!wrapper.classList.contains('zoomed') && newZoom > 1) {
-                const rect = wrapper.getBoundingClientRect();
-                wrapper.style.height = rect.height + 'px';
-                wrapper.classList.add('zoomed', 'can-pan');
-            }
-
-            if (newZoom <= 1) {
-                // At 1x — reset pan but DON'T tear down zoomed layout yet.
-                // Layout teardown is deferred so zooming back in is seamless.
-                zoomLevel = 1;
+            // Reset pan when returning to zoom 1
+            if (zoomLevel <= 1) {
                 panX = 0;
                 panY = 0;
-                panzoomInstance.pan(0, 0, { animate: false, force: true });
             } else {
-                // Zoom-to-cursor math:
-                // Mouse position relative to wrapper top-left
-                const wrapperRect = wrapper.getBoundingClientRect();
-                const mouseX = e.clientX - wrapperRect.left;
-                const mouseY = e.clientY - wrapperRect.top;
-
-                // Current pan from Panzoom
-                const currentPan = panzoomInstance.getPan();
-
-                // Keep the content point under the cursor fixed:
-                // newPan = mousePos - (mousePos - oldPan) * (newZoom / oldZoom)
-                const ratio = newZoom / oldZoom;
-                const newPanX = mouseX - (mouseX - currentPan.x) * ratio;
-                const newPanY = mouseY - (mouseY - currentPan.y) * ratio;
-
-                zoomLevel = newZoom;
-                panX = newPanX;
-                panY = newPanY;
-                panzoomInstance.pan(newPanX, newPanY, { animate: false, force: true });
+                // Scale pan to maintain relative position
+                const zoomRatio = zoomLevel / oldZoom;
+                panX *= zoomRatio;
+                panY *= zoomRatio;
             }
 
-            updateDisplayCanvas();
             constrainPan();
-            updateMarkers();
+            updateCanvasTransform(true);
             updateZoomDisplay();
-
-            // Deferred 1x layout cleanup: if we're at 1x, schedule the layout
-            // teardown for after scrolling stops (avoids layout thrashing during
-            // continuous scroll-through-1x).
-            if (zoomLevel <= 1) {
-                if (window._zoomResetTimeout) clearTimeout(window._zoomResetTimeout);
-                window._zoomResetTimeout = setTimeout(() => {
-                    if (zoomLevel <= 1) {
-                        if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
-                        wrapper.style.height = '';
-                        wrapper.classList.remove('zoomed', 'can-pan');
-                        renderAtCurrentZoom();
-                        updateMarkers();
-                    }
-                }, 200);
-            } else {
-                // Cancel any pending 1x cleanup if we zoomed back above 1
-                if (window._zoomResetTimeout) { clearTimeout(window._zoomResetTimeout); window._zoomResetTimeout = null; }
-            }
         }
     }, { passive: false });
 });
@@ -905,29 +746,11 @@ function loadImage(img) {
     document.getElementById('pickerOverlay').classList.remove('hidden');
     document.getElementById('colorStripContainer').classList.remove('hidden');
     document.getElementById('toleranceContainer').classList.remove('hidden');
-
-    // Progressive UI: transition from centered to image-loaded layout
-    const workspace = document.getElementById('workspace');
-    workspace.classList.remove('centered-initial');
-    workspace.classList.add('image-loaded');
-    // Show sidebar and Color Analysis panel
-    document.getElementById('sidebar').classList.remove('hidden');
-    document.getElementById('colorAnalysisPanel').classList.remove('hidden');
-    // Show the Reset/Remove/Download buttons and resize handles
-    document.getElementById('imageButtonGroup').classList.remove('hidden');
-    document.querySelectorAll('.resize-handle').forEach(h => h.classList.remove('hidden'));
-    uiStage = 'image-loaded';
     
-    // Reset Panzoom to zoom=1, pan=0,0
     zoomLevel = 1;
     panX = 0;
     panY = 0;
-    if (panzoomInstance) {
-        panzoomInstance.reset({ animate: false });
-    }
-    const wrapper = document.getElementById('canvasWrapper');
-    wrapper.style.height = '';
-    wrapper.classList.remove('zoomed', 'can-pan');
+    updateCanvasTransform(true);
     updateZoomDisplay();
 
     if (!shouldKeepPickedMarkers) {
@@ -937,7 +760,7 @@ function loadImage(img) {
         pickedPositions.forEach((_, i) => createMarker(i));
     }
     updatePickerOverlay();
-
+    
     let width = img.width;
     let height = img.height;
 
@@ -953,11 +776,6 @@ function loadImage(img) {
     // Auto-size the canvas area to fit the image
     autoSizeCanvasArea();
 
-    // Set aspect-ratio on canvas wrapper so it naturally conforms to image proportions
-    wrapper.style.aspectRatio = `${width} / ${height}`;
-    wrapper.style.height = ''; // Clear any leftover manual height
-    wrapper.style.minHeight = ''; // Let aspect-ratio control height
-
     // Update high-quality display
     updateDisplayCanvas();
 
@@ -972,31 +790,28 @@ function extractPalette() {
         const colors = extractColorsKMeans(originalImageData, 20);
         rawColorDistribution = colors.map(c => ({ color: [...c.color], pct: c.pct })); // Store original
         fullColorDistribution = colors;
-
-        // === OLD AUTO-ASSIGN CODE (commented out - picking is now mandatory) ===
-        // originalPalette = colors.slice(0, originCount).map(c => [...c.color]);
-        // colorPercentages = colors.slice(0, originCount).map(c => c.pct);
-        // targetPalette = originalPalette.map(c => [...c]);
-        //
-        // // Initialize column mapping: each origin maps to its corresponding target column
-        // originToColumn = [];
-        // columnBypass = []; // Reset bypass states
-        // for (let i = 0; i < originCount; i++) {
-        //     if (i < targetCount) {
-        //         originToColumn[i] = i;
-        //     } else {
-        //         originToColumn[i] = 'bank'; // Extra origins go to bank
-        //     }
-        // }
-        // shouldKeepPickedMarkers = false;
-        // renderColumnMapping();
-        // updateHarmonyWheel();
-        // updateGradientFromSelectedColor();
-        // renderThemesSortedByMatch(); // Sort themes by match to extracted palette
-        // === END OLD AUTO-ASSIGN CODE ===
-
-        // Only render the distribution strip (extraction still needed for strip + Add Color dropdown)
+        
+        originalPalette = colors.slice(0, originCount).map(c => [...c.color]);
+        colorPercentages = colors.slice(0, originCount).map(c => c.pct);
+        targetPalette = originalPalette.map(c => [...c]);
+        
+        // Initialize column mapping: each origin maps to its corresponding target column
+        originToColumn = [];
+        columnBypass = []; // Reset bypass states
+        for (let i = 0; i < originCount; i++) {
+            if (i < targetCount) {
+                originToColumn[i] = i;
+            } else {
+                originToColumn[i] = 'bank'; // Extra origins go to bank
+            }
+        }
+        shouldKeepPickedMarkers = false;
+        
         renderColorStrip();
+        renderColumnMapping();
+        updateHarmonyWheel();
+        updateGradientFromSelectedColor();
+        renderThemesSortedByMatch(); // Sort themes by match to extracted palette
         hideLoading();
     }, 50);
 }
@@ -1099,26 +914,23 @@ function mergeColorsWithTolerance(colors, tolerance) {
     // Convert tolerance to LAB distance threshold (tolerance 50 = ~50 LAB units)
     const labThreshold = tolerance;
 
-    // Pre-compute LAB values for all colors
-    const labColors = colors.map(c => RGB2LAB(c.color));
-
     const merged = [];
     const used = new Set();
 
     for (let i = 0; i < colors.length; i++) {
         if (used.has(i)) continue;
 
-        const baseLab = labColors[i];
-        let totalPct = colors[i].pct;
-        // Accumulate weighted LAB sums for perceptually accurate averaging
-        let labSum = [baseLab[0] * colors[i].pct, baseLab[1] * colors[i].pct, baseLab[2] * colors[i].pct];
+        const baseColor = colors[i];
+        const baseLab = RGB2LAB(baseColor.color);
+        let totalPct = baseColor.pct;
+        let colorSum = [...baseColor.color];
         let count = 1;
 
         // Find all similar colors
         for (let j = i + 1; j < colors.length; j++) {
             if (used.has(j)) continue;
 
-            const testLab = labColors[j];
+            const testLab = RGB2LAB(colors[j].color);
             const dist = Math.sqrt(
                 Math.pow(baseLab[0] - testLab[0], 2) +
                 Math.pow(baseLab[1] - testLab[1], 2) +
@@ -1128,26 +940,24 @@ function mergeColorsWithTolerance(colors, tolerance) {
             if (dist <= labThreshold) {
                 used.add(j);
                 totalPct += colors[j].pct;
-                // Weighted sum in LAB space (perceptually uniform)
-                labSum[0] += testLab[0] * colors[j].pct;
-                labSum[1] += testLab[1] * colors[j].pct;
-                labSum[2] += testLab[2] * colors[j].pct;
+                // Weighted average of colors by percentage
+                colorSum[0] += colors[j].color[0] * colors[j].pct;
+                colorSum[1] += colors[j].color[1] * colors[j].pct;
+                colorSum[2] += colors[j].color[2] * colors[j].pct;
                 count++;
             }
         }
 
-        // Calculate weighted average color in LAB space, then convert back to RGB
+        // Calculate weighted average color
         if (count > 1) {
-            const avgLab = [labSum[0] / totalPct, labSum[1] / totalPct, labSum[2] / totalPct];
-            const avgRgb = LAB2RGB(avgLab);
             const avgColor = [
-                Math.round(Math.max(0, Math.min(255, avgRgb[0]))),
-                Math.round(Math.max(0, Math.min(255, avgRgb[1]))),
-                Math.round(Math.max(0, Math.min(255, avgRgb[2])))
+                Math.round((baseColor.color[0] * baseColor.pct + colorSum[0] - baseColor.color[0]) / totalPct),
+                Math.round((baseColor.color[1] * baseColor.pct + colorSum[1] - baseColor.color[1]) / totalPct),
+                Math.round((baseColor.color[2] * baseColor.pct + colorSum[2] - baseColor.color[2]) / totalPct)
             ];
             merged.push({ color: avgColor, pct: totalPct });
         } else {
-            merged.push({ color: [...colors[i].color], pct: totalPct });
+            merged.push({ color: [...baseColor.color], pct: totalPct });
         }
 
         used.add(i);
@@ -1224,10 +1034,6 @@ function reExtractWithTolerance() {
         renderThemesSortedByMatch();
         hideLoading();
 
-        // Remove orange dirty indicator from Apply button
-        const applyBtn = document.getElementById('toleranceApplyBtn');
-        if (applyBtn) applyBtn.classList.remove('tolerance-dirty');
-
         const colorCount = mergedColors.length;
         setStatus(`Re-extracted ${colorCount} colors with tolerance ${colorTolerance}`);
     }, 50);
@@ -1275,11 +1081,6 @@ function renderRecoloredStrip() {
     strip.innerHTML = '';
 
     if (!imageData || targetPalette.length === 0) {
-        return;
-    }
-
-    // Skip if any target is still blank (null)
-    if (targetPalette.some(c => c === null)) {
         return;
     }
 
@@ -1526,40 +1327,19 @@ function renderColumnMapping() {
     }
     
     // Render target swatches in a separate row
-    const isBlankTargets = targetPalette.some(t => t === null);
-    const hideSwatchButtons = (uiStage === 'colors-picked'); // Hide buttons until target selection
-    // Targets are selectable only after the target selector has been engaged
-    const targetsSelectable = (uiStage === 'target-selection' || uiStage === 'complete');
-
     for (let colIdx = 0; colIdx < targetCount; colIdx++) {
         const targetColumn = document.createElement('div');
         targetColumn.className = 'mapping-targets-column';
         targetColumn.dataset.columnIndex = colIdx;
-
+        
         const targetDiv = document.createElement('div');
         targetDiv.className = 'column-target';
-
-        const isBlank = targetPalette[colIdx] === null;
-
+        
         const slot = document.createElement('div');
-        let slotClass = 'color-slot';
-        if (targetsSelectable && colIdx === selectedSlotIndex) slotClass += ' selected';
-        if (isBlank) slotClass += ' blank-target';
-        if (!targetsSelectable) slotClass += ' not-selectable';
-        slot.className = slotClass;
-
-        if (!isBlank) {
-            slot.style.background = rgbToHex(...targetPalette[colIdx]);
-            slot.title = targetsSelectable
-                ? rgbToHex(...targetPalette[colIdx]) + ' (click to select, use picker button below)'
-                : 'Engage Target Selector to modify';
-        } else {
-            slot.style.background = 'transparent';
-            slot.title = targetsSelectable ? 'No target color assigned yet' : 'Engage Target Selector to assign colors';
-        }
-        if (targetsSelectable) {
-            slot.onclick = () => selectSlot(colIdx);
-        }
+        slot.className = 'color-slot' + (colIdx === selectedSlotIndex ? ' selected' : '');
+        slot.style.background = rgbToHex(...targetPalette[colIdx]);
+        slot.title = rgbToHex(...targetPalette[colIdx]) + ' (click to select, use picker button below)';
+        slot.onclick = () => selectSlot(colIdx);
 
         // Delete button on the slot (styled like origin X button)
         const deleteBtn = document.createElement('button');
@@ -1576,11 +1356,11 @@ function renderColumnMapping() {
         colorInput.type = 'color';
         colorInput.className = 'hidden-color-input';
         colorInput.id = 'colorPicker_' + colIdx;
-
+        
         const hexLabel = document.createElement('div');
         hexLabel.className = 'swatch-hex';
-        hexLabel.textContent = isBlank ? '—' : rgbToHex(...targetPalette[colIdx]);
-
+        hexLabel.textContent = rgbToHex(...targetPalette[colIdx]);
+        
         // Calculate percentage sum for this column
         let pctSum = 0;
         for (let i = 0; i < originCount; i++) {
@@ -1588,21 +1368,19 @@ function renderColumnMapping() {
                 pctSum += colorPercentages[i] || 0;
             }
         }
-
+        
         const pctLabel = document.createElement('div');
         pctLabel.className = 'column-percentage';
         pctLabel.textContent = pctSum.toFixed(1) + '%';
-
-        // Buttons - hidden until target selection stage
+        
+        // Buttons
         const btnRow = document.createElement('div');
-        btnRow.className = 'swatch-buttons' + (hideSwatchButtons ? ' target-hidden' : '');
-
+        btnRow.className = 'swatch-buttons';
+        
         const revertBtn = document.createElement('button');
-        if (!isBlank) {
-            const origIdx = colIdx % originalPalette.length;
-            if (colorsMatch(targetPalette[colIdx], originalPalette[origIdx])) {
-                revertBtn.classList.add('is-original');
-            }
+        const origIdx = colIdx % originalPalette.length;
+        if (colorsMatch(targetPalette[colIdx], originalPalette[origIdx])) {
+            revertBtn.classList.add('is-original');
         }
         revertBtn.innerHTML = '↩';
         revertBtn.title = 'Revert to original';
@@ -1610,7 +1388,7 @@ function renderColumnMapping() {
             e.stopPropagation();
             revertSlot(colIdx);
         };
-
+        
         const pickerBtn = document.createElement('button');
         pickerBtn.innerHTML = '🎨';
         pickerBtn.title = 'Open color picker';
@@ -1653,13 +1431,18 @@ function renderColumnMapping() {
         targetsRow.appendChild(targetColumn);
     }
     
-    // Update hex input (skip if target is null/blank)
-    if (targetPalette.length > 0 && targetPalette[selectedSlotIndex] !== null) {
+    // Update hex input
+    if (targetPalette.length > 0) {
         const hex = rgbToHex(...targetPalette[selectedSlotIndex]);
         document.getElementById('hexInput').value = hex;
         document.getElementById('hexPreview').style.background = hex;
     }
     
+    // Update debug display
+    const debugEl = document.getElementById('mappingDebug');
+    if (debugEl) {
+        debugEl.textContent = 'Mapping: ' + JSON.stringify(originToColumn);
+    }
 }
 
 function toggleColumnBypass(colIdx) {
@@ -1783,15 +1566,25 @@ function removeOriginFromMapping(originIndex) {
 }
 
 function colorsMatch(c1, c2) {
-    if (!c1 || !c2) return false;
     return c1[0] === c2[0] && c1[1] === c2[1] && c1[2] === c2[2];
 }
 
 // Get extracted colors not currently in the origin palette
 function getUnusedExtractedColors() {
-    // Return ALL extracted colors (per user spec: Add Color shows all extracted colors, not just unused)
     if (!fullColorDistribution || fullColorDistribution.length === 0) return [];
-    return fullColorDistribution;
+
+    const unused = [];
+    for (const item of fullColorDistribution) {
+        const isUsed = originalPalette.some(op =>
+            Math.abs(op[0] - item.color[0]) < 3 &&
+            Math.abs(op[1] - item.color[1]) < 3 &&
+            Math.abs(op[2] - item.color[2]) < 3
+        );
+        if (!isUsed) {
+            unused.push(item);
+        }
+    }
+    return unused;
 }
 
 // Create the "add swatch" button with dropdown
@@ -1896,8 +1689,8 @@ function createSwatchColorPicker(colIdx) {
     picker.className = 'swatch-color-picker';
     picker.id = `swatchPicker_${colIdx}`;
 
-    // Get current color (use gray if blank)
-    const currentColor = targetPalette[colIdx] || [128, 128, 128];
+    // Get current color
+    const currentColor = targetPalette[colIdx];
     const [h, s, v] = rgbToHsv(...currentColor);
 
     // Initialize state for this picker
@@ -2289,9 +2082,8 @@ function rgbToHsv(r, g, b) {
 
 function updateGradientFromSelectedColor() {
     if (targetPalette.length === 0) return;
-
+    
     const rgb = targetPalette[selectedSlotIndex];
-    if (!rgb) return; // Blank target - skip gradient update
     const [h, s, v] = rgbToHsv(...rgb);
     
     gradientHue = h;
@@ -2322,23 +2114,13 @@ function applyRecolor() {
         setStatus('Load an image first');
         return;
     }
-
-    // Check if any targets are still blank
-    if (targetPalette.some(t => t === null)) {
-        setStatus('Please assign target colors first.');
-        return;
-    }
-
+    
     showLoading();
     setStatus('Applying recolor...');
-
+    
     setTimeout(() => {
         recolorImage();
         hideLoading();
-        // Un-gray the recolored distribution strip
-        document.getElementById('recoloredStrip').classList.remove('grayed-out');
-        // Ensure full UI is revealed
-        revealFullUI();
         setStatus('Recolor applied!');
     }, 50);
 }
@@ -2416,9 +2198,6 @@ function doRecolorSimple() {
             newLab.push(oldLab[i]);
         } else if (columnBypass[col]) {
             newLab.push(oldLab[i]);
-        } else if (targetPalette[col] === null) {
-            // Blank target — treat as no change
-            newLab.push(oldLab[i]);
         } else {
             newLab.push(RGB2LAB(targetPalette[col]));
         }
@@ -2430,8 +2209,7 @@ function doRecolorSimple() {
         newLab[i][2] - old[2]
     ]);
 
-    // Luminosity is now a separate post-processing step (applyLuminosityPostProcess)
-    const luminosity = 0;
+    const luminosity = parseInt(document.getElementById('luminositySlider').value);
 
     // Try WebGL first
     if (initWebGL() && doRecolorSimpleWebGL(width, height, k, oldLab, diffLab, luminosity)) {
@@ -2622,9 +2400,6 @@ function doRecolorRBF() {
             newLab.push(oldLab[i]);
         } else if (columnBypass[col]) {
             newLab.push(oldLab[i]);
-        } else if (targetPalette[col] === null) {
-            // Blank target — treat as no change
-            newLab.push(oldLab[i]);
         } else {
             newLab.push(RGB2LAB(targetPalette[col]));
         }
@@ -2704,8 +2479,7 @@ function doRecolorRBF() {
         ]);
     }
 
-    // Luminosity is now a separate post-processing step (applyLuminosityPostProcess)
-    const luminosity = 0;
+    const luminosity = parseInt(document.getElementById('luminositySlider').value);
 
     // Try WebGL for the per-pixel trilinear interpolation (the slow part)
     if (initWebGL() && doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity)) {
@@ -2891,9 +2665,6 @@ function togglePickerMode() {
     const canvasInner = document.getElementById('canvasInner');
     const canvasWrapper = document.getElementById('canvasWrapper');
     const categorySelector = document.getElementById('pickerCategorySelector');
-    const pickerPanHint = document.getElementById('pickerPanHint');
-    const pickerCtrlHint = document.getElementById('pickerCtrlHint');
-    const sidebarPickBtn = document.getElementById('sidebarPickColorsBtn');
 
     if (pickerMode) {
         // Preserve picked colors - don't clear them when re-entering picker mode
@@ -2901,13 +2672,8 @@ function togglePickerMode() {
         shouldKeepPickedMarkers = false; // Allow markers to be managed normally
 
         btn.classList.add('active');
-        if (sidebarPickBtn) sidebarPickBtn.classList.add('active');
         canvasInner.classList.add('picking-mode');
         canvasWrapper.classList.add('picking-mode');
-
-        // Show picker hints
-        if (pickerPanHint) pickerPanHint.classList.remove('hidden');
-        if (pickerCtrlHint) pickerCtrlHint.classList.remove('hidden');
 
         // Rebuild markers for any existing picked colors
         document.querySelectorAll('.picker-marker').forEach(m => m.remove());
@@ -2924,13 +2690,9 @@ function togglePickerMode() {
         }
     } else {
         btn.classList.remove('active');
-        if (sidebarPickBtn) sidebarPickBtn.classList.remove('active');
         canvasInner.classList.remove('picking-mode');
         canvasWrapper.classList.remove('picking-mode');
         categorySelector.classList.add('hidden');
-        // Hide picker hints
-        if (pickerPanHint) pickerPanHint.classList.add('hidden');
-        if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
         // Don't clear markers - keep them visible
     }
 
@@ -2965,10 +2727,8 @@ function updatePickerCategoryOptions() {
     if (pickerTargetCategory === CATEGORY_LOCKED) lockedOption.selected = true;
     select.appendChild(lockedOption);
 
-    // Add Accent 1, 2, 3, etc. — always show at least 4 accent options
-    // so the user can always pick new categories even if current targetCount is low
-    const maxAccent = Math.max(targetCount, 5);
-    for (let i = 1; i < maxAccent; i++) {
+    // Add Accent 1, 2, 3, etc.
+    for (let i = 1; i < targetCount; i++) {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = getTargetCategoryLabel(i);
@@ -3084,14 +2844,12 @@ function createMarker(index) {
     const canvasInner = document.getElementById('canvasInner');
     const pos = pickedPositions[index];
 
-    // Markers are children of canvasInner (which Panzoom transforms).
-    // Position them in canvasInner's LOCAL coordinate space using the
-    // display canvas CSS size (not screen/getBoundingClientRect size).
+    // Use whichever canvas is currently visible
     const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
-    const localWidth = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
-    const localHeight = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
-    const displayX = (pos.x / canvas.width) * localWidth;
-    const displayY = (pos.y / canvas.height) * localHeight;
+    const rect = visibleCanvas.getBoundingClientRect();
+    // Map original canvas coordinates to display coordinates
+    const displayX = (pos.x / canvas.width) * rect.width;
+    const displayY = (pos.y / canvas.height) * rect.height;
     
     const marker = document.createElement('div');
     marker.className = 'picker-marker';
@@ -3127,16 +2885,15 @@ function createMarker(index) {
 }
 
 function updateMarkers() {
-    // Position markers in canvasInner's LOCAL coordinate space.
-    // Use the display canvas CSS size (not screen rect) since Panzoom transforms canvasInner.
+    // Use whichever canvas is currently visible
     const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
-    const localWidth = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
-    const localHeight = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
+    const rect = visibleCanvas.getBoundingClientRect();
     pickedPositions.forEach((pos, i) => {
         const marker = document.querySelector(`.picker-marker[data-index="${i}"]`);
         if (marker) {
-            const displayX = (pos.x / canvas.width) * localWidth;
-            const displayY = (pos.y / canvas.height) * localHeight;
+            // Map original canvas coordinates to display coordinates
+            const displayX = (pos.x / canvas.width) * rect.width;
+            const displayY = (pos.y / canvas.height) * rect.height;
             marker.style.left = displayX + 'px';
             marker.style.top = displayY + 'px';
             marker.style.background = rgbToHex(...pos.color);
@@ -3255,11 +3012,17 @@ function applyPickedAsOriginal() {
     originToColumn = newOriginToColumn;
     columnBypass = []; // Reset bypass states
 
-    // Build target palette - start BLANK (null placeholders) until Target Selection
+    // Build target palette - use the first color from each category, or a default
     targetPalette = [];
     for (let catIdx = 0; catIdx < targetCount; catIdx++) {
-        // Blank target: store null to indicate "not yet chosen"
-        targetPalette.push(null);
+        const colorsInCat = categoryGroups[catIdx] || [];
+        if (colorsInCat.length > 0) {
+            // Use first color in that category as the target
+            targetPalette.push([...colorsInCat[0].color]);
+        } else {
+            // No colors picked for this category - use a placeholder gray
+            targetPalette.push([128, 128, 128]);
+        }
     }
 
     // Default selectedSlotIndex to first slot
@@ -3274,124 +3037,25 @@ function applyPickedAsOriginal() {
     shouldKeepPickedMarkers = true;
     pickedPositions.forEach((_, i) => createMarker(i));
 
-    // Turn off picker mode UI completely but keep markers visible
-    pickerMode = false;
-    const pickerBtn = document.getElementById('pickerToggleBtn');
-    pickerBtn.classList.remove('active');
-    const sidebarPickBtn = document.getElementById('sidebarPickColorsBtn');
-    if (sidebarPickBtn) sidebarPickBtn.classList.remove('active');
-    document.getElementById('canvasInner').classList.remove('picking-mode');
-    document.getElementById('canvasWrapper').classList.remove('picking-mode');
-    document.getElementById('pickerCategorySelector').classList.add('hidden');
-    const pickerPanHint = document.getElementById('pickerPanHint');
-    if (pickerPanHint) pickerPanHint.classList.add('hidden');
-    const pickerCtrlHint = document.getElementById('pickerCtrlHint');
-    if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
+    // Turn off picker mode UI but keep markers visible
+    if (pickerMode) {
+        pickerMode = false;
+        const btn = document.getElementById('pickerToggleBtn');
+        btn.classList.remove('active');
+        document.getElementById('canvasInner').classList.remove('picking-mode');
+        document.getElementById('canvasWrapper').classList.remove('picking-mode');
+        document.getElementById('pickerCategorySelector').classList.add('hidden');
+    }
 
-    // Hide the picker overlay swatch list and buttons (picker is no longer engaged)
-    document.getElementById('pickerSwatchesList').classList.add('hidden');
-    document.getElementById('pickerApplyBtn').classList.add('hidden');
-    document.getElementById('pickerClearBtn').classList.add('hidden');
-
-    // Collapse the picker instructions in the sidebar (colors have been picked)
-    const pickerInstructions = document.getElementById('pickerInstructions');
-    if (pickerInstructions) pickerInstructions.classList.add('hidden');
-
-    // Progressive UI: show Palette Mapping panel and Target Selector button
-    document.getElementById('paletteMappingPanel').classList.remove('hidden');
-    document.getElementById('targetSelectorBtn').classList.remove('hidden');
-    uiStage = 'colors-picked';
+    updatePickerOverlay();
     renderColumnMapping();
-    // Don't auto-recolor — targets are blank, no recolor possible yet
+    updateGradientFromSelectedColor();
+    renderThemesSortedByMatch(); // Re-sort themes based on new palette
+    autoRecolorImage();
 
     const lockedCount = lockedColors.length;
     const lockedMsg = lockedCount > 0 ? ` (${lockedCount} locked)` : '';
-    setStatus('Applied ' + originCount + ' picked colors grouped by category' + lockedMsg + '. Now choose your targets.');
-}
-
-// ============================================
-// Target Selection Activation (Progressive UI)
-// ============================================
-
-function activateTargetSelection() {
-    uiStage = 'target-selection';
-
-    // Hide the Target Selector button itself
-    document.getElementById('targetSelectorBtn').classList.add('hidden');
-
-    // Show Target Choice panel
-    document.getElementById('targetChoicePanel').classList.remove('hidden');
-
-    // Hide early import from Color Analysis (full config section is now visible below)
-    const earlyImport = document.getElementById('earlyImportSection');
-    if (earlyImport) earlyImport.classList.add('hidden');
-
-    // Show shuffle and live preview toggle
-    document.getElementById('shuffleBtn').classList.remove('hidden');
-    document.getElementById('livePreviewToggleWrapper').classList.remove('hidden');
-
-    // Show tool legend below image preview
-    const toolLegend = document.getElementById('toolLegendPanel');
-    if (toolLegend) toolLegend.classList.remove('hidden');
-
-    // Fill blank targets with origin colors as starting point (so user has something to work with)
-    for (let colIdx = 0; colIdx < targetCount; colIdx++) {
-        if (targetPalette[colIdx] === null) {
-            // Find first origin mapped to this column and use its color
-            let foundColor = null;
-            for (let i = 0; i < originCount; i++) {
-                if (originToColumn[i] === colIdx) {
-                    foundColor = [...originalPalette[i]];
-                    break;
-                }
-            }
-            targetPalette[colIdx] = foundColor || [128, 128, 128];
-        }
-    }
-
-    // Re-render with buttons now visible and targets populated
-    renderColumnMapping();
-    updateHarmonyWheel();
-    updateGradientFromSelectedColor();
-    renderThemesSortedByMatch();
-
-    setStatus('Target selection active. Choose your target colors using the tools below.');
-}
-
-function revealFullUI() {
-    // Called after any action that should reveal everything (import config, etc.)
-    // This is a one-way escalation — once revealed, panels never re-hide
-    if (uiStage === 'complete') return;
-    uiStage = 'complete';
-
-    // Show all panels
-    document.getElementById('sidebar').classList.remove('hidden');
-    document.getElementById('colorAnalysisPanel').classList.remove('hidden');
-    document.getElementById('paletteMappingPanel').classList.remove('hidden');
-    document.getElementById('targetChoicePanel').classList.remove('hidden');
-
-    // Hide the Target Selector button (no longer needed)
-    document.getElementById('targetSelectorBtn').classList.add('hidden');
-
-    // Hide early import from Color Analysis (full config section is now visible below)
-    const earlyImport = document.getElementById('earlyImportSection');
-    if (earlyImport) earlyImport.classList.add('hidden');
-
-    // Show shuffle row and live preview toggle
-    document.getElementById('shuffleBtn').classList.remove('hidden');
-    document.getElementById('livePreviewToggleWrapper').classList.remove('hidden');
-
-    // Show tool legend below image preview
-    const toolLegend = document.getElementById('toolLegendPanel');
-    if (toolLegend) toolLegend.classList.remove('hidden');
-
-    // Un-gray the recolored strip
-    document.getElementById('recoloredStrip').classList.remove('grayed-out');
-
-    // Ensure workspace is in image-loaded layout
-    const workspace = document.getElementById('workspace');
-    workspace.classList.remove('centered-initial');
-    workspace.classList.add('image-loaded');
+    setStatus('Applied ' + originCount + ' picked colors grouped by category' + lockedMsg + '.');
 }
 
 // ============================================
@@ -3402,148 +3066,54 @@ function resetZoom() {
     zoomLevel = 1;
     panX = 0;
     panY = 0;
-    if (panzoomInstance) {
-        panzoomInstance.pan(0, 0, { animate: false, force: true });
-    }
-    // Cancel pending debounced render and any deferred 1x cleanup
-    if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
-    if (window._zoomResetTimeout) { clearTimeout(window._zoomResetTimeout); window._zoomResetTimeout = null; }
-    const wrapper = document.getElementById('canvasWrapper');
-    // Render FIRST while layout still has valid dimensions, then tear down
-    renderAtCurrentZoom();
-    wrapper.style.height = '';
-    wrapper.classList.remove('zoomed', 'can-pan');
-    updateMarkers();
+    updateCanvasTransform(true);
     updateZoomDisplay();
 }
 
 function setZoomFromSlider(value) {
-    let newZoom = Math.max(1, Math.min(4, parseInt(value) / 100));
-    const oldZoom = zoomLevel;
-    const wrapper = document.getElementById('canvasWrapper');
+    zoomLevel = parseInt(value) / 100;
+    constrainPan();
+    updateCanvasTransform(true);
+    updateZoomDisplay();
+}
 
-    // Snap to exactly 1x if close
-    if (newZoom < 1.02) newZoom = 1;
-
-    // Ensure wrapper is in zoomed layout mode before any pan math
-    if (!wrapper.classList.contains('zoomed') && newZoom > 1) {
-        const rect = wrapper.getBoundingClientRect();
-        wrapper.style.height = rect.height + 'px';
-        wrapper.classList.add('zoomed', 'can-pan');
-    }
-
-    if (newZoom <= 1) {
-        // Reset to 1x — keep layout stable, defer teardown
-        zoomLevel = 1;
+function constrainPan() {
+    if (zoomLevel <= 1) {
         panX = 0;
         panY = 0;
-        if (panzoomInstance) {
-            panzoomInstance.pan(0, 0, { animate: false, force: true });
-        }
-    } else {
-
-        zoomLevel = newZoom;
-
-        // Zoom-to-center-of-viewport math:
-        const wrapperRect = wrapper.getBoundingClientRect();
-        const centerX = wrapperRect.width / 2;
-        const centerY = wrapperRect.height / 2;
-
-        // Current pan from Panzoom
-        const currentPan = panzoomInstance.getPan();
-
-        // Keep the viewport center point stable
-        const ratio = newZoom / oldZoom;
-        const newPanX = centerX - (centerX - currentPan.x) * ratio;
-        const newPanY = centerY - (centerY - currentPan.y) * ratio;
-
-        panX = newPanX;
-        panY = newPanY;
-        panzoomInstance.pan(newPanX, newPanY, { animate: false, force: true });
+        return;
     }
-
-    updateDisplayCanvas();
-    constrainPan();
-    updateMarkers();
-    updateZoomDisplay();
-
-    // Deferred 1x layout cleanup (same as wheel handler)
-    if (zoomLevel <= 1) {
-        if (window._zoomResetTimeout) clearTimeout(window._zoomResetTimeout);
-        window._zoomResetTimeout = setTimeout(() => {
-            if (zoomLevel <= 1) {
-                if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
-                wrapper.style.height = '';
-                wrapper.classList.remove('zoomed', 'can-pan');
-                renderAtCurrentZoom();
-                updateMarkers();
-            }
-        }, 200);
-    } else {
-        if (window._zoomResetTimeout) { clearTimeout(window._zoomResetTimeout); window._zoomResetTimeout = null; }
-    }
-}
-
-// Clamp pan so at least 20% of the canvas stays visible in the wrapper.
-// Called after any zoom or pan change.
-let _constrainingPan = false;
-function constrainPan() {
-    if (_constrainingPan) return; // Prevent recursive calls from panzoomchange
-    if (!panzoomInstance || zoomLevel <= 1) return;
 
     const wrapper = document.getElementById('canvasWrapper');
-    if (!wrapper) return;
     const wrapperRect = wrapper.getBoundingClientRect();
-    const wW = wrapperRect.width;
-    const wH = wrapperRect.height;
 
-    // Current canvas display size
+    // Canvas is rendered at zoomed dimensions, so use its actual size
     const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
-    const cW = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
-    const cH = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
+    const canvasWidth = visibleCanvas.offsetWidth || visibleCanvas.width;
+    const canvasHeight = visibleCanvas.offsetHeight || visibleCanvas.height;
 
-    // During temporary CSS scale, actual visual size may differ from style.width
-    // Use the zoomed size directly
-    const canvasW = Math.max(cW, wW * zoomLevel / lastRenderedZoom);
-    const canvasH = Math.max(cH, wH * zoomLevel / lastRenderedZoom);
+    // Max pan is half the overflow (since we're centered)
+    const maxPanX = Math.max(0, (canvasWidth - wrapperRect.width) / 2);
+    const maxPanY = Math.max(0, (canvasHeight - wrapperRect.height) / 2);
 
-    const currentPan = panzoomInstance.getPan();
-    let px = currentPan.x;
-    let py = currentPan.y;
-
-    // Clamp: canvas right edge must be at least 20% into wrapper from left
-    // canvas left edge must be at most 80% into wrapper from left
-    const margin = 0.2;
-    const minX = wW * margin - canvasW;  // canvas can't go too far left
-    const maxX = wW * (1 - margin);       // canvas can't go too far right
-    const minY = wH * margin - canvasH;
-    const maxY = wH * (1 - margin);
-
-    let clamped = false;
-    if (px < minX) { px = minX; clamped = true; }
-    if (px > maxX) { px = maxX; clamped = true; }
-    if (py < minY) { py = minY; clamped = true; }
-    if (py > maxY) { py = maxY; clamped = true; }
-
-    if (clamped) {
-        _constrainingPan = true;
-        panX = px;
-        panY = py;
-        panzoomInstance.pan(px, py, { animate: false, force: true });
-        _constrainingPan = false;
-    }
+    panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+    panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
 }
 
-// Legacy compatibility — Panzoom handles transforms
 function updateCanvasTransform(zoomChanged = false) {
-    // Panzoom manages the CSS transform on canvasInner.
-    // This function is kept for any remaining call sites.
+    const canvasInner = document.getElementById('canvasInner');
+    // Canvas-inner is position:absolute at left:50%, top:50%
+    // First translate -50%,-50% to center it, then apply pan offset
+    canvasInner.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px))`;
+
     const wrapper = document.getElementById('canvasWrapper');
     if (zoomLevel > 1) {
         wrapper.classList.add('zoomed', 'can-pan');
     } else {
         wrapper.classList.remove('zoomed', 'can-pan');
     }
+
+    // Only re-render the high-quality display when zoom actually changes, not during panning
     if (zoomChanged) {
         updateDisplayCanvas();
     }
@@ -3552,7 +3122,8 @@ function updateCanvasTransform(zoomChanged = false) {
 
 // High-quality display canvas rendering
 // Renders at base resolution, uses CSS transform for instant zoom, then re-renders at high quality after delay
-// Track base dimensions for zoom calculations
+// Track the locked wrapper height and base dimensions when zoomed
+let lockedWrapperHeight = 0;
 let baseDisplayWidth = 0;
 let baseDisplayHeight = 0;
 let lastRenderedZoom = 1;
@@ -3570,30 +3141,34 @@ function updateDisplayCanvas() {
     const imgHeight = canvas.height;
     const aspectRatio = imgWidth / imgHeight;
 
-    // Base display size to fit wrapper (at zoom=1)
+    // Calculate base display size to fit wrapper width (at zoom=1)
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
     if (zoomLevel === 1) {
-        wrapper.style.height = '';
+        // At zoom level 1, wrapper height conforms to image aspect ratio
+        wrapper.style.height = baseHeight + 'px';
+        lockedWrapperHeight = baseHeight;
         baseDisplayWidth = baseWidth;
         baseDisplayHeight = baseHeight;
     } else {
-        if (!wrapper.style.height || wrapper.style.height === '') {
-            wrapper.style.height = wrapperRect.height + 'px';
+        // When zoomed, keep the wrapper height locked to what it was at zoom=1
+        if (lockedWrapperHeight > 0) {
+            wrapper.style.height = lockedWrapperHeight + 'px';
         }
     }
 
-    // Use CSS scale for INSTANT zoom feedback while waiting for hi-res render.
-    // This is temporary — renderAtCurrentZoom() replaces it with a pixel-perfect buffer.
+    // Use CSS transform for instant zoom feedback
+    // Scale relative to what was last rendered
     const cssScale = zoomLevel / lastRenderedZoom;
     displayCanvas.style.transform = `scale(${cssScale})`;
-    displayCanvas.style.transformOrigin = '0 0';
+    displayCanvas.style.transformOrigin = 'center center';
 
     // Debounce the high-quality re-render
     if (zoomRenderTimeout) {
         clearTimeout(zoomRenderTimeout);
     }
+
     zoomRenderTimeout = setTimeout(() => {
         renderAtCurrentZoom();
     }, 150);
@@ -3606,8 +3181,7 @@ function updateDisplayCanvas() {
     canvas.style.display = 'none';
 }
 
-// Render displayCanvas at the actual zoomed pixel size for crisp, pixel-perfect display.
-// Panzoom handles ONLY panning (translate) — we handle zoom via canvas size + CSS size.
+// Render the canvas at the current zoom level for high quality
 function renderAtCurrentZoom() {
     if (!canvas || !imageData) return;
 
@@ -3622,17 +3196,14 @@ function renderAtCurrentZoom() {
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
-    // Guard: if wrapper has no width (e.g. mid-layout-transition), skip render
-    if (baseWidth < 1 || baseHeight < 1) return;
+    // Calculate display size (what we want to show on screen)
+    const displayWidth = Math.round(baseWidth * zoomLevel);
+    const displayHeight = Math.round(baseHeight * zoomLevel);
 
-    // The display size on screen = base * zoom
-    const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
-    const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
-
-    // Render at 2x pixel density for retina sharpness, capped at original image size
+    // Render at 2x resolution for sharpness (like retina), but cap at original image size
     const scaleFactor = Math.min(2, imgWidth / displayWidth, imgHeight / displayHeight);
-    const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
-    const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
+    const renderWidth = Math.round(displayWidth * Math.max(1, scaleFactor));
+    const renderHeight = Math.round(displayHeight * Math.max(1, scaleFactor));
 
     // Set canvas pixel buffer to high resolution
     displayCanvas.width = renderWidth;
@@ -3643,16 +3214,12 @@ function renderAtCurrentZoom() {
     displayCtx.imageSmoothingQuality = 'high';
     displayCtx.drawImage(canvas, 0, 0, renderWidth, renderHeight);
 
-    // CSS size = actual zoomed display size (1:1 with screen pixels, no CSS stretching)
+    // Use CSS to set display size (smaller than pixel buffer = sharper)
     displayCanvas.style.width = displayWidth + 'px';
     displayCanvas.style.height = displayHeight + 'px';
 
-    // Clear the temporary CSS scale — the canvas is now pixel-perfect at this zoom
+    // Reset CSS transform since we've rendered at full resolution
     displayCanvas.style.transform = 'scale(1)';
-    displayCanvas.style.transformOrigin = '0 0';
-
-    baseDisplayWidth = displayWidth;
-    baseDisplayHeight = displayHeight;
     lastRenderedZoom = zoomLevel;
 }
 
@@ -3708,16 +3275,11 @@ function initResizeHandles() {
             canvasArea.style.flex = 'none';
         }
 
-        // Allow height adjustment — only taller than natural aspect-ratio height, never shorter
-        if (resizeType === 'bottom' || resizeType === 'corner') {
-            // resizeStartHeight is the natural height at drag start (from aspect-ratio).
-            // Only allow making it taller, not shorter.
-            const newHeight = Math.max(resizeStartHeight, resizeStartHeight + dy);
+        // Only allow height adjustment when zoomed in
+        // At zoom=1, height conforms to image aspect ratio automatically
+        if ((resizeType === 'bottom' || resizeType === 'corner') && zoomLevel > 1) {
+            const newHeight = Math.max(200, resizeStartHeight + dy);
             canvasArea.style.height = newHeight + 'px';
-            // Override aspect-ratio so the explicit height takes effect
-            const wrapper = document.getElementById('canvasWrapper');
-            wrapper.style.aspectRatio = 'auto';
-            wrapper.style.height = '100%';
         }
         // Don't update display during drag - too slow
     });
@@ -3734,29 +3296,11 @@ function initResizeHandles() {
         }
     });
 
-    // Use ResizeObserver on canvas wrapper to re-render when size changes
-    // This fires for window resize, flex layout changes, and manual resize handle drags
-    const wrapperObs = document.getElementById('canvasWrapper');
-    if (wrapperObs && typeof ResizeObserver !== 'undefined') {
-        let resizeObserverTimeout = null;
-        const ro = new ResizeObserver(() => {
-            // Debounce to avoid excessive re-renders during drag
-            if (resizeObserverTimeout) clearTimeout(resizeObserverTimeout);
-            resizeObserverTimeout = setTimeout(() => {
-                if (canvas && imageData) {
-                    updateDisplayCanvas();
-                    updateMarkers();
-                }
-            }, 50);
-        });
-        ro.observe(wrapperObs);
-    } else {
-        // Fallback for older browsers
-        window.addEventListener('resize', () => {
-            updateDisplayCanvas();
-            updateMarkers();
-        });
-    }
+    // Also update markers and display canvas on window resize
+    window.addEventListener('resize', () => {
+        updateDisplayCanvas();
+        updateMarkers();
+    });
 }
 
 function autoSizeCanvasArea() {
@@ -3766,17 +3310,30 @@ function autoSizeCanvasArea() {
     const canvasArea = document.getElementById('canvasArea');
     const wrapper = document.getElementById('canvasWrapper');
 
-    // Clear any manual resize overrides — let CSS flex + aspect-ratio handle sizing
-    canvasArea.style.width = '';
-    canvasArea.style.height = '';
-    canvasArea.style.flex = '';
+    // Get the natural dimensions of the image
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
 
-    // Restore aspect-ratio if it was overridden by manual resize
-    if (canvas.width > 0 && canvas.height > 0) {
-        wrapper.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
-        wrapper.style.height = '';
-        wrapper.style.minHeight = '';
+    // Calculate aspect ratio
+    const aspectRatio = imgWidth / imgHeight;
+
+    // Get available space
+    const maxWidth = window.innerWidth - 550; // Leave room for sidebar
+    const maxHeight = window.innerHeight - 200; // Leave room for header/controls
+
+    // Calculate best fit dimensions
+    let fitWidth = maxWidth;
+    let fitHeight = fitWidth / aspectRatio;
+
+    if (fitHeight > maxHeight) {
+        fitHeight = maxHeight;
+        fitWidth = fitHeight * aspectRatio;
     }
+
+    // Apply to canvas area (minimum constraints apply via CSS)
+    canvasArea.style.width = Math.max(300, fitWidth) + 'px';
+    canvasArea.style.height = 'auto';
+    canvasArea.style.flex = 'none';
 }
 
 // ============================================
@@ -4021,10 +3578,6 @@ function harmonizePalette() {
     }
     
     const baseColor = targetPalette[selectedSlotIndex];
-    if (!baseColor) {
-        setStatus('Select a target color first');
-        return;
-    }
     const [h, s, l] = rgbToHsl(...baseColor);
     const harmonyType = document.getElementById('harmonyType').value;
     
@@ -4071,7 +3624,6 @@ function harmonizePalette() {
     }
     
     targetPalette.forEach((color, i) => {
-        if (!color) return; // Skip blank targets
         const [_, origS, origL] = rgbToHsl(...color);
         const newRgb = hslToRgb(newHues[i], origS, origL);
         targetPalette[i] = newRgb;
@@ -4080,68 +3632,6 @@ function harmonizePalette() {
     renderColumnMapping();
     setStatus('Applied ' + harmonyType + ' harmony');
     updateHarmonyWheel();
-}
-
-function randomizeHarmony() {
-    if (targetPalette.length === 0) {
-        setStatus('Load an image first');
-        return;
-    }
-
-    const harmonyType = document.getElementById('harmonyType').value;
-    const n = targetPalette.length;
-
-    // Random base hue
-    const baseHue = Math.random() * 360;
-
-    // Generate hues from the selected harmony model
-    let hues = [];
-    switch (harmonyType) {
-        case 'complementary':
-            hues = Array(n).fill(0).map((_, i) => {
-                return i % 2 === 0 ? baseHue : (baseHue + 180) % 360;
-            });
-            break;
-        case 'analogous':
-            const spread = 30;
-            hues = Array(n).fill(0).map((_, i) => {
-                const offset = (i - Math.floor(n / 2)) * spread;
-                return (baseHue + offset + 360) % 360;
-            });
-            break;
-        case 'triadic':
-            hues = Array(n).fill(0).map((_, i) => {
-                return (baseHue + (i % 3) * 120) % 360;
-            });
-            break;
-        case 'split':
-            hues = Array(n).fill(0).map((_, i) => {
-                const angles = [0, 150, 210];
-                return (baseHue + angles[i % 3]) % 360;
-            });
-            break;
-        case 'tetradic':
-            hues = Array(n).fill(0).map((_, i) => {
-                return (baseHue + (i % 4) * 90) % 360;
-            });
-            break;
-    }
-
-    // Generate varied but pleasing saturation/lightness per slot
-    targetPalette.forEach((color, i) => {
-        if (!color) return;               // skip blank targets
-        if (columnBypass[i]) return;       // respect locked/bypassed columns
-
-        // Vary saturation 45–90, lightness 35–65 for a balanced palette
-        const sat = 45 + Math.random() * 45;
-        const lit = 35 + Math.random() * 30;
-        targetPalette[i] = hslToRgb(hues[i], sat, lit);
-    });
-
-    renderColumnMapping();
-    setStatus('Randomized ' + harmonyType + ' harmony (base hue ' + Math.round(baseHue) + '°)');
-    updateHarmonyWheel();
-    autoRecolorImage();
 }
 
 let harmonyDragging = null;
@@ -4189,7 +3679,6 @@ function updateHarmonyWheel() {
         ctx2.strokeStyle = 'rgba(255,255,255,0.2)';
         ctx2.lineWidth = 1;
         targetPalette.forEach((color) => {
-            if (!color) return; // Skip blank targets
             const [h] = rgbToHsl(...color);
             const angle = (h - 90) * Math.PI / 180;
             ctx2.beginPath();
@@ -4203,7 +3692,7 @@ function updateHarmonyWheel() {
     }
     
     // Draw selected color in center
-    if (targetPalette.length > 0 && targetPalette[selectedSlotIndex] !== null) {
+    if (targetPalette.length > 0) {
         ctx2.beginPath();
         ctx2.arc(centerX, centerY, innerRadius - 8, 0, Math.PI * 2);
         ctx2.fillStyle = rgbToHex(...targetPalette[selectedSlotIndex]);
@@ -4235,7 +3724,6 @@ function updateHarmonyDots() {
     const markerDistance = (outerRadius + innerRadius) / 2;
     
     targetPalette.forEach((color, i) => {
-        if (!color) return; // Skip blank targets
         const [h, s, l] = rgbToHsl(...color);
         const angle = (h - 90) * Math.PI / 180;
         const x = centerX + markerDistance * Math.cos(angle);
@@ -4342,21 +3830,15 @@ function removeImage() {
     document.getElementById('originCountDisplay').value = 5;
     document.getElementById('targetCountDisplay').value = 5;
 
-    // Reset zoom and Panzoom
+    // Reset zoom
     zoomLevel = 1;
     panX = 0;
     panY = 0;
-    if (panzoomInstance) {
-        panzoomInstance.reset({ animate: false });
-    }
-    const wrapperRm = document.getElementById('canvasWrapper');
-    wrapperRm.style.height = '';
-    wrapperRm.classList.remove('zoomed', 'can-pan');
+    updateCanvasTransform(true);
 
     // Hide UI elements
     document.getElementById('pickerOverlay').classList.add('hidden');
     document.getElementById('zoomControls').classList.add('hidden');
-    document.getElementById('zoomSliderContainer').classList.add('hidden');
     document.getElementById('toleranceContainer').classList.add('hidden');
     document.getElementById('originOverflowBank').classList.remove('visible');
 
@@ -4364,53 +3846,6 @@ function removeImage() {
     document.getElementById('mappingColumns').innerHTML = '';
     document.getElementById('mappingTargetsRow').innerHTML = '';
     document.getElementById('colorStrip').innerHTML = '';
-
-    // Progressive UI: reset back to initial centered state
-    const workspace = document.getElementById('workspace');
-    workspace.classList.remove('image-loaded');
-    workspace.classList.add('centered-initial');
-    document.getElementById('sidebar').classList.add('hidden');
-    document.getElementById('colorAnalysisPanel').classList.remove('hidden'); // ready for next image
-    document.getElementById('paletteMappingPanel').classList.add('hidden');
-    document.getElementById('targetSelectorBtn').classList.add('hidden');
-    document.getElementById('targetChoicePanel').classList.add('hidden');
-    document.getElementById('pickerPanHint').classList.add('hidden');
-    document.getElementById('pickerCtrlHint').classList.add('hidden');
-    // Hide the image action buttons and resize handles
-    document.getElementById('imageButtonGroup').classList.add('hidden');
-    document.querySelectorAll('.resize-handle').forEach(h => h.classList.add('hidden'));
-    // Reset recolored strip to grayed-out
-    document.getElementById('recoloredStrip').classList.add('grayed-out');
-    // Reset shuffle and live toggle to hidden
-    document.getElementById('shuffleBtn').classList.add('hidden');
-    document.getElementById('livePreviewToggleWrapper').classList.add('hidden');
-    // Hide tool legend and restore picker instructions and early import
-    const toolLegend = document.getElementById('toolLegendPanel');
-    if (toolLegend) toolLegend.classList.add('hidden');
-    const pickerInstructions = document.getElementById('pickerInstructions');
-    if (pickerInstructions) pickerInstructions.classList.remove('hidden');
-    const earlyImport = document.getElementById('earlyImportSection');
-    if (earlyImport) earlyImport.classList.remove('hidden');
-    uiStage = 'initial';
-
-    // Show upload zone again
-    document.getElementById('uploadZone').classList.remove('hidden');
-    canvas.style.display = 'none';
-    // Hide display canvas too
-    if (displayCanvas) {
-        displayCanvas.style.display = 'none';
-    }
-
-    // Reset canvas area inline styles
-    const canvasArea = document.getElementById('canvasArea');
-    canvasArea.style.width = '';
-    canvasArea.style.height = '';
-    canvasArea.style.flex = '';
-    // Clear aspect-ratio and wrapper styles
-    const wrapperEl = document.getElementById('canvasWrapper');
-    wrapperEl.style.aspectRatio = '';
-    wrapperEl.style.height = '';
-    wrapperEl.style.minHeight = '';
 
     // Reset file input so the same file can be re-selected
     const fileInput = document.getElementById('fileInput');
@@ -4491,94 +3926,6 @@ function updateLuminosityValue(value) {
     document.getElementById('luminosityValue').textContent = value;
 }
 
-// Apply luminosity as a post-processing step, respecting locked colors
-function applyLuminosityPostProcess() {
-    if (!canvas || !originalImageData) {
-        setStatus('Load an image and apply recolor first');
-        return;
-    }
-
-    const luminosity = parseInt(document.getElementById('luminositySlider').value);
-    if (luminosity === 0) {
-        setStatus('Luminosity is at 0 — no change applied');
-        return;
-    }
-
-    showLoading();
-    setStatus('Applying luminosity post-processing...');
-
-    setTimeout(() => {
-        const width = canvas.width;
-        const height = canvas.height;
-        const factor = 1 + (luminosity / 100);
-
-        // Build a set of LAB colors that are locked (bank + bypassed columns)
-        const lockedLabs = [];
-        for (let i = 0; i < originalPalette.length; i++) {
-            const col = originToColumn[i];
-            const isLocked = (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length);
-            const isBypassed = (typeof col === 'number' && columnBypass[col]);
-            if (isLocked || isBypassed) {
-                lockedLabs.push(RGB2LAB(originalPalette[i]));
-            }
-        }
-
-        // Get current canvas pixel data (the recolored image)
-        const currentData = ctx.getImageData(0, 0, width, height);
-        const data = currentData.data;
-
-        // For each pixel, check if it's closest to a locked color — if so, skip luminosity
-        const origData = originalImageData.data;
-        const step = 4; // process every pixel
-
-        for (let idx = 0; idx < data.length; idx += step) {
-            // Use original pixel color to determine if this pixel belongs to a locked origin
-            const origR = origData[idx];
-            const origG = origData[idx + 1];
-            const origB = origData[idx + 2];
-
-            let skipLuminosity = false;
-
-            if (lockedLabs.length > 0) {
-                const pixLab = RGB2LAB([origR, origG, origB]);
-
-                // Find which origin color this pixel is closest to
-                let minDist = Infinity;
-                let isClosestLocked = false;
-
-                // Check all origin colors
-                for (let i = 0; i < originalPalette.length; i++) {
-                    const oLab = RGB2LAB(originalPalette[i]);
-                    const dist = Math.pow(pixLab[0] - oLab[0], 2) +
-                                 Math.pow(pixLab[1] - oLab[1], 2) +
-                                 Math.pow(pixLab[2] - oLab[2], 2);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        const col = originToColumn[i];
-                        const locked = (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length);
-                        const bypassed = (typeof col === 'number' && columnBypass[col]);
-                        isClosestLocked = locked || bypassed;
-                    }
-                }
-
-                skipLuminosity = isClosestLocked;
-            }
-
-            if (!skipLuminosity) {
-                data[idx] = Math.max(0, Math.min(255, data[idx] * factor));
-                data[idx + 1] = Math.max(0, Math.min(255, data[idx + 1] * factor));
-                data[idx + 2] = Math.max(0, Math.min(255, data[idx + 2] * factor));
-            }
-        }
-
-        ctx.putImageData(currentData, 0, 0);
-        imageData = ctx.getImageData(0, 0, width, height);
-        updateDisplayCanvas();
-        hideLoading();
-        setStatus('Luminosity applied (locked colors preserved)');
-    }, 50);
-}
-
 // Debug function - call from console: debugMapping()
 window.debugMapping = function() {
     console.log('=== Debug Mapping ===');
@@ -4587,7 +3934,7 @@ window.debugMapping = function() {
     console.log('originToColumn:', JSON.stringify(originToColumn));
     console.log('originalPalette length:', originalPalette.length);
     console.log('targetPalette length:', targetPalette.length);
-    console.log('targetPalette:', targetPalette.map(c => c ? rgbToHex(...c) : 'blank'));
+    console.log('targetPalette:', targetPalette.map(c => rgbToHex(...c)));
 
     // Show which origins map to which targets
     for (let i = 0; i < originCount; i++) {
@@ -4596,8 +3943,7 @@ window.debugMapping = function() {
         if (col === 'bank' || col === 'locked') {
             console.log(`  Origin ${i} (${originColor}) -> ${col} (no change)`);
         } else if (typeof col === 'number' && col < targetPalette.length) {
-            const tc = targetPalette[col];
-            console.log(`  Origin ${i} (${originColor}) -> Target ${col} (${tc ? rgbToHex(...tc) : 'blank'})`);
+            console.log(`  Origin ${i} (${originColor}) -> Target ${col} (${rgbToHex(...targetPalette[col])})`);
         } else {
             console.log(`  Origin ${i} (${originColor}) -> INVALID col=${col}`);
         }
@@ -4626,7 +3972,7 @@ function saveCurrentConfig() {
         originCount,
         targetCount,
         originalPalette: originalPalette.map(c => [...c]),
-        targetPalette: targetPalette.map(c => c ? [...c] : [128, 128, 128]),
+        targetPalette: targetPalette.map(c => [...c]),
         colorPercentages: [...colorPercentages],
         originToColumn: [...originToColumn],
         algorithm: selectedAlgorithm,
@@ -4663,8 +4009,6 @@ function loadConfig(configId) {
     renderColumnMapping();
     autoRecolorImage();
     renderConfigList();
-    // Loading a config reveals the full UI
-    revealFullUI();
     setStatus(`Loaded configuration: ${config.name}`);
 }
 
@@ -4776,52 +4120,6 @@ function importConfigFile(event) {
 
                 renderConfigList();
                 setStatus(`Imported ${importedCount} configurations`);
-            } else {
-                setStatus('Invalid config file format');
-            }
-        } catch (err) {
-            setStatus('Error reading config file: ' + err.message);
-        }
-    };
-    reader.readAsText(file);
-
-    // Reset file input
-    event.target.value = '';
-}
-
-function importConfigFileEarly(event) {
-    // Early import from Color Analysis panel — imports configs, auto-loads first one, reveals full UI
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-
-            if (data.configs && Array.isArray(data.configs)) {
-                // Merge imported configs with existing ones
-                const existingIds = new Set(savedConfigs.map(c => c.id));
-                let importedCount = 0;
-                let firstNewIndex = savedConfigs.length;
-
-                data.configs.forEach(config => {
-                    if (existingIds.has(config.id)) {
-                        config.id = Date.now() + Math.random();
-                    }
-                    savedConfigs.push(config);
-                    importedCount++;
-                });
-
-                configCounter = Math.max(configCounter, savedConfigs.length);
-                renderConfigList();
-
-                // Auto-load the first imported config
-                if (importedCount > 0) {
-                    loadConfig(savedConfigs[firstNewIndex].id);
-                }
-
-                setStatus(`Imported ${importedCount} configurations. First config auto-loaded.`);
             } else {
                 setStatus('Invalid config file format');
             }

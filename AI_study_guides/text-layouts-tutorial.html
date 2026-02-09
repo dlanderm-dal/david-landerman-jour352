@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Styling & Layouts Tutorial</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #ff6b35 0%, #d4532a 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      color: white;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.85);
+      margin-top: 0.5rem;
+    }
+
+    /* ============================================
+       NAVIGATION
+       ============================================ */
+    nav {
+      background-color: #16213e;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      padding: 1rem 1.25rem;
+      background: transparent;
+      color: #8892b0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #b8c5d6;
+    }
+
+    .tab-btn.active {
+      background: #ff6b35;
+      color: white;
+      border-bottom: 3px solid #4ecca3;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       INTRO BOX
+       ============================================ */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #ff6b35;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: 'Arial', sans-serif;
+      color: #ff6b35;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #b8c5d6;
+    }
+
+    .intro-box p + p {
+      margin-top: 1rem;
+    }
+
+    .intro-box code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       SECTION HEADERS
+       ============================================ */
+    .section-header {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.2rem;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid;
+    }
+
+    .section-header.orange { color: #ff6b35; border-color: #ff6b35; }
+    .section-header.teal { color: #4ecca3; border-color: #4ecca3; }
+    .section-header.blue { color: #60a5fa; border-color: #60a5fa; }
+
+    /* ============================================
+       EXPLANATION TEXT
+       ============================================ */
+    .explanation {
+      color: #b8c5d6;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .explanation code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       DEMO CONTAINERS
+       ============================================ */
+    .demo-wrapper {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .demo-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #8892b0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .demo-area {
+      background-color: #2a2a4a;
+      border-radius: 8px;
+      min-height: 300px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ============================================
+       CONTROLS
+       ============================================ */
+    .controls {
+      background-color: #16213e;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .controls label {
+      font-family: Arial, sans-serif;
+      font-size: 0.85rem;
+      color: #8892b0;
+    }
+
+    .controls select,
+    .controls input[type="range"] {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      border: none;
+      background-color: #0a0a14;
+      color: #e8e8e8;
+      cursor: pointer;
+    }
+
+    .controls input[type="range"] {
+      width: 120px;
+    }
+
+    .range-value {
+      font-family: monospace;
+      color: #4ecca3;
+      min-width: 45px;
+    }
+
+    /* ============================================
+       CODE BLOCKS
+       ============================================ */
+    .code-block {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-header {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.75rem 1rem;
+    }
+
+    .code-header.html { background-color: #e44d26; color: white; }
+    .code-header.css { background-color: #264de4; color: white; }
+
+    .code-block pre {
+      padding: 1rem;
+      margin: 0;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .code-block code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      color: #e8e8e8;
+    }
+
+    .comment { color: #6a737d; }
+    .selector { color: #4ecca3; }
+    .prop { color: #79c0ff; }
+    .val { color: #f7931e; }
+    .tag { color: #e94560; }
+    .attr { color: #79c0ff; }
+
+    .code-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .code-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================
+       KEY INSIGHT BOX
+       ============================================ */
+    .key-insight {
+      background-color: #0a0a14;
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .key-insight h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .key-insight ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .key-insight li {
+      color: #b8c5d6;
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .key-insight li:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-insight code {
+      background-color: #16213e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* ============================================
+       COMPARISON TABLE
+       ============================================ */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1rem;
+      text-align: left;
+      border: 1px solid #0f3460;
+    }
+
+    .comparison-table th {
+      background-color: #16213e;
+      font-family: Arial, sans-serif;
+      color: #ff6b35;
+    }
+
+    .comparison-table td {
+      background-color: #0a0a14;
+      color: #b8c5d6;
+    }
+
+    .comparison-table code {
+      background-color: #16213e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    .pro { color: #4ecca3; }
+    .con { color: #e94560; }
+
+    /* ============================================
+       TAB 1: ARTICLE DEMO STYLES
+       ============================================ */
+    .article-demo-area {
+      background-color: #f5f5f5;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background pattern strip */
+    .bg-pattern-strip {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 80px;
+      background-image: repeating-linear-gradient(
+        0deg,
+        #ddd 0px,
+        #ddd 10px,
+        #ccc 10px,
+        #ccc 20px
+      );
+      z-index: 1;
+    }
+
+    /* The article */
+    .demo-article {
+      position: relative;
+      z-index: 2;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #333;
+      background: #f5f5f5;
+      padding: 2rem;
+      /* These will be modified by controls */
+    }
+
+    .demo-article h2 {
+      font-family: Arial, sans-serif;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #1a1a2e;
+    }
+
+    .demo-article p {
+      margin-bottom: 1rem;
+      /* Margins will be modified by controls */
+    }
+
+    /* Pull quote inside demo */
+    .demo-pull-quote {
+      float: left;
+      width: 180px;
+      padding: 1rem;
+      background: linear-gradient(135deg, #ff6b35, #d4532a);
+      border-radius: 8px;
+      color: white;
+      margin: 0.5rem;
+      margin-right: 1.5rem;
+      /* margin-left will be modified by controls */
+    }
+
+    .demo-pull-quote p {
+      font-size: 1rem;
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      color: white;
+    }
+
+    .demo-pull-quote footer {
+      font-family: Arial, sans-serif;
+      font-size: 0.75rem;
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    /* ============================================
+       TAB 2: THREE APPROACHES DIAGRAMS
+       ============================================ */
+    .approach-demo {
+      background-color: #e8e8e8;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+      min-height: 200px;
+    }
+
+    .approach-label {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      font-family: Arial, sans-serif;
+      font-size: 0.7rem;
+      background: #1a1a2e;
+      color: #4ecca3;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .margin-indicator {
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 107, 53, 0.3) 0px,
+        rgba(255, 107, 53, 0.3) 5px,
+        transparent 5px,
+        transparent 10px
+      );
+      position: absolute;
+      top: 0;
+      bottom: 0;
+    }
+
+    .text-column-demo {
+      background: white;
+      padding: 1rem;
+      font-family: Georgia, serif;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .breakout-element {
+      background: #4ecca3;
+      color: #1a1a2e;
+      padding: 1rem;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+
+    /* ============================================
+       TAB 3: BACKGROUND IMAGE DEMO
+       ============================================ */
+    .bg-demo-area {
+      background-color: #f5f5f5;
+      min-height: 350px;
+      position: relative;
+    }
+
+    .bg-demo-article {
+      padding: 2rem;
+      padding-right: 120px;
+      font-family: Georgia, serif;
+      line-height: 1.7;
+      color: #333;
+    }
+
+    .bg-demo-article p {
+      margin-bottom: 1rem;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer.page-footer {
+      text-align: center;
+      padding: 2rem;
+      color: #8892b0;
+      font-size: 0.85rem;
+      border-top: 1px solid #0f3460;
+      margin-top: 2rem;
+    }
+
+    /* ============================================
+       BACKGROUND IMAGES TAB - NEW VISUALS
+       ============================================ */
+    
+    /* Comparison: Content img vs Background img */
+    .bg-comparison-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 700px) {
+      .bg-comparison-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .bg-comparison-panel {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .bg-compare-demo {
+      background-color: #f5f5f5;
+      border-radius: 6px;
+      padding: 1rem;
+      min-height: 120px;
+      color: #333;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .bg-compare-demo p {
+      margin: 0;
+    }
+
+    .fake-img-floated {
+      float: right;
+      width: 60px;
+      height: 60px;
+      background: #4ecca3;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 0.75rem;
+      margin-left: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .bg-img-demo {
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(78, 204, 163, 0.3) 0px,
+        rgba(78, 204, 163, 0.3) 10px,
+        transparent 10px,
+        transparent 20px
+      );
+      background-position: right;
+    }
+
+    .compare-caption {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: #8892b0;
+      text-align: center;
+    }
+
+    .compare-caption code {
+      background-color: #16213e;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* Four Properties Grid */
+    .four-props-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .four-props-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 500px) {
+      .four-props-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .prop-card {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .prop-card-header {
+      font-family: monospace;
+      color: #4ecca3;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .prop-card-question {
+      color: #ff6b35;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .prop-card-example code {
+      font-size: 0.7rem;
+      color: #8892b0;
+      word-break: break-all;
+    }
+
+    /* Position Demo Grid */
+    .position-demo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      max-width: 500px;
+    }
+
+    .position-demo-box {
+      background-color: #0a0a14;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      height: 80px;
+      position: relative;
+    }
+
+    .position-marker {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #ff6b35;
+      border-radius: 4px;
+    }
+
+    .position-label {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.6rem;
+      color: #8892b0;
+      white-space: nowrap;
+    }
+
+    /* Repeat Demo Grid */
+    .repeat-demo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 800px) {
+      .repeat-demo-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .repeat-demo-item {
+      text-align: center;
+    }
+
+    .repeat-demo-item code {
+      font-size: 0.7rem;
+      color: #8892b0;
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    .repeat-desc {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 0.25rem;
+    }
+
+    .repeat-demo-box {
+      height: 100px;
+      background-color: #16213e;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+
+    .repeat-demo-box.repeat-both {
+      background-image: 
+        linear-gradient(#ff6b35 2px, transparent 2px),
+        linear-gradient(90deg, #ff6b35 2px, transparent 2px);
+      background-size: 20px 20px;
+      background-position: center;
+    }
+
+    .repeat-demo-box.repeat-x {
+      background-image: repeating-linear-gradient(
+        90deg,
+        #4ecca3 0px,
+        #4ecca3 10px,
+        transparent 10px,
+        transparent 20px
+      );
+      background-repeat: repeat-x;
+      background-position: left top;
+      background-size: auto 30px;
+    }
+
+    .repeat-demo-box.repeat-y {
+      background-image: repeating-linear-gradient(
+        0deg,
+        #4ecca3 0px,
+        #4ecca3 10px,
+        transparent 10px,
+        transparent 20px
+      );
+      background-repeat: repeat-y;
+      background-position: right top;
+      background-size: 30px auto;
+    }
+
+    .repeat-demo-box.no-repeat {
+      background: #16213e;
+      position: relative;
+    }
+
+    .repeat-demo-box.no-repeat::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 40px;
+      height: 40px;
+      background-color: #ff6b35;
+      border-radius: 4px;
+    }
+
+    /* Size Demo Grid */
+    .size-demo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 800px) {
+      .size-demo-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .size-demo-item {
+      text-align: center;
+    }
+
+    .size-demo-item code {
+      font-size: 0.7rem;
+      color: #8892b0;
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    .size-demo-box {
+      height: 100px;
+      background-color: #16213e;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .size-demo-box::before {
+      content: '';
+      position: absolute;
+      background: linear-gradient(135deg, #ff6b35, #4ecca3);
+      border-radius: 4px;
+    }
+
+    .size-demo-box.size-auto::before {
+      width: 30px;
+      height: 30px;
+      top: 10px;
+      left: 10px;
+    }
+
+    .size-demo-box.size-cover::before {
+      width: 150%;
+      height: 150%;
+      top: -25%;
+      left: -25%;
+    }
+
+    .size-demo-box.size-contain::before {
+      width: 60px;
+      height: 40px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .size-demo-box.size-specific::before {
+      width: 40px;
+      height: 40px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Patterns Grid */
+    .patterns-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 700px) {
+      .patterns-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pattern-demo-item {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .pattern-demo-box {
+      height: 120px;
+      background-color: #f5f5f5;
+      border-radius: 6px;
+      margin: 0.5rem 0;
+    }
+
+    .pattern-demo-box.pattern-right-strip {
+      background-image: repeating-linear-gradient(
+        0deg,
+        #4ecca3 0px,
+        #4ecca3 15px,
+        #3db892 15px,
+        #3db892 30px
+      );
+      background-position: right top;
+      background-repeat: repeat-y;
+      background-size: 60px auto;
+    }
+
+    .pattern-demo-box.pattern-top-strip {
+      background-image: repeating-linear-gradient(
+        90deg,
+        #ff6b35 0px,
+        #ff6b35 15px,
+        #d4532a 15px,
+        #d4532a 30px
+      );
+      background-position: left top;
+      background-repeat: repeat-x;
+      background-size: auto 40px;
+    }
+
+    .pattern-demo-box.pattern-corner {
+      background: #f5f5f5;
+      position: relative;
+    }
+
+    .pattern-demo-box.pattern-corner::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #ff6b35, #4ecca3);
+      border-radius: 8px;
+    }
+
+    .pattern-demo-box.pattern-cover {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+
+    .pattern-demo-item .code-block {
+      margin-bottom: 0;
+    }
+
+    .pattern-demo-item .code-block pre {
+      padding: 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    /* Padding Demo */
+    .padding-demo-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 700px) {
+      .padding-demo-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .padding-demo-bad,
+    .padding-demo-good {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .padding-demo-box {
+      background-color: #f5f5f5;
+      border-radius: 6px;
+      min-height: 100px;
+      color: #333;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      background-image: repeating-linear-gradient(
+        0deg,
+        #4ecca3 0px,
+        #4ecca3 10px,
+        #3db892 10px,
+        #3db892 20px
+      );
+      background-position: right top;
+      background-repeat: repeat-y;
+      background-size: 50px auto;
+    }
+
+    .padding-demo-box p {
+      margin: 0;
+    }
+
+    .padding-demo-box.no-padding-demo {
+      padding: 1rem;
+    }
+
+    .padding-demo-box.with-padding-demo {
+      padding: 1rem;
+      padding-right: 70px;
+    }
+
+    /* Offset Demo Styles */
+    .offset-syntax-box {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .syntax-formula {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .syntax-formula code {
+      color: #e8e8e8;
+    }
+
+    .syntax-formula .val-h {
+      color: #ff6b35;
+    }
+
+    .syntax-formula .val-v {
+      color: #4ecca3;
+    }
+
+    .syntax-example code {
+      font-size: 1.1rem;
+    }
+
+    .syntax-example .val-h {
+      color: #ff6b35;
+    }
+
+    .syntax-example .val-v {
+      color: #4ecca3;
+    }
+
+    .syntax-meaning {
+      color: #8892b0;
+      margin: 0.5rem 0 0 0;
+      font-style: italic;
+    }
+
+    .offset-demo-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 700px) {
+      .offset-demo-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .offset-demo-item {
+      text-align: center;
+    }
+
+    .offset-demo-item code {
+      font-size: 0.7rem;
+      color: #8892b0;
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    .offset-demo-box {
+      height: 120px;
+      background-color: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+      position: relative;
+    }
+
+    .offset-marker {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background-color: #ff6b35;
+      border-radius: 4px;
+    }
+
+    .offset-line-h {
+      position: absolute;
+      height: 2px;
+      background-color: #4ecca3;
+    }
+
+    .offset-line-v {
+      position: absolute;
+      width: 2px;
+      background-color: #4ecca3;
+    }
+
+    .offset-measurement {
+      position: absolute;
+      font-family: monospace;
+      font-size: 0.6rem;
+      color: #4ecca3;
+    }
+
+    /* Size Explanation Styles */
+    .size-explanation-box {
+      background-color: #0a0a14;
+      border-left: 4px solid #4ecca3;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .size-explanation-box p {
+      color: #b8c5d6;
+      margin: 0 0 0.5rem 0;
+      line-height: 1.6;
+    }
+
+    .size-explanation-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .size-explanation-box ul {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .size-explanation-box li {
+      color: #b8c5d6;
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .size-explanation-box code {
+      background-color: #16213e;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+    }
+
+    /* Cover vs Contain Diagram */
+    .size-context-diagram {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .cover-contain-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .cover-contain-compare {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cc-item {
+      text-align: center;
+    }
+
+    .cc-box {
+      height: 120px;
+      background-color: #16213e;
+      border: 2px dashed #0f3460;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cc-image {
+      position: absolute;
+      background: linear-gradient(135deg, #ff6b35 0%, #4ecca3 100%);
+      border-radius: 4px;
+    }
+
+    .cc-cover .cc-image {
+      width: 180%;
+      height: 180%;
+      top: -40%;
+      left: -40%;
+    }
+
+    .cc-contain .cc-image {
+      width: 60%;
+      height: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .cc-label {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: white;
+      background-color: rgba(0,0,0,0.6);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .cc-desc {
+      color: #8892b0;
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    /* Two Problems Box */
+    .two-problems-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .two-problems-box {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .problem-item {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .problem-header {
+      font-family: Arial, sans-serif;
+      font-size: 0.9rem;
+      color: #ff6b35;
+      margin-bottom: 0.5rem;
+    }
+
+    .problem-answer {
+      font-family: monospace;
+      color: #4ecca3;
+      margin-bottom: 0.5rem;
+    }
+
+    .problem-answer code {
+      background-color: #16213e;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+    }
+
+    .problem-item p {
+      color: #8892b0;
+      font-size: 0.85rem;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Padding Diagram */
+    .padding-diagram {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .padding-diagram-box {
+      display: flex;
+      height: 100px;
+      border: 2px solid #0f3460;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .pd-content {
+      flex: 1;
+      background-color: #264de4;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .pd-content p {
+      color: white;
+      font-size: 0.8rem;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .pd-padding-zone {
+      width: 80px;
+      background-color: #4ecca3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pd-bg-zone {
+      width: 60px;
+      background: repeating-linear-gradient(
+        0deg,
+        #ff6b35 0px,
+        #ff6b35 10px,
+        #d4532a 10px,
+        #d4532a 20px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pd-label {
+      font-family: Arial, sans-serif;
+      font-size: 0.6rem;
+      color: #1a1a2e;
+      text-align: center;
+      font-weight: bold;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    .pd-bg-zone .pd-label {
+      color: white;
+    }
+
+    .diagram-caption {
+      color: #8892b0;
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      font-style: italic;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Text Styling & Layouts</h1>
+    <p class="subtitle">Centering text columns, breakout elements, pull quotes, and background images</p>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="tab-playground">Interactive Playground</button>
+      <button class="tab-btn" data-tab="tab-approaches">Three Approaches</button>
+      <button class="tab-btn" data-tab="tab-background">Background Images</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============================================
+         TAB 1: INTERACTIVE PLAYGROUND
+         ============================================ -->
+    <div id="tab-playground" class="tab-content active">
+
+      <div class="intro-box">
+        <h2>The Goal</h2>
+        <p>Create a readable text column (centered, left-aligned text inside) with a pull quote that floats and hangs into the left margin, and a decorative background pattern on the right.</p>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Text margin (left/right):</label>
+          <input type="range" id="text-margin" min="0" max="20" value="10">
+          <span class="range-value" id="margin-value">10%</span>
+        </div>
+        <div class="control-group">
+          <label>Pull quote overhang:</label>
+          <input type="range" id="quote-overhang" min="-60" max="20" value="-30">
+          <span class="range-value" id="overhang-value">-30px</span>
+        </div>
+        <div class="control-group">
+          <label>Show background:</label>
+          <select id="show-bg">
+            <option value="show">Show</option>
+            <option value="hide">Hide</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="demo-wrapper">
+        <div class="demo-label">Live Preview</div>
+        <div class="demo-area article-demo-area">
+          <div class="bg-pattern-strip" id="bg-strip"></div>
+          <article class="demo-article" id="demo-article">
+            <h2>Article Title</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            
+            <blockquote class="demo-pull-quote" id="demo-quote">
+              <p>"Design is how it works."</p>
+              <footer>— Steve Jobs</footer>
+            </blockquote>
+
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+
+            <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium.</p>
+
+            <p>Doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 What's Happening</h3>
+        <ul>
+          <li><strong>Text margins:</strong> The <code>margin-left</code> and <code>margin-right</code> on paragraph tags create the centered column effect.</li>
+          <li><strong>Pull quote overhang:</strong> A negative <code>margin-left</code> on the floated blockquote pushes it past the text boundary into the margin area.</li>
+          <li><strong>Background strip:</strong> Positioned with <code>position: absolute</code> and <code>z-index: 1</code> so it sits behind the text content.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         TAB 2: THREE APPROACHES
+         ============================================ -->
+    <div id="tab-approaches" class="tab-content">
+
+      <div class="intro-box">
+        <h2>The Problem</h2>
+        <p>You want a narrow, readable text column centered on the page. But you also want some elements (images, graphics) to break out wider. How do you structure this?</p>
+      </div>
+
+      <h3 class="section-header orange">Approach A: Margins on Each Text Element</h3>
+      
+      <p class="explanation">Set <code>margin-left</code> and <code>margin-right</code> on every text element (p, h2, ul, etc.). Graphics get no margins and go full-width.</p>
+
+      <div class="demo-wrapper">
+        <div class="approach-demo">
+          <span class="approach-label">Approach A</span>
+          <div class="margin-indicator" style="left: 0; width: 15%;"></div>
+          <div class="margin-indicator" style="right: 0; width: 15%;"></div>
+          <div class="text-column-demo" style="margin: 0 15%;">
+            <p>Text with margin-left: 15% and margin-right: 15%</p>
+            <p>Every text element needs these margins.</p>
+          </div>
+          <div class="breakout-element" style="margin: 0;">
+            Wide graphic (no margins) — goes full width
+          </div>
+          <div class="text-column-demo" style="margin: 0 15%;">
+            <p>Back to margined text.</p>
+          </div>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Pros</th>
+          <th>Cons</th>
+        </tr>
+        <tr>
+          <td class="pro">Graphics naturally go full-width<br>Pull quotes can use negative margins to overhang</td>
+          <td class="con">Must set margins on every element type (p, h2, h3, ul, ol...)<br>Repetitive CSS</td>
+        </tr>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header css">CSS for Approach A</div>
+        <pre><code><span class="comment">/* Every text element needs margins */</span>
+<span class="selector">article p,
+article h2,
+article ul</span> {
+  <span class="prop">margin-left</span>: <span class="val">15%</span>;
+  <span class="prop">margin-right</span>: <span class="val">15%</span>;
+}
+
+<span class="comment">/* Graphics have no margins — go full width */</span>
+<span class="selector">article img,
+article .wide-graphic</span> {
+  <span class="prop">margin</span>: <span class="val">0</span>;
+  <span class="prop">width</span>: <span class="val">100%</span>;
+}</code></pre>
+      </div>
+
+      <h3 class="section-header teal">Approach B: Narrow Container + Negative Margin Breakouts</h3>
+      
+      <p class="explanation">Put everything in a narrow centered container. Graphics that need to break out use negative margins.</p>
+
+      <div class="demo-wrapper">
+        <div class="approach-demo">
+          <span class="approach-label">Approach B</span>
+          <div style="max-width: 70%; margin: 0 auto; background: white;">
+            <div class="text-column-demo">
+              <p>Container is max-width: 70%, margin: 0 auto</p>
+              <p>Text elements need no extra margins.</p>
+            </div>
+            <div class="breakout-element" style="margin-left: -21%; margin-right: -21%;">
+              Breakout uses margin-left: -21%, margin-right: -21%
+            </div>
+            <div class="text-column-demo">
+              <p>Back to normal text.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Pros</th>
+          <th>Cons</th>
+        </tr>
+        <tr>
+          <td class="pro">Text elements need no individual margins<br>One container controls everything</td>
+          <td class="con">Must calculate negative margins for each breakout<br>Can cause horizontal scroll if math is wrong</td>
+        </tr>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header css">CSS for Approach B</div>
+        <pre><code><span class="comment">/* Narrow centered container */</span>
+<span class="selector">article</span> {
+  <span class="prop">max-width</span>: <span class="val">70%</span>;
+  <span class="prop">margin</span>: <span class="val">0 auto</span>;
+}
+
+<span class="comment">/* Breakout elements use negative margins */</span>
+<span class="comment">/* Math: if container is 70%, you have 30% leftover */</span>
+<span class="comment">/* Split that: 15% on each side */</span>
+<span class="comment">/* 15% ÷ 70% = ~21% of the container width */</span>
+<span class="selector">.breakout</span> {
+  <span class="prop">margin-left</span>: <span class="val">-21%</span>;
+  <span class="prop">margin-right</span>: <span class="val">-21%</span>;
+}</code></pre>
+      </div>
+
+      <h3 class="section-header blue">Approach C: Inner Wrapper for Text Only</h3>
+      
+      <p class="explanation">Full-width article, but text gets wrapped in a <code>.text-column</code> div. Graphics sit outside that wrapper.</p>
+
+      <div class="demo-wrapper">
+        <div class="approach-demo">
+          <span class="approach-label">Approach C</span>
+          <div style="background: white;">
+            <div class="text-column-demo" style="max-width: 70%; margin: 0 auto;">
+              <p>.text-column wrapper — max-width: 70%, margin: 0 auto</p>
+              <p>All text elements go inside this.</p>
+            </div>
+            <div class="breakout-element">
+              Graphic outside the wrapper — naturally full width
+            </div>
+            <div class="text-column-demo" style="max-width: 70%; margin: 0 auto;">
+              <p>Another .text-column wrapper</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Pros</th>
+          <th>Cons</th>
+        </tr>
+        <tr>
+          <td class="pro">Clean separation of text vs. breakout<br>No negative margin math</td>
+          <td class="con">Extra HTML wrappers<br>Have to close/reopen wrapper around each breakout</td>
+        </tr>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header css">CSS for Approach C</div>
+        <pre><code><span class="comment">/* Full-width article container */</span>
+<span class="selector">article</span> {
+  <span class="prop">width</span>: <span class="val">100%</span>;
+}
+
+<span class="comment">/* Inner wrapper constrains text */</span>
+<span class="selector">.text-column</span> {
+  <span class="prop">max-width</span>: <span class="val">70%</span>;
+  <span class="prop">margin</span>: <span class="val">0 auto</span>;
+}
+
+<span class="comment">/* Graphics sit outside .text-column */</span>
+<span class="comment">/* They naturally go full width */</span>
+<span class="selector">article img</span> {
+  <span class="prop">width</span>: <span class="val">100%</span>;
+}</code></pre>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 Which Should You Use?</h3>
+        <ul>
+          <li><strong>Approach A</strong> is best when you want pull quotes to overhang into margins — you need that margin space to exist.</li>
+          <li><strong>Approach B</strong> is cleanest for simple sites with occasional full-width images.</li>
+          <li><strong>Approach C</strong> is best when you have many breakout elements and don't want to calculate negative margins.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         TAB 3: BACKGROUND IMAGES
+         ============================================ -->
+    <div id="tab-background" class="tab-content">
+
+      <div class="intro-box">
+        <h2>Background Images vs. Content Images</h2>
+        <p><strong>Content images</strong> use <code>&lt;img&gt;</code> tags — they're part of the document flow. Text can wrap around them (with float) or they push text above/below.</p>
+        <p><strong>Background images</strong> use CSS <code>background-image</code> — they're purely decorative. Text completely ignores them and renders on top.</p>
+      </div>
+
+      <h3 class="section-header orange">Visual Comparison</h3>
+
+      <div class="bg-comparison-container">
+        <div class="bg-comparison-panel">
+          <div class="demo-label">Content Image (with float)</div>
+          <div class="bg-compare-demo content-img-demo">
+            <div class="fake-img-floated">IMG</div>
+            <p>Text wraps around the image. The image is part of the document — it takes up space and pushes text aside.</p>
+          </div>
+          <div class="compare-caption">Uses <code>&lt;img&gt;</code> tag + <code>float: right</code></div>
+        </div>
+        <div class="bg-comparison-panel">
+          <div class="demo-label">Background Image</div>
+          <div class="bg-compare-demo bg-img-demo">
+            <p>Text goes right over the background. The image is decoration only — text doesn't know it exists.</p>
+          </div>
+          <div class="compare-caption">Uses <code>background-image</code> CSS property</div>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">The Four Key Properties</h3>
+
+      <p class="explanation">Background images are controlled by four main CSS properties. Each one answers a different question:</p>
+
+      <div class="four-props-grid">
+        <div class="prop-card">
+          <div class="prop-card-header">background-image</div>
+          <div class="prop-card-question">What image?</div>
+          <div class="prop-card-example">
+            <code>background-image: url('pattern.png');</code>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-card-header">background-position</div>
+          <div class="prop-card-question">Where does it sit?</div>
+          <div class="prop-card-example">
+            <code>background-position: right top;</code>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-card-header">background-repeat</div>
+          <div class="prop-card-question">Does it tile?</div>
+          <div class="prop-card-example">
+            <code>background-repeat: repeat-y;</code>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-card-header">background-size</div>
+          <div class="prop-card-question">How big?</div>
+          <div class="prop-card-example">
+            <code>background-size: 80px auto;</code>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header blue">background-position: Where It Sits</h3>
+
+      <p class="explanation">This property takes two values: horizontal position, then vertical position. You can use keywords, percentages, or pixel values.</p>
+
+      <div class="position-demo-grid">
+        <div class="position-demo-box">
+          <div class="position-marker" style="left: 0; top: 0;"></div>
+          <span class="position-label">left top</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="left: 50%; top: 0; transform: translateX(-50%);"></div>
+          <span class="position-label">center top</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="right: 0; top: 0;"></div>
+          <span class="position-label">right top</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="left: 0; top: 50%; transform: translateY(-50%);"></div>
+          <span class="position-label">left center</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="left: 50%; top: 50%; transform: translate(-50%, -50%);"></div>
+          <span class="position-label">center center</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="right: 0; top: 50%; transform: translateY(-50%);"></div>
+          <span class="position-label">right center</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="left: 0; bottom: 0;"></div>
+          <span class="position-label">left bottom</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="left: 50%; bottom: 0; transform: translateX(-50%);"></div>
+          <span class="position-label">center bottom</span>
+        </div>
+        <div class="position-demo-box">
+          <div class="position-marker" style="right: 0; bottom: 0;"></div>
+          <span class="position-label">right bottom</span>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">Offsetting from an Edge</h3>
+
+      <p class="explanation">What if you don't want the image flush against the edge? Use the <strong>4-value syntax</strong> to specify an edge AND a distance from it:</p>
+
+      <div class="offset-syntax-box">
+        <div class="syntax-formula">
+          <code>background-position: <span class="val-h">horizontal-edge</span> <span class="val-h">h-offset</span> <span class="val-v">vertical-edge</span> <span class="val-v">v-offset</span>;</code>
+        </div>
+        <div class="syntax-example">
+          <code>background-position: <span class="val-h">right</span> <span class="val-h">20px</span> <span class="val-v">top</span> <span class="val-v">30px</span>;</code>
+          <p class="syntax-meaning">→ "20px from the right edge, 30px from the top"</p>
+        </div>
+      </div>
+
+      <div class="offset-demo-container">
+        <div class="offset-demo-item">
+          <div class="demo-label">right top (no offset)</div>
+          <div class="offset-demo-box">
+            <div class="offset-marker" style="right: 0; top: 0;"></div>
+          </div>
+          <code>background-position: right top;</code>
+        </div>
+        <div class="offset-demo-item">
+          <div class="demo-label">right 20px top 30px</div>
+          <div class="offset-demo-box">
+            <div class="offset-marker" style="right: 20px; top: 30px;"></div>
+            <div class="offset-line-h" style="right: 0; top: 40px; width: 20px;"></div>
+            <div class="offset-line-v" style="right: 30px; top: 0; height: 30px;"></div>
+            <span class="offset-measurement h-measure" style="right: 2px; top: 52px;">20px</span>
+            <span class="offset-measurement v-measure" style="right: 42px; top: 8px;">30px</span>
+          </div>
+          <code>background-position: right 20px top 30px;</code>
+        </div>
+        <div class="offset-demo-item">
+          <div class="demo-label">left 10% bottom 20px</div>
+          <div class="offset-demo-box">
+            <div class="offset-marker" style="left: 10%; bottom: 20px;"></div>
+            <div class="offset-line-h" style="left: 0; bottom: 30px; width: 10%;"></div>
+            <div class="offset-line-v" style="left: calc(10% + 10px); bottom: 0; height: 20px;"></div>
+            <span class="offset-measurement h-measure" style="left: 2px; bottom: 42px;">10%</span>
+            <span class="offset-measurement v-measure" style="left: calc(10% + 14px); bottom: 2px;">20px</span>
+          </div>
+          <code>background-position: left 10% bottom 20px;</code>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 The 4-Value Pattern</h3>
+        <ul>
+          <li><strong>Edge keyword first</strong>, then the offset distance from that edge</li>
+          <li>You can mix units: <code>right 5% top 20px</code> is valid</li>
+          <li>The offset pushes the image <em>away</em> from that edge, into the container</li>
+          <li>This is different from the 2-value syntax where <code>right 20px</code> would mean "20px from the left" (confusing!) — the 4-value syntax is clearer</li>
+        </ul>
+      </div>
+
+      <h3 class="section-header orange">background-repeat: How It Tiles</h3>
+
+      <p class="explanation">Controls whether and how the image repeats to fill the space.</p>
+
+      <div class="repeat-demo-grid">
+        <div class="repeat-demo-item">
+          <div class="demo-label">repeat (default)</div>
+          <div class="repeat-demo-box repeat-both"></div>
+          <code>background-repeat: repeat;</code>
+          <p class="repeat-desc">Tiles in both directions</p>
+        </div>
+        <div class="repeat-demo-item">
+          <div class="demo-label">repeat-x</div>
+          <div class="repeat-demo-box repeat-x"></div>
+          <code>background-repeat: repeat-x;</code>
+          <p class="repeat-desc">Tiles horizontally only</p>
+        </div>
+        <div class="repeat-demo-item">
+          <div class="demo-label">repeat-y</div>
+          <div class="repeat-demo-box repeat-y"></div>
+          <code>background-repeat: repeat-y;</code>
+          <p class="repeat-desc">Tiles vertically only</p>
+        </div>
+        <div class="repeat-demo-item">
+          <div class="demo-label">no-repeat</div>
+          <div class="repeat-demo-box no-repeat"></div>
+          <code>background-repeat: no-repeat;</code>
+          <p class="repeat-desc">Shows once, no tiling</p>
+        </div>
+      </div>
+
+      <h3 class="section-header orange">background-size: How Big</h3>
+
+      <p class="explanation">Controls the dimensions of the background image. The question is: <strong>how big relative to what?</strong></p>
+
+      <div class="size-explanation-box">
+        <p>When you set <code>background-size: 80px auto;</code> you're saying:</p>
+        <ul>
+          <li><strong>80px</strong> = make the image 80 pixels <em>wide</em> (first value is always width)</li>
+          <li><strong>auto</strong> = let the height scale proportionally to maintain aspect ratio</li>
+        </ul>
+        <p>The image doesn't care how big its container is — 80px means 80px.</p>
+      </div>
+
+      <div class="size-explanation-box">
+        <p>But <code>cover</code> and <code>contain</code> ARE relative to the container:</p>
+        <ul>
+          <li><strong>cover</strong> = scale the image to completely cover the container (may crop edges)</li>
+          <li><strong>contain</strong> = scale the image to fit entirely inside the container (may leave gaps)</li>
+        </ul>
+      </div>
+
+      <div class="size-demo-grid">
+        <div class="size-demo-item">
+          <div class="demo-label">auto (default)</div>
+          <div class="size-demo-box size-auto"></div>
+          <code>background-size: auto;</code>
+          <p class="repeat-desc">Original image size, unchanged</p>
+        </div>
+        <div class="size-demo-item">
+          <div class="demo-label">cover</div>
+          <div class="size-demo-box size-cover"></div>
+          <code>background-size: cover;</code>
+          <p class="repeat-desc">Fills container completely, may crop</p>
+        </div>
+        <div class="size-demo-item">
+          <div class="demo-label">contain</div>
+          <div class="size-demo-box size-contain"></div>
+          <code>background-size: contain;</code>
+          <p class="repeat-desc">Fits entirely inside, may leave gaps</p>
+        </div>
+        <div class="size-demo-item">
+          <div class="demo-label">80px auto</div>
+          <div class="size-demo-box size-specific"></div>
+          <code>background-size: 80px auto;</code>
+          <p class="repeat-desc">Fixed width, proportional height</p>
+        </div>
+      </div>
+
+      <div class="size-context-diagram">
+        <div class="demo-label">Understanding cover vs. contain</div>
+        <div class="cover-contain-compare">
+          <div class="cc-item">
+            <div class="cc-box cc-cover">
+              <div class="cc-image"></div>
+              <span class="cc-label">cover</span>
+            </div>
+            <p class="cc-desc">Image expands until container is completely filled. Parts of the image may be cropped (hidden outside the container).</p>
+          </div>
+          <div class="cc-item">
+            <div class="cc-box cc-contain">
+              <div class="cc-image"></div>
+              <span class="cc-label">contain</span>
+            </div>
+            <p class="cc-desc">Image shrinks/expands until it fits entirely inside. Container may have empty space (background-color shows through).</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header blue">Putting It Together: Common Patterns</h3>
+
+      <div class="patterns-grid">
+        <div class="pattern-demo-item">
+          <div class="demo-label">Right sidebar strip</div>
+          <div class="pattern-demo-box pattern-right-strip"></div>
+          <div class="code-block" style="margin-top: 0.5rem;">
+            <pre><code><span class="prop">background-position</span>: <span class="val">right top</span>;
+<span class="prop">background-repeat</span>: <span class="val">repeat-y</span>;
+<span class="prop">background-size</span>: <span class="val">60px auto</span>;</code></pre>
+          </div>
+        </div>
+        <div class="pattern-demo-item">
+          <div class="demo-label">Top banner strip</div>
+          <div class="pattern-demo-box pattern-top-strip"></div>
+          <div class="code-block" style="margin-top: 0.5rem;">
+            <pre><code><span class="prop">background-position</span>: <span class="val">left top</span>;
+<span class="prop">background-repeat</span>: <span class="val">repeat-x</span>;
+<span class="prop">background-size</span>: <span class="val">auto 40px</span>;</code></pre>
+          </div>
+        </div>
+        <div class="pattern-demo-item">
+          <div class="demo-label">Corner decoration</div>
+          <div class="pattern-demo-box pattern-corner"></div>
+          <div class="code-block" style="margin-top: 0.5rem;">
+            <pre><code><span class="prop">background-position</span>: <span class="val">right bottom</span>;
+<span class="prop">background-repeat</span>: <span class="val">no-repeat</span>;
+<span class="prop">background-size</span>: <span class="val">80px 80px</span>;</code></pre>
+          </div>
+        </div>
+        <div class="pattern-demo-item">
+          <div class="demo-label">Full cover</div>
+          <div class="pattern-demo-box pattern-cover"></div>
+          <div class="code-block" style="margin-top: 0.5rem;">
+            <pre><code><span class="prop">background-position</span>: <span class="val">center</span>;
+<span class="prop">background-repeat</span>: <span class="val">no-repeat</span>;
+<span class="prop">background-size</span>: <span class="val">cover</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-header teal">Making Room for Text (padding vs. position)</h3>
+
+      <p class="explanation">Here's where people get confused: <strong>background-position moves the image. padding moves the text.</strong> They're two separate problems.</p>
+
+      <div class="two-problems-box">
+        <div class="problem-item">
+          <div class="problem-header">Problem 1: Where does the image go?</div>
+          <div class="problem-answer">Solved by <code>background-position</code></div>
+          <p>Put the image at the right edge, offset 20px from top, etc.</p>
+        </div>
+        <div class="problem-item">
+          <div class="problem-header">Problem 2: How do I stop text from overlapping it?</div>
+          <div class="problem-answer">Solved by <code>padding</code></div>
+          <p>Push the text content away from the edge where the image sits.</p>
+        </div>
+      </div>
+
+      <p class="explanation">The background image sits <em>behind</em> everything — including behind the padding area. So if you add <code>padding-right: 100px</code>, you're creating 100px of space on the right where your text won't go, but the background image can still show through.</p>
+
+      <div class="padding-demo-container">
+        <div class="padding-demo-bad">
+          <div class="demo-label">❌ Without padding — text overlaps</div>
+          <div class="padding-demo-box no-padding-demo">
+            <p>This text runs right over the background pattern because there's no padding.</p>
+          </div>
+        </div>
+        <div class="padding-demo-good">
+          <div class="demo-label">✓ With padding-right: 70px</div>
+          <div class="padding-demo-box with-padding-demo">
+            <p>This text stays clear of the background because padding-right creates space.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="padding-diagram">
+        <div class="demo-label">How padding and background-position work together</div>
+        <div class="padding-diagram-box">
+          <div class="pd-content">
+            <p>Your text content lives here. It respects the padding boundaries.</p>
+          </div>
+          <div class="pd-padding-zone">
+            <span class="pd-label">padding-right</span>
+          </div>
+          <div class="pd-bg-zone">
+            <span class="pd-label">background image shows here</span>
+          </div>
+        </div>
+        <p class="diagram-caption">The background image extends under the entire element (content + padding). The text only fills the content area.</p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header css">CSS</div>
+        <pre><code><span class="selector">article</span> {
+  <span class="comment">/* Position the image */</span>
+  <span class="prop">background-image</span>: <span class="val">url('sidebar-pattern.png')</span>;
+  <span class="prop">background-position</span>: <span class="val">right 10px top 20px</span>;  <span class="comment">/* offset from edges */</span>
+  <span class="prop">background-repeat</span>: <span class="val">repeat-y</span>;
+  <span class="prop">background-size</span>: <span class="val">80px auto</span>;  <span class="comment">/* 80px wide, height scales */</span>
+  
+  <span class="comment">/* Make room for text */</span>
+  <span class="prop">padding-right</span>: <span class="val">100px</span>;  <span class="comment">/* wider than the 80px image + offset */</span>
+}</code></pre>
+      </div>
+
+      <div class="key-insight">
+        <h3>🔑 Background vs. Float — When to Use Which</h3>
+        <ul>
+          <li><strong>Use background-image</strong> for purely decorative patterns that text should ignore. The image sits behind content.</li>
+          <li><strong>Use float (with &lt;img&gt;)</strong> when you want text to wrap around the element. The element is content, not decoration.</li>
+          <li>You can use both together: background pattern on the right, floated pull quote on the left.</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="page-footer">
+    <p>Text Styling & Layouts Tutorial</p>
+  </footer>
+
+  <!-- ============================================
+       JAVASCRIPT FOR INTERACTIVITY
+       ============================================ -->
+  <script>
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // Playground controls
+    const textMarginSlider = document.getElementById('text-margin');
+    const marginValueDisplay = document.getElementById('margin-value');
+    const quoteOverhangSlider = document.getElementById('quote-overhang');
+    const overhangValueDisplay = document.getElementById('overhang-value');
+    const showBgSelect = document.getElementById('show-bg');
+    const demoArticle = document.getElementById('demo-article');
+    const demoQuote = document.getElementById('demo-quote');
+    const bgStrip = document.getElementById('bg-strip');
+
+    function updatePlayground() {
+      const marginVal = textMarginSlider.value;
+      const overhangVal = quoteOverhangSlider.value;
+
+      // Update displays
+      marginValueDisplay.textContent = marginVal + '%';
+      overhangValueDisplay.textContent = overhangVal + 'px';
+
+      // Update article paragraph margins
+      const paragraphs = demoArticle.querySelectorAll('p');
+      const heading = demoArticle.querySelector('h2');
+      
+      paragraphs.forEach(p => {
+        if (!p.closest('.demo-pull-quote')) {
+          p.style.marginLeft = marginVal + '%';
+          p.style.marginRight = marginVal + '%';
+        }
+      });
+      heading.style.marginLeft = marginVal + '%';
+      heading.style.marginRight = marginVal + '%';
+
+      // Update quote overhang
+      demoQuote.style.marginLeft = overhangVal + 'px';
+
+      // Update background visibility
+      bgStrip.style.display = showBgSelect.value === 'show' ? 'block' : 'none';
+    }
+
+    textMarginSlider.addEventListener('input', updatePlayground);
+    quoteOverhangSlider.addEventListener('input', updatePlayground);
+    showBgSelect.addEventListener('change', updatePlayground);
+
+    // Initialize
+    updatePlayground();
+  </script>
+
+</body>
+</html>

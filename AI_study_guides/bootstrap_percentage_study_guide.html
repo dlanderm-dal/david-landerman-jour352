@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Percentages & Bootstrap Structure Study Guide</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      color: #e8e8e8;
+      line-height: 1.7;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      padding: 2rem 3rem;
+      border-bottom: 4px solid #4ecca3;
+    }
+
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .header-label {
+      font-family: Arial, sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    header h1 {
+      font-family: Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      margin: 0.5rem 0 0 0;
+      color: white;
+    }
+
+    /* Main Content */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 3rem;
+    }
+
+    /* Section Styling */
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .section-header {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-size: 1.4rem;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #0f3460;
+    }
+
+    .section-header.blue { color: #3b82f6; }
+    .section-header.orange { color: #f7931e; }
+    .section-header.green { color: #4ecca3; }
+    .section-header.purple { color: #a855f7; }
+
+    /* Intro Box */
+    .intro-box {
+      background-color: #16213e;
+      border-left: 4px solid #3b82f6;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .intro-box h2 {
+      font-family: Arial, sans-serif;
+      color: #3b82f6;
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-box p {
+      margin: 0;
+      color: #b8c5d6;
+    }
+
+    /* Key Insight Box */
+    .key-insight {
+      background: linear-gradient(135deg, rgba(78, 204, 163, 0.1) 0%, rgba(78, 204, 163, 0.05) 100%);
+      border: 2px solid #4ecca3;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .key-insight h3 {
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      margin: 0 0 1rem 0;
+      font-size: 1.1rem;
+    }
+
+    .key-insight p {
+      margin: 0.5rem 0;
+    }
+
+    /* Warning Box */
+    .warning-box {
+      background: linear-gradient(135deg, rgba(233, 69, 96, 0.1) 0%, rgba(233, 69, 96, 0.05) 100%);
+      border: 2px solid #e94560;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .warning-box h3 {
+      font-family: Arial, sans-serif;
+      color: #e94560;
+      margin: 0 0 1rem 0;
+      font-size: 1.1rem;
+    }
+
+    /* Code Blocks */
+    code {
+      background-color: #0a0a14;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      color: #f7931e;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #0a0a14;
+      border-radius: 8px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      border: 1px solid #0f3460;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: #e8e8e8;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .code-comment { color: #6b7280; }
+    .code-tag { color: #e94560; }
+    .code-attr { color: #4ecca3; }
+    .code-val { color: #f7931e; }
+    .code-prop { color: #3b82f6; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid #0f3460;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #16213e;
+      font-family: Arial, sans-serif;
+      color: #4ecca3;
+      font-weight: bold;
+    }
+
+    td {
+      background-color: #0a0a14;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin: 1rem 0 1rem 1.5rem;
+    }
+
+    li {
+      margin: 0.5rem 0;
+    }
+
+    /* Explanation paragraphs */
+    .explanation {
+      margin: 1rem 0;
+      color: #b8c5d6;
+    }
+
+    /* Diagram Container */
+    .diagram-container {
+      background-color: #0a0a14;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      border: 1px solid #0f3460;
+    }
+
+    .diagram-title {
+      font-family: Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 1rem;
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    /* ASCII Diagram */
+    .ascii-diagram {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #4ecca3;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* Two Column Layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background-color: #16213e;
+      padding: 1.5rem;
+      text-align: center;
+      color: #8892b0;
+      font-size: 0.9rem;
+      border-top: 1px solid #0f3460;
+    }
+
+    /* Strong emphasis */
+    strong {
+      color: #ffffff;
+    }
+
+    /* Links */
+    a {
+      color: #4ecca3;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="header-label">Web Design Study Guide</span>
+      <h1>CSS Percentages & Bootstrap Structure</h1>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Introduction -->
+    <div class="intro-box">
+      <h2>The Core Question</h2>
+      <p>
+        How do you get <code>%</code> to work in sizing elements? Do you need to wrap the entire page in a div with <code>width: 100vw</code>? Do you use a Bootstrap container class? What is the acceptable Bootstrap template structure?
+      </p>
+    </div>
+
+    <!-- Section 1: How CSS Percentages Work -->
+    <section class="section">
+      <h2 class="section-header blue">1. How CSS Percentages Actually Work</h2>
+      
+      <p class="explanation">
+        Percentages in CSS are <strong>relative to the parent element</strong> (technically the "containing block"), not the viewport. This is the fundamental concept that explains why percentages seem "broken" when you don't understand the parent chain.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>If you write...</th>
+            <th>It's relative to...</th>
+            <th>Watch out for...</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>width: 50%</code></td>
+            <td>Parent's content width</td>
+            <td>Nested containers shrink the reference</td>
+          </tr>
+          <tr>
+            <td><code>height: 50%</code></td>
+            <td>Parent's content height</td>
+            <td><strong>Parent must have explicit height!</strong></td>
+          </tr>
+          <tr>
+            <td><code>padding: 5%</code></td>
+            <td>Parent's <em>width</em> (even vertical!)</td>
+            <td>Useful for aspect ratio tricks</td>
+          </tr>
+          <tr>
+            <td><code>margin: 5%</code></td>
+            <td>Parent's width</td>
+            <td>Same as padding</td>
+          </tr>
+          <tr>
+            <td><code>width: 50vw</code></td>
+            <td>Viewport width (always)</td>
+            <td>Ignores parent entirely</td>
+          </tr>
+          <tr>
+            <td><code>height: 50vh</code></td>
+            <td>Viewport height (always)</td>
+            <td>Ignores parent entirely</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">
+        <h3>🔑 Key Insight: The Parent Chain</h3>
+        <p>
+          Each level in your HTML creates a new reference point. If you nest a <code>.col-6</code> inside a <code>.col-8</code>, the inner column's 50% is calculated from the outer column's width — not the container.
+        </p>
+        <p>
+          <strong>This is why percentages "work" in Bootstrap</strong> — each container, row, and column has a defined width, so the math flows down correctly.
+        </p>
+      </div>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">% vs vw — When to Use Each</h3>
+      
+      <p class="explanation">
+        <code>vw</code> (viewport width) ignores your parent chain entirely. It always references the browser window. This seems convenient but causes problems when mixed with Bootstrap's percentage-based grid.
+      </p>
+
+      <div class="warning-box">
+        <h3>⚠️ Don't Mix Width Systems</h3>
+        <p>
+          Using <code>75vw</code> inside a Bootstrap column creates two competing width systems. The column constrains content via percentages, but vw breaks out of that context. This leads to overflow, alignment issues, and "magic number" hacks.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 2: Bootstrap Containers -->
+    <section class="section">
+      <h2 class="section-header green">2. Bootstrap Containers — The Foundation</h2>
+
+      <p class="explanation">
+        From the official Bootstrap documentation: <em>"Containers are the most basic layout element in Bootstrap and are <strong>required when using our default grid system</strong>."</em>
+      </p>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">The Three Container Types</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Behavior</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>.container</code></td>
+            <td>Fixed max-width that changes at breakpoints (540px → 720px → 960px → 1140px → 1320px)</td>
+            <td>Most content — readable width with margins on large screens</td>
+          </tr>
+          <tr>
+            <td><code>.container-fluid</code></td>
+            <td>Always <code>width: 100%</code> at all breakpoints</td>
+            <td>Full-bleed sections: heroes, footers, backgrounds</td>
+          </tr>
+          <tr>
+            <td><code>.container-{breakpoint}</code></td>
+            <td>100% wide until breakpoint, then fixed max-width</td>
+            <td>Hybrid layouts (e.g., <code>.container-lg</code>)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">Why Does .container Have Max-Width?</h3>
+
+      <p class="explanation">
+        This is a <strong>design decision</strong>, not a CSS quirk. Reading a paragraph that spans 2500 pixels on a large monitor is exhausting — your eyes travel too far, and finding the next line becomes difficult.
+      </p>
+      <p class="explanation">
+        The <code>.container</code> caps content at ~1320px and centers it, creating comfortable reading widths even on 4K monitors. This is typography best practice, not a limitation.
+      </p>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">What Styles Does .container Actually Have?</h3>
+
+      <pre><code><span class="code-comment">/* Bootstrap's .container (simplified) */</span>
+<span class="code-prop">width</span>: <span class="code-val">100%</span>;
+<span class="code-prop">max-width</span>: <span class="code-val">1320px</span>;  <span class="code-comment">/* varies by breakpoint */</span>
+<span class="code-prop">margin-left</span>: <span class="code-val">auto</span>;
+<span class="code-prop">margin-right</span>: <span class="code-val">auto</span>;
+<span class="code-prop">padding-left</span>: <span class="code-val">12px</span>;   <span class="code-comment">/* gutter */</span>
+<span class="code-prop">padding-right</span>: <span class="code-val">12px</span>;  <span class="code-comment">/* gutter */</span></code></pre>
+
+      <p class="explanation">
+        The <code>margin: auto</code> is what centers the container. The padding provides the gutters. The max-width controls readability.
+      </p>
+    </section>
+
+    <!-- Section 3: Mixing Containers -->
+    <section class="section">
+      <h2 class="section-header orange">3. Mixing Containers on One Page</h2>
+
+      <p class="explanation">
+        You are <strong>not</strong> locked into one container for the whole page. Different sections can use different container strategies. This is the standard convention.
+      </p>
+
+      <pre><code><span class="code-tag">&lt;body&gt;</span>
+
+    <span class="code-comment">&lt;!-- Full-width hero --&gt;</span>
+    <span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-val">"container-fluid"</span><span class="code-tag">&gt;</span>
+        ...
+    <span class="code-tag">&lt;/header&gt;</span>
+    
+    <span class="code-comment">&lt;!-- Readable content width --&gt;</span>
+    <span class="code-tag">&lt;main</span> <span class="code-attr">class</span>=<span class="code-val">"container"</span><span class="code-tag">&gt;</span>
+        ...
+    <span class="code-tag">&lt;/main&gt;</span>
+    
+    <span class="code-comment">&lt;!-- Full-width footer --&gt;</span>
+    <span class="code-tag">&lt;footer</span> <span class="code-attr">class</span>=<span class="code-val">"container-fluid"</span><span class="code-tag">&gt;</span>
+        ...
+    <span class="code-tag">&lt;/footer&gt;</span>
+
+<span class="code-tag">&lt;/body&gt;</span></code></pre>
+
+      <div class="key-insight">
+        <h3>🔑 The Pattern</h3>
+        <p>
+          Each major section gets its own container. Full-bleed backgrounds use <code>.container-fluid</code>. Readable content uses <code>.container</code>. Mix freely based on design needs.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 4: Semantic HTML vs Bootstrap Classes -->
+    <section class="section">
+      <h2 class="section-header purple">4. Semantic HTML vs Bootstrap Classes</h2>
+
+      <p class="explanation">
+        It's important to distinguish between HTML elements and Bootstrap classes — they serve different purposes.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Thing</th>
+            <th>What It Is</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;footer&gt;</code></td>
+            <td>HTML5 semantic element</td>
+            <td>Tells browsers/screen readers "this is a footer"</td>
+          </tr>
+          <tr>
+            <td><code>&lt;header&gt;</code></td>
+            <td>HTML5 semantic element</td>
+            <td>Tells browsers/screen readers "this is a header"</td>
+          </tr>
+          <tr>
+            <td><code>&lt;main&gt;</code></td>
+            <td>HTML5 semantic element</td>
+            <td>Marks the primary content area</td>
+          </tr>
+          <tr>
+            <td><code>.mt-auto</code></td>
+            <td>Bootstrap utility class</td>
+            <td><code>margin-top: auto</code></td>
+          </tr>
+          <tr>
+            <td><code>.py-3</code></td>
+            <td>Bootstrap utility class</td>
+            <td>Padding on y-axis (top + bottom), size 3</td>
+          </tr>
+          <tr>
+            <td><code>.bg-dark</code></td>
+            <td>Bootstrap utility class</td>
+            <td>Dark background color</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="explanation">
+        <strong>Bootstrap has no "footer component."</strong> You use the HTML <code>&lt;footer&gt;</code> element and style it with whatever Bootstrap classes you need.
+      </p>
+    </section>
+
+    <!-- Section 5: The Row/Column Requirement -->
+    <section class="section">
+      <h2 class="section-header blue">5. The Bootstrap Grid Hierarchy</h2>
+
+      <p class="explanation">
+        Bootstrap's grid has a <strong>strict hierarchy</strong>. Skipping levels breaks the layout.
+      </p>
+
+      <div class="diagram-container">
+        <span class="diagram-title">Required Structure</span>
+        <div class="ascii-diagram">
+.container (or .container-fluid)
+    └── .row
+            └── .col-*
+                    └── your content</div>
+      </div>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">Do Columns Need Rows? Yes.</h3>
+
+      <p class="explanation">
+        From the official Bootstrap documentation: <em>"In a grid layout, content must be placed within columns and <strong>only columns may be immediate children of rows</strong>."</em>
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Must Be Inside...</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>.row</code></td>
+            <td><code>.container</code> or <code>.container-fluid</code></td>
+            <td>Container provides width context and horizontal padding</td>
+          </tr>
+          <tr>
+            <td><code>.col-*</code></td>
+            <td><code>.row</code></td>
+            <td>Row provides flexbox layout + negative margins for gutters</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">What Happens Without a Row?</h3>
+
+      <p class="explanation">
+        If you put <code>.col-6</code> directly inside a <code>.container</code>:
+      </p>
+
+      <ol>
+        <li><strong>The percentage width works</strong> — <code>.col-6</code> is 50%, container has a defined width, math works.</li>
+        <li><strong>But gutters break.</strong> Columns have padding (gutters). Rows have negative margins to compensate. Without the row, content is indented inward and misaligned.</li>
+        <li><strong>Columns stack vertically</strong> instead of sitting side-by-side (no <code>display: flex</code> from the row).</li>
+      </ol>
+
+      <div class="warning-box">
+        <h3>⚠️ The Row's Hidden Jobs</h3>
+        <p><code>.row</code> does more than you might think:</p>
+        <ul style="margin-left: 1rem;">
+          <li><code>display: flex</code> — makes columns sit horizontally</li>
+          <li><code>flex-wrap: wrap</code> — allows columns to wrap to new lines</li>
+          <li>Negative margins — pull outward to offset column gutter padding</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 6: Nesting Grids -->
+    <section class="section">
+      <h2 class="section-header green">6. Nesting Grids</h2>
+
+      <p class="explanation">
+        You can put a <code>.row</code> inside a <code>.col-*</code> to create nested grids. The inner row treats its parent column as the new container.
+      </p>
+
+      <pre><code><span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"container"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"row"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-8"</span><span class="code-tag">&gt;</span>
+            <span class="code-comment">&lt;!-- Nested grid --&gt;</span>
+            <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"row"</span><span class="code-tag">&gt;</span>
+                <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-6"</span><span class="code-tag">&gt;</span>A<span class="code-tag">&lt;/div&gt;</span>
+                <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-6"</span><span class="code-tag">&gt;</span>B<span class="code-tag">&lt;/div&gt;</span>
+            <span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-4"</span><span class="code-tag">&gt;</span>C<span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+<span class="code-tag">&lt;/div&gt;</span></code></pre>
+
+      <p class="explanation">
+        In this example, <code>.col-6</code> inside <code>.col-8</code> means 50% of 8/12ths of the container — creating smaller nested cells.
+      </p>
+
+      <div class="key-insight">
+        <h3>🔑 Nesting Rule</h3>
+        <p>
+          You can nest grids (row inside column), but you cannot skip levels. The hierarchy is always: container → row → column → (optional: row → column → ...).
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 7: The Canonical Page Template -->
+    <section class="section">
+      <h2 class="section-header orange">7. The Canonical Bootstrap Page Template</h2>
+
+      <pre><code><span class="code-tag">&lt;!DOCTYPE html&gt;</span>
+<span class="code-tag">&lt;html</span> <span class="code-attr">lang</span>=<span class="code-val">"en"</span><span class="code-tag">&gt;</span>
+<span class="code-tag">&lt;head&gt;</span>
+    <span class="code-tag">&lt;meta</span> <span class="code-attr">charset</span>=<span class="code-val">"UTF-8"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;meta</span> <span class="code-attr">name</span>=<span class="code-val">"viewport"</span> <span class="code-attr">content</span>=<span class="code-val">"width=device-width, initial-scale=1"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;link</span> <span class="code-attr">href</span>=<span class="code-val">"bootstrap.css"</span> <span class="code-attr">rel</span>=<span class="code-val">"stylesheet"</span><span class="code-tag">&gt;</span>
+<span class="code-tag">&lt;/head&gt;</span>
+<span class="code-tag">&lt;body&gt;</span>
+
+    <span class="code-comment">&lt;!-- Fixed elements go OUTSIDE any container --&gt;</span>
+    <span class="code-tag">&lt;nav</span> <span class="code-attr">class</span>=<span class="code-val">"navbar fixed-top"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/nav&gt;</span>
+    
+    <span class="code-comment">&lt;!-- Full-width hero --&gt;</span>
+    <span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-val">"container-fluid"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"row"</span><span class="code-tag">&gt;</span>
+            <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-12"</span><span class="code-tag">&gt;</span>Hero content<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/header&gt;</span>
+    
+    <span class="code-comment">&lt;!-- Main content with readable width --&gt;</span>
+    <span class="code-tag">&lt;main</span> <span class="code-attr">class</span>=<span class="code-val">"container"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"row"</span><span class="code-tag">&gt;</span>
+            <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-md-8"</span><span class="code-tag">&gt;</span>Main content<span class="code-tag">&lt;/div&gt;</span>
+            <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-md-4"</span><span class="code-tag">&gt;</span>Sidebar<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/main&gt;</span>
+    
+    <span class="code-comment">&lt;!-- Full-width footer --&gt;</span>
+    <span class="code-tag">&lt;footer</span> <span class="code-attr">class</span>=<span class="code-val">"container-fluid bg-dark text-light py-4"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"row"</span><span class="code-tag">&gt;</span>
+            <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-val">"col-12 text-center"</span><span class="code-tag">&gt;</span>Footer content<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/footer&gt;</span>
+
+<span class="code-tag">&lt;/body&gt;</span>
+<span class="code-tag">&lt;/html&gt;</span></code></pre>
+    </section>
+
+    <!-- Section 8: Summary -->
+    <section class="section">
+      <h2 class="section-header blue">8. Quick Reference Summary</h2>
+
+      <div class="key-insight">
+        <h3>🔑 Answering the Original Question</h3>
+        <p><strong>Do you need to wrap the page in a 100vw div?</strong> No.</p>
+        <p><strong>Do you use a Bootstrap container?</strong> Yes — containers establish the width context for percentages.</p>
+        <p><strong>What's the acceptable structure?</strong> Container → Row → Column. Don't skip levels.</p>
+        <p><strong>Why do percentages "work" in Bootstrap?</strong> Because each level (container, row, column) has a defined width, so the percentage chain flows correctly.</p>
+      </div>
+
+      <h3 class="section-header" style="font-size: 1.1rem;">The Mental Model</h3>
+
+      <ol>
+        <li><strong>Containers</strong> establish width context (and center content)</li>
+        <li><strong>Rows</strong> enable flexbox layout and handle gutter math</li>
+        <li><strong>Columns</strong> divide space using percentages of the row</li>
+        <li><strong>Percentages</strong> always reference the parent — not the viewport</li>
+        <li><strong>vw/vh</strong> ignore parents and reference the viewport — use sparingly</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>CSS Percentages & Bootstrap Structure Study Guide</p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;">Source: Official Bootstrap 5.3 Documentation + MDN Web Docs</p>
+  </footer>
+
+</body>
+</html>
