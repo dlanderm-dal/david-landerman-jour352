@@ -745,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
     canvasWrapper.addEventListener('mousedown', function(e) {
         if (e.target.closest('.picker-marker') || e.target.closest('.zoom-slider-container') ||
             e.target.closest('.zoom-controls') || e.target.closest('.picker-overlay')) return;
-        if (zoomLevel <= 1) return;
+        if (zoomLevel <= 1 && !isVerticallyCropped) return;
         if (pickerMode && !altHeld) return;
         if (!altHeld && pickerMode) return;
 
@@ -866,8 +866,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 window._zoomResetTimeout = setTimeout(() => {
                     if (zoomLevel <= 1) {
                         if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
-                        wrapper.style.height = '';
-                        wrapper.classList.remove('zoomed', 'can-pan');
+                        if (!isVerticallyCropped) {
+                            wrapper.style.height = '';
+                            wrapper.classList.remove('zoomed', 'can-pan');
+                        }
                         renderAtCurrentZoom();
                         updateMarkers();
                     }
@@ -1687,6 +1689,8 @@ function toggleColumnBypass(colIdx) {
     if (livePreviewEnabled) {
         autoRecolorImage();
     }
+    // Record lock state change in recolor history
+    addToRecolorHistory();
 }
 
 function deleteTarget(colIdx) {
@@ -2366,10 +2370,13 @@ function applyRecolor() {
         document.getElementById('recoloredStrip').classList.remove('grayed-out');
         // Ensure full UI is revealed
         revealFullUI();
+        // Add to recolor history
+        addToRecolorHistory();
         setStatus('Recolor applied!');
     }, 50);
 }
 
+let _autoRecolorHistoryTimer = null;
 function autoRecolorImage() {
     // Only recolor if an image is loaded and has been previously recolored
     if (!originalImageData) {
@@ -2381,10 +2388,31 @@ function autoRecolorImage() {
     }
     // Silently recolor without loading UI (but still async for UI responsiveness)
     setTimeout(() => recolorImage(), 10);
+    // Debounced history add — records after 1s of no further changes
+    if (_autoRecolorHistoryTimer) clearTimeout(_autoRecolorHistoryTimer);
+    _autoRecolorHistoryTimer = setTimeout(() => {
+        addToRecolorHistory();
+        _autoRecolorHistoryTimer = null;
+    }, 1000);
 }
 
 function toggleLivePreview(enabled) {
     livePreviewEnabled = enabled;
+    const applyBtn = document.getElementById('applyRecolorBtn');
+    const applyText = document.getElementById('applyRecolorText');
+    if (applyBtn && applyText) {
+        if (enabled) {
+            applyBtn.classList.remove('btn-primary');
+            applyBtn.classList.add('btn-live-inactive');
+            applyBtn.disabled = true;
+            applyText.textContent = 'Apply Recolor (Live is Active)';
+        } else {
+            applyBtn.classList.add('btn-primary');
+            applyBtn.classList.remove('btn-live-inactive');
+            applyBtn.disabled = false;
+            applyText.textContent = 'Apply Recolor';
+        }
+    }
     if (enabled && originalImageData) {
         // Immediately trigger a recolor when turning on
         recolorImage();
@@ -2919,7 +2947,7 @@ function updatePickColorsButtonState(colorsPicked) {
 
     if (colorsPicked) {
         if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span>🎯</span> Pick Colors (add or subtract)';
+            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (add or subtract)';
             sidebarBtn.classList.add('colors-picked');
         }
         if (overlayBtn) {
@@ -2929,7 +2957,7 @@ function updatePickColorsButtonState(colorsPicked) {
         }
     } else {
         if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span>🎯</span> Pick Colors';
+            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors';
             sidebarBtn.classList.remove('colors-picked');
         }
         if (overlayBtn) {
@@ -2956,7 +2984,10 @@ function togglePickerMode() {
         shouldKeepPickedMarkers = false; // Allow markers to be managed normally
 
         btn.classList.add('active');
-        if (sidebarPickBtn) sidebarPickBtn.classList.add('active');
+        if (sidebarPickBtn) {
+            sidebarPickBtn.classList.add('active');
+            sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (tool active)';
+        }
         canvasInner.classList.add('picking-mode');
         canvasWrapper.classList.add('picking-mode');
 
@@ -2979,7 +3010,15 @@ function togglePickerMode() {
         }
     } else {
         btn.classList.remove('active');
-        if (sidebarPickBtn) sidebarPickBtn.classList.remove('active');
+        if (sidebarPickBtn) {
+            sidebarPickBtn.classList.remove('active');
+            // Text will be restored by updatePickColorsButtonState below or by caller
+            if (pickedColors.length > 0) {
+                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (add or subtract)';
+            } else {
+                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors';
+            }
+        }
         canvasInner.classList.remove('picking-mode');
         canvasWrapper.classList.remove('picking-mode');
         categorySelector.classList.add('hidden');
@@ -3448,9 +3487,7 @@ function revealFullUI() {
     // Hide the Target Selector button (no longer needed)
     document.getElementById('targetSelectorBtn').classList.add('hidden');
 
-    // Keep Origin section expanded when loading a config (user needs to see the mapping)
-    const originCollapsible = document.getElementById('originCollapsible');
-    if (originCollapsible) originCollapsible.setAttribute('open', '');
+    // Don't force origin collapsible open — leave it as-is (collapsed by activateTargetSelection)
 
     // Hide early import from Color Analysis (full config section is now visible below)
     const earlyImport = document.getElementById('earlyImportSection');
@@ -3492,17 +3529,34 @@ function resetZoom() {
     zoomLevel = 1;
     panX = 0;
     panY = 0;
+    isVerticallyCropped = false;
     if (panzoomInstance) {
         panzoomInstance.pan(0, 0, { animate: false, force: true });
     }
     // Cancel pending debounced render and any deferred 1x cleanup
     if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
     if (window._zoomResetTimeout) { clearTimeout(window._zoomResetTimeout); window._zoomResetTimeout = null; }
+
     const wrapper = document.getElementById('canvasWrapper');
-    // Render FIRST while layout still has valid dimensions, then tear down
-    renderAtCurrentZoom();
+    const canvasArea = document.getElementById('canvasArea');
+
+    // Clear ALL manual resize overrides on canvasArea and wrapper
+    // (same as autoSizeCanvasArea — let CSS flex + aspect-ratio handle sizing)
+    canvasArea.style.width = '';
+    canvasArea.style.height = '';
+    canvasArea.style.flex = '';
+
+    // Restore wrapper aspect-ratio to match the image's natural proportions
+    if (canvas && canvas.width > 0 && canvas.height > 0) {
+        wrapper.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
+    }
     wrapper.style.height = '';
+    wrapper.style.minHeight = '';
+
     wrapper.classList.remove('zoomed', 'can-pan');
+
+    // Re-render at zoom 1 with the restored dimensions
+    renderAtCurrentZoom();
     updateMarkers();
     updateZoomDisplay();
 }
@@ -3563,8 +3617,10 @@ function setZoomFromSlider(value) {
         window._zoomResetTimeout = setTimeout(() => {
             if (zoomLevel <= 1) {
                 if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
-                wrapper.style.height = '';
-                wrapper.classList.remove('zoomed', 'can-pan');
+                if (!isVerticallyCropped) {
+                    wrapper.style.height = '';
+                    wrapper.classList.remove('zoomed', 'can-pan');
+                }
                 renderAtCurrentZoom();
                 updateMarkers();
             }
@@ -3579,7 +3635,7 @@ function setZoomFromSlider(value) {
 let _constrainingPan = false;
 function constrainPan() {
     if (_constrainingPan) return; // Prevent recursive calls from panzoomchange
-    if (!panzoomInstance || zoomLevel <= 1) return;
+    if (!panzoomInstance || (zoomLevel <= 1 && !isVerticallyCropped)) return;
 
     const wrapper = document.getElementById('canvasWrapper');
     if (!wrapper) return;
@@ -3601,13 +3657,30 @@ function constrainPan() {
     let px = currentPan.x;
     let py = currentPan.y;
 
-    // Clamp: canvas right edge must be at least 20% into wrapper from left
-    // canvas left edge must be at most 80% into wrapper from left
-    const margin = 0.2;
-    const minX = wW * margin - canvasW;  // canvas can't go too far left
-    const maxX = wW * (1 - margin);       // canvas can't go too far right
-    const minY = wH * margin - canvasH;
-    const maxY = wH * (1 - margin);
+    // Clamp so image edges can never go past the viewing window edges.
+    // - Image left edge must not go right of wrapper left edge (px <= 0)
+    // - Image right edge must not go left of wrapper right edge (px + canvasW >= wW)
+    // - Same logic for vertical axis
+    // If the image is smaller than the wrapper in a dimension, center it instead.
+    let minX, maxX, minY, maxY;
+    if (canvasW >= wW) {
+        minX = wW - canvasW;  // most it can go left (negative)
+        maxX = 0;              // can't go right of origin
+    } else {
+        // Image narrower than wrapper — center it, no horizontal panning
+        const centered = (wW - canvasW) / 2;
+        minX = centered;
+        maxX = centered;
+    }
+    if (canvasH >= wH) {
+        minY = wH - canvasH;  // most it can go up (negative)
+        maxY = 0;              // can't go below origin
+    } else {
+        // Image shorter than wrapper — center it, no vertical panning
+        const centered = (wH - canvasH) / 2;
+        minY = centered;
+        maxY = centered;
+    }
 
     let clamped = false;
     if (px < minX) { px = minX; clamped = true; }
@@ -3629,7 +3702,7 @@ function updateCanvasTransform(zoomChanged = false) {
     // Panzoom manages the CSS transform on canvasInner.
     // This function is kept for any remaining call sites.
     const wrapper = document.getElementById('canvasWrapper');
-    if (zoomLevel > 1) {
+    if (zoomLevel > 1 || isVerticallyCropped) {
         wrapper.classList.add('zoomed', 'can-pan');
     } else {
         wrapper.classList.remove('zoomed', 'can-pan');
@@ -3664,7 +3737,7 @@ function updateDisplayCanvas() {
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
-    if (zoomLevel === 1) {
+    if (zoomLevel === 1 && !isVerticallyCropped) {
         wrapper.style.height = '';
         baseDisplayWidth = baseWidth;
         baseDisplayHeight = baseHeight;
@@ -3762,6 +3835,7 @@ let resizeStartX = 0;
 let resizeStartY = 0;
 let resizeStartWidth = 0;
 let resizeStartHeight = 0;
+let isVerticallyCropped = false; // true when wrapper is shorter than image natural height
 
 function initResizeHandles() {
     const canvasArea = document.getElementById('canvasArea');
@@ -3772,6 +3846,7 @@ function initResizeHandles() {
     if (!resizeRight || !resizeBottom || !resizeCorner) return;
 
     const startResize = (type) => (e) => {
+        e.preventDefault(); // Prevent text selection during drag
         isResizing = true;
         resizeType = type;
         resizeStartX = e.clientX;
@@ -3779,6 +3854,7 @@ function initResizeHandles() {
         resizeStartWidth = canvasArea.offsetWidth;
         resizeStartHeight = canvasArea.offsetHeight;
         document.body.style.cursor = type === 'corner' ? 'nwse-resize' : (type === 'right' ? 'ew-resize' : 'ns-resize');
+        document.body.style.userSelect = 'none';
         e.target.classList.add('active');
     };
 
@@ -3798,11 +3874,10 @@ function initResizeHandles() {
             canvasArea.style.flex = 'none';
         }
 
-        // Allow height adjustment — only taller than natural aspect-ratio height, never shorter
+        // Allow height adjustment — shrinking clips the image (overflow hidden + panning)
         if (resizeType === 'bottom' || resizeType === 'corner') {
-            // resizeStartHeight is the natural height at drag start (from aspect-ratio).
-            // Only allow making it taller, not shorter.
-            const newHeight = Math.max(resizeStartHeight, resizeStartHeight + dy);
+            const minH = 150; // minimum box height
+            const newHeight = Math.max(minH, resizeStartHeight + dy);
             canvasArea.style.height = newHeight + 'px';
             // Override aspect-ratio so the explicit height takes effect
             const wrapper = document.getElementById('canvasWrapper');
@@ -3817,7 +3892,10 @@ function initResizeHandles() {
             isResizing = false;
             resizeType = null;
             document.body.style.cursor = '';
+            document.body.style.userSelect = '';
             document.querySelectorAll('.resize-handle').forEach(h => h.classList.remove('active'));
+            // Check if vertically cropped (wrapper shorter than image natural height)
+            checkVerticallyCropped();
             // Re-render after resize is complete
             updateDisplayCanvas();
             updateMarkers();
@@ -3846,6 +3924,25 @@ function initResizeHandles() {
             updateDisplayCanvas();
             updateMarkers();
         });
+    }
+}
+
+function checkVerticallyCropped() {
+    if (!canvas || !canvas.width || !canvas.height) {
+        isVerticallyCropped = false;
+        return;
+    }
+    const wrapper = document.getElementById('canvasWrapper');
+    if (!wrapper) { isVerticallyCropped = false; return; }
+    const wrapperRect = wrapper.getBoundingClientRect();
+    // Natural image height at current wrapper width (unzoomed)
+    const naturalHeight = wrapperRect.width / (canvas.width / canvas.height);
+    // Cropped if wrapper is shorter than the image's natural display height (with small tolerance)
+    isVerticallyCropped = (wrapperRect.height < naturalHeight - 2);
+    if (isVerticallyCropped) {
+        wrapper.classList.add('zoomed', 'can-pan');
+    } else if (zoomLevel <= 1) {
+        wrapper.classList.remove('zoomed', 'can-pan');
     }
 }
 
@@ -3968,6 +4065,8 @@ function selectTheme(themeKey) {
     document.querySelectorAll('.theme-item').forEach(item => {
         item.classList.toggle('selected', item.dataset.theme === themeKey);
     });
+    // Apply theme immediately on click
+    applyTheme();
 }
 
 function applyTheme() {
@@ -5206,20 +5305,16 @@ window.debugMapping = function() {
 // Configuration Save/Load System
 // ============================================
 
-let savedConfigs = [];
+let savedConfigs = []; // kept for backward compat with imports
 let configCounter = 0;
+let recolorHistory = []; // tracks every previewed recolor transformation
 
-function saveCurrentConfig() {
-    if (!originalImageData) {
-        setStatus('Load an image first before saving config');
-        return;
-    }
-
-    configCounter++;
-    const config = {
-        id: Date.now(),
-        name: `Config ${configCounter}`,
+function buildConfigSnapshot() {
+    return {
+        id: Date.now() + Math.random(),
+        name: `Recolor ${recolorHistory.length + 1}`,
         timestamp: new Date().toISOString(),
+        savedForExport: false,
         originCount,
         targetCount,
         originalPalette: originalPalette.map(c => [...c]),
@@ -5229,19 +5324,46 @@ function saveCurrentConfig() {
         columnBypass: {...columnBypass},
         algorithm: selectedAlgorithm,
         luminosity: parseInt(document.getElementById('luminositySlider').value),
-        // Picked color coordinates for backfilling when same image is loaded
         pickedColors: pickedColors.map(c => [...c]),
         pickedPositions: pickedPositions.map(p => ({ x: p.x, y: p.y, color: [...p.color] })),
         pickedCategories: [...pickedCategories]
     };
+}
 
-    savedConfigs.push(config);
+function addToRecolorHistory() {
+    if (!originalImageData) return;
+    if (targetPalette.some(t => t === null)) return;
+    const snapshot = buildConfigSnapshot();
+    snapshot.name = `Recolor ${recolorHistory.length + 1}`;
+    recolorHistory.push(snapshot);
     renderConfigList();
-    setStatus(`Saved configuration: ${config.name}`);
+}
+
+function saveCurrentConfig() {
+    if (!originalImageData) {
+        setStatus('Load an image first before saving config');
+        return;
+    }
+
+    // Save the currently displayed config into history as a saved entry
+    const snapshot = buildConfigSnapshot();
+    snapshot.savedForExport = true;
+    snapshot.name = `Recolor ${recolorHistory.length + 1}`;
+    recolorHistory.push(snapshot);
+    renderConfigList();
+    setStatus(`Saved current configuration for export`);
+}
+
+function toggleSaveForExport(configId) {
+    const entry = recolorHistory.find(c => c.id === configId);
+    if (entry) {
+        entry.savedForExport = !entry.savedForExport;
+        renderConfigList();
+    }
 }
 
 function loadConfig(configId) {
-    const config = savedConfigs.find(c => c.id === configId);
+    const config = recolorHistory.find(c => c.id === configId) || savedConfigs.find(c => c.id === configId);
     if (!config) {
         setStatus('Configuration not found');
         return;
@@ -5282,10 +5404,14 @@ function loadConfig(configId) {
     renderConfigList();
     // Loading a config reveals the full UI
     revealFullUI();
+    // Expand origin section when loading a config so user can see the mapping
+    const originCollapsible = document.getElementById('originCollapsible');
+    if (originCollapsible) originCollapsible.setAttribute('open', '');
     setStatus(`Loaded configuration: ${config.name}`);
 }
 
 function deleteConfig(configId) {
+    recolorHistory = recolorHistory.filter(c => c.id !== configId);
     savedConfigs = savedConfigs.filter(c => c.id !== configId);
     renderConfigList();
     setStatus('Configuration deleted');
@@ -5297,7 +5423,7 @@ function renderConfigList() {
 
     list.innerHTML = '';
 
-    savedConfigs.forEach((config, index) => {
+    recolorHistory.forEach((config, index) => {
         const item = document.createElement('div');
         item.className = 'config-item';
         item.onclick = () => loadConfig(config.id);
@@ -5323,6 +5449,23 @@ function renderConfigList() {
         info.appendChild(name);
         info.appendChild(details);
 
+        // Save for export button / saved indicator
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'config-item-save' + (config.savedForExport ? ' saved' : '');
+        if (config.savedForExport) {
+            saveBtn.innerHTML = '<span class="save-check">✓</span><span class="save-text">Saved for Export!</span>';
+        } else {
+            saveBtn.innerHTML = 'Save';
+            saveBtn.title = 'Save for export';
+        }
+        saveBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (!config.savedForExport) {
+                config.savedForExport = true;
+                renderConfigList();
+            }
+        };
+
         // Delete button
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'config-item-delete';
@@ -5335,21 +5478,23 @@ function renderConfigList() {
 
         item.appendChild(swatches);
         item.appendChild(info);
+        item.appendChild(saveBtn);
         item.appendChild(deleteBtn);
         list.appendChild(item);
     });
 }
 
 function exportAllConfigs() {
-    if (savedConfigs.length === 0) {
-        setStatus('No configurations to export');
+    const savedEntries = recolorHistory.filter(c => c.savedForExport);
+    if (savedEntries.length === 0) {
+        setStatus('No saved configurations to export. Click "Save" next to history items first.');
         return;
     }
 
     const exportData = {
         version: '18',
         exportDate: new Date().toISOString(),
-        configs: savedConfigs
+        configs: savedEntries
     };
 
     const json = JSON.stringify(exportData, null, 2);
@@ -5362,7 +5507,7 @@ function exportAllConfigs() {
     link.click();
 
     URL.revokeObjectURL(url);
-    setStatus(`Exported ${savedConfigs.length} configurations`);
+    setStatus(`Exported ${savedEntries.length} configurations`);
 }
 
 function importConfigFile(event) {
@@ -5375,21 +5520,17 @@ function importConfigFile(event) {
             const data = JSON.parse(e.target.result);
 
             if (data.configs && Array.isArray(data.configs)) {
-                // Merge imported configs with existing ones
-                const existingIds = new Set(savedConfigs.map(c => c.id));
+                const existingIds = new Set(recolorHistory.map(c => c.id));
                 let importedCount = 0;
 
                 data.configs.forEach(config => {
-                    // Generate new ID if there's a conflict
                     if (existingIds.has(config.id)) {
                         config.id = Date.now() + Math.random();
                     }
-                    savedConfigs.push(config);
+                    config.savedForExport = true; // imported configs are already saved
+                    recolorHistory.push(config);
                     importedCount++;
                 });
-
-                // Update config counter
-                configCounter = Math.max(configCounter, savedConfigs.length);
 
                 renderConfigList();
                 setStatus(`Imported ${importedCount} configurations`);
@@ -5417,25 +5558,24 @@ function importConfigFileEarly(event) {
             const data = JSON.parse(e.target.result);
 
             if (data.configs && Array.isArray(data.configs)) {
-                // Merge imported configs with existing ones
-                const existingIds = new Set(savedConfigs.map(c => c.id));
+                const existingIds = new Set(recolorHistory.map(c => c.id));
                 let importedCount = 0;
-                let firstNewIndex = savedConfigs.length;
+                let firstNewIndex = recolorHistory.length;
 
                 data.configs.forEach(config => {
                     if (existingIds.has(config.id)) {
                         config.id = Date.now() + Math.random();
                     }
-                    savedConfigs.push(config);
+                    config.savedForExport = true;
+                    recolorHistory.push(config);
                     importedCount++;
                 });
 
-                configCounter = Math.max(configCounter, savedConfigs.length);
                 renderConfigList();
 
                 // Auto-load the first imported config
                 if (importedCount > 0) {
-                    loadConfig(savedConfigs[firstNewIndex].id);
+                    loadConfig(recolorHistory[firstNewIndex].id);
                 }
 
                 setStatus(`Imported ${importedCount} configurations. First config auto-loaded.`);

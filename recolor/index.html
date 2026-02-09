@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graphic Design: Palette Recolor Preview Tool (v24)</title>
+    <title>Recolor Preview Tool</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.6.1/dist/panzoom.min.js"></script>
@@ -12,7 +12,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Graphic Design: Palette Recolor Preview Tool (v24)</h1>
+            <h1>Recolor Preview Tool</h1>
             <p class="subtitle-warning">Not for photographs</p>
             <p class="byline">Ineptly vibe-coded by David Landerman</p>
             <details class="instructions-credits">
@@ -97,7 +97,8 @@
 
                 <div class="canvas-wrapper" id="canvasWrapper">
                     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                        <div class="upload-icon">📷</div>
+                        <div class="step-circle">1</div>
+                        <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
                         <div class="upload-text">Click to upload an image</div>
                         <div class="upload-hint">PNG, JPG, WebP, SVG, GIF</div>
                     </div>
@@ -140,7 +141,7 @@
                         <div class="picker-pan-hint hidden" id="pickerCtrlHint">Hit Ctrl to temporarily hide this menu</div>
                     </div>
                     <div class="zoom-controls hidden" id="zoomControls">
-                        <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">⟲</button>
+                        <button class="zoom-btn zoom-btn-wide" onclick="resetZoom()" title="Reset View">⟲ Reset View</button>
                     </div>
                     <div class="pan-hint" id="panHint">Alt+Drag to pan • Alt+Scroll to zoom</div>
                 </div>
@@ -198,7 +199,7 @@
                         </div>
                         <div class="tool-legend-item">
                             <span class="tool-legend-emoji">⟲</span>
-                            <span class="tool-legend-desc"><strong>Reset Zoom</strong> — Resets the zoom level and pan position of the image viewer</span>
+                            <span class="tool-legend-desc"><strong>Reset View</strong> — Resets zoom, pan, and image viewing area height</span>
                         </div>
                     </div>
                 </div>
@@ -248,7 +249,8 @@
                     </div>
 
                     <!-- Pick Colors button (duplicate functionality) -->
-                    <button class="btn btn-primary btn-full pick-colors-sidebar-btn" id="sidebarPickColorsBtn" onclick="togglePickerMode()">
+                    <button class="btn btn-primary btn-full pick-colors-sidebar-btn btn-with-step" id="sidebarPickColorsBtn" onclick="togglePickerMode()">
+                        <span class="step-circle step-circle-btn">2</span>
                         <span>🎯</span> Pick Colors
                     </button>
                     <div class="pick-colors-description-wrapper" id="pickerInstructions">
@@ -280,6 +282,7 @@
                         <details class="target-tool-section origin-collapsible" id="originCollapsible" open>
                             <summary class="target-tool-summary">🎨 Origin</summary>
                             <div class="target-tool-content origin-collapsible-content">
+                                <div class="origin-drag-hint">Drag to reorganize (optional)</div>
                                 <!-- Overflow bank for locked/extra origins -->
                                 <div class="origin-overflow-bank" id="originOverflowBank">
                                     <div class="overflow-bank-title">🔒 Extra Colors (Locked - No Change)</div>
@@ -299,10 +302,6 @@
                     <!-- Target count control (hidden until target selection stage) -->
                     <div class="palette-row" id="targetControlRow">
                         <span class="palette-row-label">Target</span>
-                        <label class="live-preview-toggle hidden" id="livePreviewToggleWrapper" title="Enable live preview updates">
-                            <input type="checkbox" id="livePreviewToggle" onchange="toggleLivePreview(this.checked)">
-                            <span class="live-preview-label">Live</span>
-                        </label>
                         <button class="btn btn-icon btn-small hidden" id="shuffleBtn" onclick="shuffleTargetPalette()" title="Shuffle colors">
                             <span>🔀</span>
                         </button>
@@ -347,7 +346,8 @@
                 </div>
 
                 <!-- Target Selector Button (between Palette Mapping and Target Choice) -->
-                <button class="btn btn-primary btn-full btn-large hidden" id="targetSelectorBtn" onclick="activateTargetSelection()">
+                <button class="btn btn-primary btn-full btn-large btn-with-step hidden" id="targetSelectorBtn" onclick="activateTargetSelection()">
+                    <span class="step-circle step-circle-btn">3</span>
                     🎨 Target Selector
                 </button>
 
@@ -358,8 +358,15 @@
                     <div class="panel-title">Target Choice</div>
 
                     <!-- Apply Recolor Button (top of panel) -->
-                    <div class="btn-group" style="margin-bottom: 0.75rem;">
-                        <button class="btn btn-primary btn-full" onclick="applyRecolor()">Apply Recolor</button>
+                    <div class="apply-recolor-group" style="margin-bottom: 0.75rem;">
+                        <button class="btn btn-primary btn-full btn-with-step" id="applyRecolorBtn" onclick="applyRecolor()">
+                            <span class="step-circle step-circle-btn">4</span>
+                            <span id="applyRecolorText">Apply Recolor</span>
+                        </button>
+                        <label class="live-preview-toggle-below hidden" id="livePreviewToggleWrapper" title="Enable live preview updates">
+                            <input type="checkbox" id="livePreviewToggle" onchange="toggleLivePreview(this.checked)">
+                            <span class="live-preview-label">Live Preview</span>
+                        </label>
                     </div>
 
                     <div class="target-choice-description">
@@ -371,11 +378,12 @@
                         <summary class="target-tool-summary">🎨 Import Theme From Adobe Color</summary>
                         <div class="target-tool-content">
                             <div class="adobe-section">
+                                <a class="adobe-color-link-top" href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a>
                                 <details class="adobe-instructions">
                                     <summary>How to get CSS from Adobe Color</summary>
                                     <div class="adobe-instructions-content">
-                                        <a href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a>
                                         <ol>
+                                            <li><a href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a></li>
                                             <li>Create or choose a theme</li>
                                             <li>Save it to your library</li>
                                             <li>Open the <strong>Libraries</strong> tab at the top</li>
@@ -453,47 +461,59 @@
                         <div class="target-tool-content">
                             <div class="theme-section">
                                 <div class="theme-scroll-container" id="themeScrollContainer"></div>
-                                <button class="btn btn-full" onclick="applyTheme()">Apply Theme</button>
                             </div>
                         </div>
                     </details>
 
                     <div class="divider"></div>
 
-                    <!-- Algorithm toggle (Simple / Advanced) -->
-                    <div class="algorithm-toggle-bottom">
-                        <span class="algorithm-toggle-label" id="algoLabelSimple" onclick="setAlgorithm('simple')">Simple</span>
-                        <div class="algorithm-toggle-switch" id="algoSwitch" onclick="toggleAlgorithm()" title="Toggle recolor algorithm"></div>
-                        <span class="algorithm-toggle-label" id="algoLabelRBF" onclick="setAlgorithm('rbf')">Advanced</span>
+                    <!-- Color Adjust box (algorithm toggle + luminosity) -->
+                    <div class="color-adjust-box">
+                        <span class="color-adjust-box-title">Color Adjust <span class="tolerance-optional">(optional)</span></span>
+
+                        <!-- Algorithm toggle (Simple / Advanced) -->
+                        <div class="algorithm-toggle-bottom">
+                            <span class="algorithm-toggle-sublabel">Recolor algorithm</span>
+                        </div>
+                        <div class="algorithm-toggle-bottom" style="margin-top: 0;">
+                            <span class="algorithm-toggle-label" id="algoLabelSimple" onclick="setAlgorithm('simple')">Simple</span>
+                            <div class="algorithm-toggle-switch" id="algoSwitch" onclick="toggleAlgorithm()" title="Toggle recolor algorithm"></div>
+                            <span class="algorithm-toggle-label" id="algoLabelRBF" onclick="setAlgorithm('rbf')">Advanced</span>
+                        </div>
+
+                        <!-- Color Luminosity (Post Processing) -->
+                        <details class="target-tool-section" style="margin-top: 0.75rem;">
+                            <summary class="target-tool-summary">☀️ Color Luminosity (Post Processing)</summary>
+                            <div class="target-tool-content">
+                                <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
+                                    Adjusts brightness after recolor. Respects locked colors.
+                                </div>
+                                <div class="slider-row">
+                                    <div class="slider-label">
+                                        <span>Brightness Adjustment</span>
+                                        <span class="slider-value" id="luminosityValue">0</span>
+                                    </div>
+                                    <input type="range" class="slider" id="luminositySlider" min="-50" max="50" value="0"
+                                           oninput="updateLuminosityValue(this.value)">
+                                </div>
+                                <button class="btn btn-full" style="margin-top: 0.5rem;" onclick="applyLuminosityPostProcess()">Apply Luminosity</button>
+                            </div>
+                        </details>
                     </div>
 
-                    <!-- Color Luminosity (Post Processing) -->
-                    <details class="target-tool-section" style="margin-top: 0.75rem;">
-                        <summary class="target-tool-summary">☀️ Color Luminosity (Post Processing)</summary>
-                        <div class="target-tool-content">
-                            <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
-                                Adjusts brightness after recolor. Respects locked colors.
-                            </div>
-                            <div class="slider-row">
-                                <div class="slider-label">
-                                    <span>Brightness Adjustment</span>
-                                    <span class="slider-value" id="luminosityValue">0</span>
-                                </div>
-                                <input type="range" class="slider" id="luminositySlider" min="-50" max="50" value="0"
-                                       oninput="updateLuminosityValue(this.value)">
-                            </div>
-                            <button class="btn btn-full" style="margin-top: 0.5rem;" onclick="applyLuminosityPostProcess()">Apply Luminosity</button>
-                        </div>
-                    </details>
-
-                    <!-- Config export/load section -->
-                    <div class="config-section">
-                        <div class="config-buttons">
-                            <button class="btn" onclick="saveCurrentConfig()">Save Config</button>
-                            <button class="btn" onclick="exportAllConfigs()">Export All</button>
+                    <!-- Save/History box -->
+                    <div class="save-history-box">
+                        <span class="save-history-box-title">Save / History</span>
+                        <button class="btn btn-primary btn-full btn-save-config btn-with-step" onclick="saveCurrentConfig()">
+                            <span class="step-circle step-circle-btn">5</span>
+                            Save Config
+                        </button>
+                        <div class="config-import-export-row">
+                            <button class="btn" onclick="exportAllConfigs()">Export Saved</button>
                             <button class="btn" onclick="document.getElementById('configFileInput').click()">Import</button>
                         </div>
                         <input type="file" id="configFileInput" accept=".json" style="display:none" onchange="importConfigFile(event)">
+                        <div class="config-history-header">Recolor History</div>
                         <div class="config-list" id="configList"></div>
                     </div>
                 </div>

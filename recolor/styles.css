@@ -148,7 +148,7 @@ h1 {
 
 .workspace {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 1.5rem;
 }
 
@@ -403,9 +403,13 @@ h1 {
 }
 
 .upload-icon {
-    font-size: 2.5rem;
     margin-bottom: 0.75rem;
-    opacity: 0.5;
+    color: var(--text-muted);
+    opacity: 0.45;
+}
+
+.upload-icon svg {
+    display: block;
 }
 
 .upload-text {
@@ -1348,7 +1352,20 @@ h1 {
 }
 
 .adobe-section {
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.adobe-color-link-top {
+    display: inline-block;
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 0.25rem;
+}
+
+.adobe-color-link-top:hover {
+    text-decoration: underline;
 }
 
 .adobe-title {
@@ -1961,6 +1978,15 @@ h1 {
     background: var(--surface-2);
 }
 
+.zoom-btn-wide {
+    width: auto;
+    padding: 0 10px;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 .zoom-slider-container {
     position: absolute;
     left: 4px;
@@ -2544,6 +2570,48 @@ h1 {
     border-top: 1px solid var(--border);
 }
 
+.save-history-box {
+    margin-top: 0.75rem;
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.save-history-box-title {
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.btn-save-config {
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.config-import-export-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.config-import-export-row .btn {
+    flex: 1;
+}
+
+.config-history-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
 .config-buttons {
     display: flex;
     gap: 0.5rem;
@@ -2551,7 +2619,7 @@ h1 {
 }
 
 .config-list {
-    max-height: 150px;
+    max-height: 200px;
     overflow-y: auto;
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -2559,7 +2627,7 @@ h1 {
 }
 
 .config-list:empty::after {
-    content: 'No saved configurations';
+    content: 'No recolor history yet';
     display: block;
     padding: 12px;
     text-align: center;
@@ -2637,6 +2705,43 @@ h1 {
     color: #ef4444;
 }
 
+.config-item-save {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--accent);
+    color: #ffffff;
+    border: 1px solid var(--accent-dim);
+    font-size: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.config-item-save:hover {
+    background: var(--accent-dim);
+}
+
+.config-item-save.saved {
+    background: transparent;
+    color: #22c55e;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 4px;
+}
+
+.config-item-save.saved .save-check {
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.config-item-save.saved .save-text {
+    font-size: 9px;
+    font-weight: 500;
+}
+
 /* Resizable preview panel */
 .canvas-area {
     position: relative;
@@ -2687,7 +2792,7 @@ h1 {
 /* Responsive layout */
 .workspace {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 1.5rem;
     align-items: flex-start;
 }
@@ -2699,8 +2804,8 @@ h1 {
 }
 
 .sidebar {
-    flex: 0 0 500px;
-    min-width: 400px;
+    flex: 0 1 500px;
+    min-width: 320px;
     max-width: 100%;
 }
 
@@ -2819,9 +2924,15 @@ h1 {
 }
 
 .pick-colors-sidebar-btn.active {
-    background: var(--primary);
+    background: var(--surface-2);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.75rem;
+}
+
+.pick-colors-sidebar-btn.active .step-circle-btn {
+    background: var(--accent);
     color: white;
-    border-color: var(--primary);
 }
 
 .pick-colors-sidebar-btn.colors-picked {
@@ -2969,6 +3080,28 @@ h1 {
 }
 
 /* Algorithm toggle at bottom of Target Choice */
+.color-adjust-box {
+    margin-top: 0.75rem;
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.color-adjust-box-title {
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.algorithm-toggle-sublabel {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
 .algorithm-toggle-bottom {
     display: flex;
     align-items: center;
@@ -2976,7 +3109,7 @@ h1 {
     gap: 8px;
     font-size: 10px;
     color: var(--text-muted);
-    margin-top: 0.75rem;
+    margin-top: 0.35rem;
 }
 
 /* Zoom hint note */
@@ -3142,4 +3275,119 @@ h1 {
 
 .tool-legend-desc strong {
     color: var(--text);
+}
+
+/* ============================================ */
+/* Step Number Circles                          */
+/* ============================================ */
+
+.step-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+/* Step circle inside buttons — smaller, left-aligned */
+.step-circle-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    margin-right: 4px;
+}
+
+.btn-with-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+/* ============================================ */
+/* Live Preview Toggle (below Apply Recolor)    */
+/* ============================================ */
+
+.live-preview-toggle-below {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-top: 4px;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.live-preview-toggle-below:hover {
+    background: var(--surface-2);
+}
+
+.live-preview-toggle-below input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+.live-preview-toggle-below .live-preview-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    user-select: none;
+}
+
+.live-preview-toggle-below input:checked + .live-preview-label {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.live-preview-toggle-below.hidden {
+    display: none;
+}
+
+/* Apply Recolor button in "live active" state — muted style */
+.btn-live-inactive {
+    background: var(--surface-2) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border) !important;
+    cursor: default !important;
+    opacity: 0.7;
+}
+
+.btn-live-inactive:hover {
+    background: var(--surface-2) !important;
+}
+
+.btn-live-inactive .step-circle-btn {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--text-muted);
+}
+
+/* ============================================ */
+/* Origin Drag Hint                             */
+/* ============================================ */
+
+.origin-drag-hint {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 6px;
+    padding: 2px 0;
+}
+
+.apply-recolor-group {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
