@@ -455,6 +455,16 @@ let originToColumn = [];
 // Per-column bypass (lock) state - when true, origins in that column keep their original colors
 let columnBypass = [];
 
+// Per-target opacity (0-100): controls how much of the target color shows vs original
+let targetOpacity = {};
+
+// Per-origin opacity (0-100): controls individual origin recolor strength
+let originOpacity = {};
+
+// Opacity recolor cache — avoids full pipeline re-run when only opacity changes
+let _opacityCache = null; // { oldLab, fullTargetLab, k, algorithm }
+let _opacityRafPending = false;
+
 // Live preview toggle - when false, autoRecolorImage does nothing
 let livePreviewEnabled = false;
 
@@ -469,6 +479,31 @@ let selectedAlgorithm = 'simple';
 
 // Progressive UI stage: 'initial' | 'image-loaded' | 'colors-picked' | 'target-selection' | 'complete'
 let uiStage = 'initial';
+
+let instructionsCollapsed = false;
+
+function toggleInstructions() {
+    instructionsCollapsed = !instructionsCollapsed;
+    const container = document.getElementById('progressiveInstructions');
+    const arrow = document.getElementById('instructionsToggleArrow');
+    if (container) container.classList.toggle('collapsed', instructionsCollapsed);
+    if (arrow) arrow.textContent = instructionsCollapsed ? '▸' : '▾';
+}
+
+function updateProgressiveInstructions(step) {
+    const container = document.getElementById('progressiveInstructions');
+    if (!container) return;
+    container.querySelectorAll('.instruction-step').forEach(el => {
+        const elStep = el.dataset.step;
+        // When at target-selection or complete, show both step 4 and step 5/6
+        if (step === 'target-selection' || step === 'complete') {
+            el.classList.toggle('active', elStep === 'target-selection' || elStep === 'complete');
+        } else {
+            el.classList.toggle('active', elStep === step);
+        }
+    });
+    // Preserve collapsed state — don't auto-expand when step changes
+}
 
 // Palette counts
 let originCount = 5;
@@ -485,6 +520,8 @@ let panzoomInstance = null;
 let draggingMarker = null;
 let altHeld = false;
 let draggedOriginIndex = null;
+let draggedTargetIndex = null;    // For target swatch drag-and-drop
+let targetConflict = null;        // {col: colIdx} if two targets in same slot
 
 // Theme Presets
 const THEME_NAMES = {
@@ -556,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const workspace = document.getElementById('workspace');
     workspace.classList.add('centered-initial');
     uiStage = 'initial';
+    updateProgressiveInstructions('initial');
 
     // Initialize color gradient picker
     initColorGradientPicker();
@@ -660,9 +698,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const pickerOverlay = document.getElementById('pickerOverlay');
             const zoomControls = document.getElementById('zoomControls');
             const zoomSlider = document.getElementById('zoomSliderContainer');
+            const tutorialOverlayEl = document.getElementById('tutorialOverlay');
+            const tutorialTabEl = document.getElementById('tutorialTab');
 
             if (ctrlOverlaysHidden) {
-                if (pickerOverlay && !pickerOverlay.classList.contains('hidden')) {
+                if (pickerOverlay && !pickerOverlay.classList.contains('hidden') && !pickerOverlay.dataset.tutorialHidden) {
                     pickerOverlay.style.opacity = '0';
                     pickerOverlay.style.pointerEvents = 'none';
                 }
@@ -674,10 +714,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     zoomSlider.style.opacity = '0';
                     zoomSlider.style.pointerEvents = 'none';
                 }
+                // Temporarily hide tutorial overlay (not collapse — no traditional picker shown)
+                if (tutorialOverlayEl && !tutorialOverlayEl.classList.contains('hidden')) {
+                    tutorialOverlayEl.style.opacity = '0';
+                    tutorialOverlayEl.style.pointerEvents = 'none';
+                    tutorialCtrlHidden = true;
+                }
+                if (tutorialTabEl && !tutorialTabEl.classList.contains('hidden')) {
+                    tutorialTabEl.style.opacity = '0';
+                    tutorialTabEl.style.pointerEvents = 'none';
+                }
             } else {
-                if (pickerOverlay) { pickerOverlay.style.opacity = ''; pickerOverlay.style.pointerEvents = ''; }
+                if (pickerOverlay && !pickerOverlay.dataset.tutorialHidden) {
+                    pickerOverlay.style.opacity = '';
+                    pickerOverlay.style.pointerEvents = '';
+                }
                 if (zoomControls) { zoomControls.style.opacity = ''; zoomControls.style.pointerEvents = ''; }
                 if (zoomSlider) { zoomSlider.style.opacity = ''; zoomSlider.style.pointerEvents = ''; }
+                // Restore tutorial overlay
+                if (tutorialOverlayEl) {
+                    tutorialOverlayEl.style.opacity = '';
+                    tutorialOverlayEl.style.pointerEvents = '';
+                    tutorialCtrlHidden = false;
+                }
+                if (tutorialTabEl) {
+                    tutorialTabEl.style.opacity = '';
+                    tutorialTabEl.style.pointerEvents = '';
+                }
             }
         }
     });
@@ -886,10 +949,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // File Handling
 // ============================================
 
+let originalFileName = 'image';  // Track original file name for download naming
+
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
+    // Extract filename without extension for download naming
+    const name = file.name || 'image';
+    const dotIdx = name.lastIndexOf('.');
+    originalFileName = dotIdx > 0 ? name.substring(0, dotIdx) : name;
+
     const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
@@ -917,11 +987,13 @@ function loadImage(img) {
     // Show sidebar and Color Analysis panel
     document.getElementById('sidebar').classList.remove('hidden');
     document.getElementById('colorAnalysisPanel').classList.remove('hidden');
+    document.getElementById('colorAnalysisOptionalPanel').classList.remove('hidden');
     // Show the Reset/Remove/Download buttons and resize handles
     document.getElementById('imageButtonGroup').classList.remove('hidden');
     document.querySelectorAll('.resize-handle').forEach(h => h.classList.remove('hidden'));
     uiStage = 'image-loaded';
-    
+    updateProgressiveInstructions('image-loaded');
+
     // Reset Panzoom to zoom=1, pan=0,0
     zoomLevel = 1;
     panX = 0;
@@ -1570,7 +1642,7 @@ function renderColumnMapping() {
         if (!isBlank) {
             slot.style.background = rgbToHex(...targetPalette[colIdx]);
             slot.title = targetsSelectable
-                ? rgbToHex(...targetPalette[colIdx]) + ' (click to select, use picker button below)'
+                ? rgbToHex(...targetPalette[colIdx]) + ' (click to select, drag to swap)'
                 : 'Engage Target Selector to modify';
         } else {
             slot.style.background = 'transparent';
@@ -1578,6 +1650,42 @@ function renderColumnMapping() {
         }
         if (targetsSelectable) {
             slot.onclick = () => selectSlot(colIdx);
+        }
+
+        // Make target swatch draggable when targets are selectable and swatch has a color
+        if (targetsSelectable && !isBlank) {
+            slot.draggable = true;
+            slot.addEventListener('dragstart', (e) => {
+                draggedTargetIndex = colIdx;
+                slot.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'target-' + colIdx);
+            });
+            slot.addEventListener('dragend', () => {
+                slot.classList.remove('dragging');
+                draggedTargetIndex = null;
+                document.querySelectorAll('.column-target.drag-over-target').forEach(el => el.classList.remove('drag-over-target'));
+            });
+        }
+
+        // Make this column a drop zone for target swatches
+        if (targetsSelectable) {
+            targetDiv.addEventListener('dragover', (e) => {
+                if (draggedTargetIndex === null) return;
+                e.preventDefault();
+                targetDiv.classList.add('drag-over-target');
+            });
+            targetDiv.addEventListener('dragleave', () => {
+                targetDiv.classList.remove('drag-over-target');
+            });
+            targetDiv.addEventListener('drop', (e) => {
+                e.preventDefault();
+                targetDiv.classList.remove('drag-over-target');
+                if (draggedTargetIndex !== null && draggedTargetIndex !== colIdx) {
+                    handleTargetSwap(draggedTargetIndex, colIdx);
+                }
+                draggedTargetIndex = null;
+            });
         }
 
         // Delete button on the slot (styled like origin X button)
@@ -1591,6 +1699,31 @@ function renderColumnMapping() {
         };
         slot.appendChild(deleteBtn);
 
+        // When bypassed, show all origin colors unconsolidated below the swatch
+        let bypassOriginsRow = null;
+        if (columnBypass[colIdx]) {
+            const originsInCol = [];
+            for (let i = 0; i < originToColumn.length; i++) {
+                if (originToColumn[i] === colIdx && originalPalette[i]) {
+                    originsInCol.push(i);
+                }
+            }
+            if (originsInCol.length > 0) {
+                bypassOriginsRow = document.createElement('div');
+                bypassOriginsRow.className = 'bypass-origins-preview';
+                originsInCol.forEach(oi => {
+                    const mini = document.createElement('div');
+                    mini.className = 'bypass-origin-mini';
+                    mini.style.background = rgbToHex(...originalPalette[oi]);
+                    mini.title = rgbToHex(...originalPalette[oi]) + ' - ' + (colorPercentages[oi]?.toFixed(1) || '?') + '%';
+                    bypassOriginsRow.appendChild(mini);
+                });
+                // Show "locked" indicator on the swatch
+                slot.style.background = 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 6px)';
+                slot.style.border = '2px dashed var(--text-muted)';
+            }
+        }
+
         const colorInput = document.createElement('input');
         colorInput.type = 'color';
         colorInput.className = 'hidden-color-input';
@@ -1598,7 +1731,7 @@ function renderColumnMapping() {
 
         const hexLabel = document.createElement('div');
         hexLabel.className = 'swatch-hex';
-        hexLabel.textContent = isBlank ? '—' : rgbToHex(...targetPalette[colIdx]);
+        hexLabel.textContent = isBlank ? '—' : (columnBypass[colIdx] ? '🔒 Locked' : rgbToHex(...targetPalette[colIdx]));
 
         // Calculate percentage sum for this column
         let pctSum = 0;
@@ -1615,20 +1748,6 @@ function renderColumnMapping() {
         // Buttons - hidden until target selection stage
         const btnRow = document.createElement('div');
         btnRow.className = 'swatch-buttons' + (hideSwatchButtons ? ' target-hidden' : '');
-
-        const revertBtn = document.createElement('button');
-        if (!isBlank) {
-            const origIdx = colIdx % originalPalette.length;
-            if (colorsMatch(targetPalette[colIdx], originalPalette[origIdx])) {
-                revertBtn.classList.add('is-original');
-            }
-        }
-        revertBtn.innerHTML = '↩';
-        revertBtn.title = 'Revert to original';
-        revertBtn.onclick = (e) => {
-            e.stopPropagation();
-            revertSlot(colIdx);
-        };
 
         const pickerBtn = document.createElement('button');
         pickerBtn.innerHTML = '🎨';
@@ -1648,11 +1767,11 @@ function renderColumnMapping() {
             toggleColumnBypass(colIdx);
         };
 
-        btnRow.appendChild(revertBtn);
         btnRow.appendChild(pickerBtn);
         btnRow.appendChild(bypassBtn);
 
         targetDiv.appendChild(slot);
+        if (bypassOriginsRow) targetDiv.appendChild(bypassOriginsRow);
         targetDiv.appendChild(colorInput);
         targetDiv.appendChild(hexLabel);
         targetDiv.appendChild(pctLabel);
@@ -1681,6 +1800,8 @@ function renderColumnMapping() {
 
     // Refresh lock-a-color swatch pickers (always, so they're ready when user switches mode)
     if (typeof populateLockColorDropdowns === 'function') populateLockColorDropdowns();
+    // Update harmony nudge swatch to reflect current selected target
+    updateHarmonyNudgeSwatch();
 }
 
 function toggleColumnBypass(colIdx) {
@@ -1691,6 +1812,36 @@ function toggleColumnBypass(colIdx) {
     }
     // Record lock state change in recolor history
     addToRecolorHistory();
+}
+
+function handleTargetSwap(fromCol, toCol) {
+    // Swap the target colors between two columns
+    const tempColor = targetPalette[fromCol];
+    targetPalette[fromCol] = targetPalette[toCol];
+    targetPalette[toCol] = tempColor;
+
+    // Swap target opacities
+    const fromOpacity = targetOpacity[fromCol];
+    const toOpacity = targetOpacity[toCol];
+    if (fromOpacity !== undefined || toOpacity !== undefined) {
+        if (toOpacity !== undefined) targetOpacity[fromCol] = toOpacity;
+        else delete targetOpacity[fromCol];
+        if (fromOpacity !== undefined) targetOpacity[toCol] = fromOpacity;
+        else delete targetOpacity[toCol];
+    }
+
+    // Invalidate opacity cache since targets moved
+    _opacityCache = null;
+
+    // columnBypass stays with the column position — do NOT swap it
+
+    // Re-render and recolor
+    renderColumnMapping();
+    if (livePreviewEnabled) {
+        autoRecolorImage();
+    }
+    addToRecolorHistory();
+    setStatus(`Swapped target colors between columns ${fromCol + 1} and ${toCol + 1}.`);
 }
 
 function deleteTarget(colIdx) {
@@ -1770,7 +1921,95 @@ function createOriginSwatch(originIndex) {
         });
     });
 
-    wrapper.appendChild(swatch);
+    // Row containing swatch + opacity icon on right
+    const swatchRow = document.createElement('div');
+    swatchRow.className = 'origin-swatch-row';
+
+    const currentOpacity = originOpacity[originIndex] !== undefined ? originOpacity[originIndex] : 100;
+
+    // Opacity icon button (right of swatch)
+    const opBtn = document.createElement('button');
+    opBtn.className = 'origin-opacity-btn';
+    opBtn.title = 'Color opacity: ' + currentOpacity + '%';
+    opBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
+    if (currentOpacity < 100) opBtn.classList.add('has-custom');
+
+    // Popup panel (left of swatch, initially hidden)
+    const opPopup = document.createElement('div');
+    opPopup.className = 'origin-opacity-popup';
+    opPopup.id = `originOpPopup_${originIndex}`;
+
+    const opSlider = document.createElement('input');
+    opSlider.type = 'range';
+    opSlider.className = 'origin-opacity-slider';
+    opSlider.min = 0;
+    opSlider.max = 100;
+    opSlider.value = currentOpacity;
+    opSlider.id = `originOpSlider_${originIndex}`;
+
+    const opInput = document.createElement('input');
+    opInput.type = 'number';
+    opInput.className = 'origin-opacity-input';
+    opInput.min = 0;
+    opInput.max = 100;
+    opInput.value = currentOpacity;
+    opInput.id = `originOpInput_${originIndex}`;
+
+    const opPct = document.createElement('span');
+    opPct.className = 'origin-opacity-pct';
+    opPct.textContent = '%';
+
+    const opReset = document.createElement('button');
+    opReset.className = 'origin-opacity-reset';
+    opReset.textContent = '↺';
+    opReset.title = 'Reset to 100%';
+
+    function updateOpacity(v) {
+        v = Math.max(0, Math.min(100, v));
+        originOpacity[originIndex] = v;
+        opSlider.value = v;
+        opInput.value = v;
+        opBtn.title = 'Color opacity: ' + v + '%';
+        opBtn.classList.toggle('has-custom', v < 100);
+        autoRecolorOpacityOnly();
+    }
+
+    opSlider.oninput = () => updateOpacity(parseInt(opSlider.value));
+    opInput.oninput = () => {
+        const v = parseInt(opInput.value);
+        if (!isNaN(v)) updateOpacity(v);
+    };
+    opReset.onclick = (e) => {
+        e.stopPropagation();
+        updateOpacity(100);
+    };
+
+    // Toggle popup visibility
+    opBtn.onclick = (e) => {
+        e.stopPropagation();
+        const isOpen = opPopup.classList.contains('open');
+        // Close any other open popups first
+        document.querySelectorAll('.origin-opacity-popup.open').forEach(p => p.classList.remove('open'));
+        if (!isOpen) opPopup.classList.add('open');
+    };
+
+    // Close popup when clicking outside
+    opPopup.addEventListener('mousedown', e => e.stopPropagation());
+
+    const opInputRow = document.createElement('div');
+    opInputRow.className = 'origin-opacity-input-row';
+    opInputRow.appendChild(opInput);
+    opInputRow.appendChild(opPct);
+
+    opPopup.appendChild(opSlider);
+    opPopup.appendChild(opInputRow);
+    opPopup.appendChild(opReset);
+
+    swatchRow.appendChild(opPopup);
+    swatchRow.appendChild(swatch);
+    swatchRow.appendChild(opBtn);
+
+    wrapper.appendChild(swatchRow);
 
     const info = document.createElement('div');
     info.className = 'origin-swatch-info';
@@ -1780,6 +2019,7 @@ function createOriginSwatch(originIndex) {
 
     return wrapper;
 }
+
 
 function removeOriginFromMapping(originIndex) {
     // Remove this origin from the palette entirely
@@ -1903,6 +2143,7 @@ function selectSlot(index) {
     renderColumnMapping();
     updateHarmonyWheel();
     updateGradientFromSelectedColor();
+    updateHarmonyNudgeSwatch();
 }
 
 function openColorPicker(index) {
@@ -2015,6 +2256,44 @@ function createSwatchColorPicker(colIdx) {
     previewRow.appendChild(preview);
     previewRow.appendChild(hexInput);
 
+    // Opacity slider row
+    const opacityRow = document.createElement('div');
+    opacityRow.className = 'swatch-picker-opacity-row';
+
+    const opacityLabel = document.createElement('span');
+    opacityLabel.className = 'swatch-picker-opacity-label';
+    opacityLabel.textContent = 'Opacity:';
+
+    const opacitySlider = document.createElement('input');
+    opacitySlider.type = 'range';
+    opacitySlider.className = 'swatch-picker-opacity-slider';
+    opacitySlider.min = 0;
+    opacitySlider.max = 100;
+    opacitySlider.value = targetOpacity[colIdx] !== undefined ? targetOpacity[colIdx] : 100;
+
+    const opacityValueDisplay = document.createElement('span');
+    opacityValueDisplay.className = 'swatch-picker-opacity-value';
+    opacityValueDisplay.textContent = (targetOpacity[colIdx] !== undefined ? targetOpacity[colIdx] : 100) + '%';
+
+    opacitySlider.oninput = () => {
+        opacityValueDisplay.textContent = opacitySlider.value + '%';
+    };
+
+    const opacityReset = document.createElement('button');
+    opacityReset.className = 'swatch-picker-opacity-reset';
+    opacityReset.innerHTML = '↻';
+    opacityReset.title = 'Reset to 100%';
+    opacityReset.onclick = (e) => {
+        e.stopPropagation();
+        opacitySlider.value = 100;
+        opacityValueDisplay.textContent = '100%';
+    };
+
+    opacityRow.appendChild(opacityLabel);
+    opacityRow.appendChild(opacitySlider);
+    opacityRow.appendChild(opacityValueDisplay);
+    opacityRow.appendChild(opacityReset);
+
     // Apply button
     const applyBtn = document.createElement('button');
     applyBtn.className = 'swatch-picker-apply';
@@ -2023,15 +2302,17 @@ function createSwatchColorPicker(colIdx) {
         const state = swatchPickerState[colIdx];
         const rgb = hsvToRgb(state.h, state.s, state.v);
         targetPalette[colIdx] = rgb;
+        targetOpacity[colIdx] = parseInt(opacitySlider.value);
         closeAllSwatchPickers();
         renderColumnMapping();
         autoRecolorImage();
-        setStatus(`Color ${colIdx + 1} set to ${rgbToHex(...rgb)}`);
+        setStatus(`Color ${colIdx + 1} set to ${rgbToHex(...rgb)} at ${opacitySlider.value}% opacity`);
     };
 
     picker.appendChild(gradient);
     picker.appendChild(hueSlider);
     picker.appendChild(previewRow);
+    picker.appendChild(opacityRow);
     picker.appendChild(applyBtn);
 
     // Prevent clicks inside picker from closing it
@@ -2136,6 +2417,10 @@ function closeAllSwatchPickers() {
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.swatch-color-picker') && !e.target.closest('.swatch-buttons')) {
         closeAllSwatchPickers();
+    }
+    // Close origin opacity popups when clicking outside
+    if (!e.target.closest('.origin-opacity-popup') && !e.target.closest('.origin-opacity-btn')) {
+        document.querySelectorAll('.origin-opacity-popup.open').forEach(p => p.classList.remove('open'));
     }
 });
 
@@ -2386,6 +2671,8 @@ function autoRecolorImage() {
     if (!livePreviewEnabled) {
         return;
     }
+    // Invalidate opacity cache — palette/mapping changed, need full recompute
+    _opacityCache = null;
     // Silently recolor without loading UI (but still async for UI responsiveness)
     setTimeout(() => recolorImage(), 10);
     // Debounced history add — records after 1s of no further changes
@@ -2394,6 +2681,25 @@ function autoRecolorImage() {
         addToRecolorHistory();
         _autoRecolorHistoryTimer = null;
     }, 1000);
+}
+
+// Fast opacity-only recolor: uses cached palette data + rAF throttle
+function autoRecolorOpacityOnly() {
+    if (!originalImageData || !livePreviewEnabled) return;
+
+    // Use rAF to coalesce rapid slider events into one paint per frame
+    if (_opacityRafPending) return;
+    _opacityRafPending = true;
+    requestAnimationFrame(() => {
+        _opacityRafPending = false;
+        recolorImageOpacityFast();
+        // Debounced history
+        if (_autoRecolorHistoryTimer) clearTimeout(_autoRecolorHistoryTimer);
+        _autoRecolorHistoryTimer = setTimeout(() => {
+            addToRecolorHistory();
+            _autoRecolorHistoryTimer = null;
+        }, 1000);
+    });
 }
 
 function toggleLivePreview(enabled) {
@@ -2405,12 +2711,12 @@ function toggleLivePreview(enabled) {
             applyBtn.classList.remove('btn-primary');
             applyBtn.classList.add('btn-live-inactive');
             applyBtn.disabled = true;
-            applyText.textContent = 'Apply Recolor (Live is Active)';
+            applyText.textContent = 'Apply this recolor (Live is Active)';
         } else {
             applyBtn.classList.add('btn-primary');
             applyBtn.classList.remove('btn-live-inactive');
             applyBtn.disabled = false;
-            applyText.textContent = 'Apply Recolor';
+            applyText.textContent = 'Apply this recolor';
         }
     }
     if (enabled && originalImageData) {
@@ -2444,6 +2750,75 @@ function recolorImage() {
     }, 50);
 }
 
+// Fast opacity-only recolor: recomputes only the palette diff using cached full-opacity
+// target LAB values, then feeds it to the same WebGL/CPU pipeline. Skips the expensive
+// RBF matrix/grid computation or re-building palette from scratch.
+function recolorImageOpacityFast() {
+    const k = originalPalette.length;
+    if (k === 0 || !originalImageData) return;
+
+    // Build or reuse cache of full-opacity target LAB values
+    if (!_opacityCache || _opacityCache.k !== k || _opacityCache.algorithm !== selectedAlgorithm) {
+        // Cache miss — need full recolor first to populate cache
+        recolorImage();
+        return;
+    }
+
+    const { oldLab, fullTargetLab } = _opacityCache;
+
+    // Recompute newLab with current opacity values (instant — just array math)
+    // Opacity blends between original origin color (oldLab[i]) and full target color
+    const newLab = [];
+    for (let i = 0; i < k; i++) {
+        const col = originToColumn[i];
+        if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
+            newLab.push(oldLab[i]);
+        } else if (columnBypass[col]) {
+            newLab.push(oldLab[i]);
+        } else if (targetPalette[col] === null) {
+            newLab.push(oldLab[i]);
+        } else {
+            const oOpacity = (originOpacity[i] !== undefined ? originOpacity[i] : 100) / 100;
+            const tOpacity = (targetOpacity[col] !== undefined ? targetOpacity[col] : 100) / 100;
+            const effectiveOpacity = oOpacity * tOpacity;
+
+            if (effectiveOpacity >= 1.0) {
+                newLab.push(fullTargetLab[col]);
+            } else if (effectiveOpacity <= 0.0) {
+                newLab.push(oldLab[i]);
+            } else {
+                newLab.push([
+                    oldLab[i][0] + (fullTargetLab[col][0] - oldLab[i][0]) * effectiveOpacity,
+                    oldLab[i][1] + (fullTargetLab[col][1] - oldLab[i][1]) * effectiveOpacity,
+                    oldLab[i][2] + (fullTargetLab[col][2] - oldLab[i][2]) * effectiveOpacity
+                ]);
+            }
+        }
+    }
+
+    const diffLab = oldLab.map((old, i) => [
+        newLab[i][0] - old[0],
+        newLab[i][1] - old[1],
+        newLab[i][2] - old[2]
+    ]);
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    if (selectedAlgorithm === 'rbf') {
+        // For RBF, we need the full grid recomputation — fall back to full recolor
+        // but still benefit from rAF throttle
+        doRecolorRBF();
+    } else {
+        // Simple algorithm: just need oldLab + diffLab — skip palette rebuild
+        const luminosity = 0;
+        if (initWebGL() && doRecolorSimpleWebGL(width, height, k, oldLab, diffLab, luminosity)) {
+            return;
+        }
+        doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity);
+    }
+}
+
 function doRecolorImage() {
     // Dispatch to selected algorithm
     if (selectedAlgorithm === 'rbf') {
@@ -2451,6 +2826,44 @@ function doRecolorImage() {
     } else {
         doRecolorSimple();
     }
+}
+
+// Get the active background color in LAB for synthetic opacity layering.
+// Column 0 = CATEGORY_BACKGROUND. If bypassed (locked), use the representative
+// original background color; otherwise use the target background color.
+function getActiveBackgroundLab(oldLab) {
+    const bgCol = 0; // CATEGORY_BACKGROUND is always column 0
+
+    // If background column is bypassed (locked), use average of origin colors in that column
+    if (columnBypass[bgCol]) {
+        let count = 0;
+        let sumLab = [0, 0, 0];
+        for (let j = 0; j < originToColumn.length; j++) {
+            if (originToColumn[j] === bgCol && originalPalette[j]) {
+                const lab = oldLab ? oldLab[j] : RGB2LAB(originalPalette[j]);
+                sumLab[0] += lab[0];
+                sumLab[1] += lab[1];
+                sumLab[2] += lab[2];
+                count++;
+            }
+        }
+        if (count > 0) {
+            return [sumLab[0] / count, sumLab[1] / count, sumLab[2] / count];
+        }
+        // Fallback: first origin in column 0
+        if (originalPalette[0]) return oldLab ? oldLab[0] : RGB2LAB(originalPalette[0]);
+    }
+
+    // Not bypassed: use the target color for the background column
+    if (targetPalette[bgCol] !== null && targetPalette[bgCol] !== undefined) {
+        return RGB2LAB(targetPalette[bgCol]);
+    }
+
+    // Fallback: use original palette first color
+    if (originalPalette[0]) return oldLab ? oldLab[0] : RGB2LAB(originalPalette[0]);
+
+    // Ultimate fallback: white
+    return RGB2LAB([255, 255, 255]);
 }
 
 // Simple weighted nearest-neighbor algorithm (v14 default)
@@ -2464,7 +2877,17 @@ function doRecolorSimple() {
     const oldLab = originalPalette.map(c => RGB2LAB(c));
     const newLab = [];
 
-    // Build origin-to-target mapping based on columns
+    // Cache full-opacity target LAB values for fast opacity-only rerenders
+    const fullTargetLab = {};
+    for (let col = 0; col < targetPalette.length; col++) {
+        if (targetPalette[col] !== null && targetPalette[col] !== undefined) {
+            fullTargetLab[col] = RGB2LAB(targetPalette[col]);
+        }
+    }
+    _opacityCache = { oldLab, fullTargetLab, k, algorithm: 'simple' };
+
+    // Build origin-to-target mapping based on columns, respecting opacity
+    // Opacity blends between original origin color (oldLab[i]) and full target color
     for (let i = 0; i < k; i++) {
         const col = originToColumn[i];
         if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
@@ -2472,10 +2895,23 @@ function doRecolorSimple() {
         } else if (columnBypass[col]) {
             newLab.push(oldLab[i]);
         } else if (targetPalette[col] === null) {
-            // Blank target — treat as no change
             newLab.push(oldLab[i]);
         } else {
-            newLab.push(RGB2LAB(targetPalette[col]));
+            const oOpacity = (originOpacity[i] !== undefined ? originOpacity[i] : 100) / 100;
+            const tOpacity = (targetOpacity[col] !== undefined ? targetOpacity[col] : 100) / 100;
+            const effectiveOpacity = oOpacity * tOpacity;
+
+            if (effectiveOpacity >= 1.0) {
+                newLab.push(fullTargetLab[col]);
+            } else if (effectiveOpacity <= 0.0) {
+                newLab.push(oldLab[i]);
+            } else {
+                newLab.push([
+                    oldLab[i][0] + (fullTargetLab[col][0] - oldLab[i][0]) * effectiveOpacity,
+                    oldLab[i][1] + (fullTargetLab[col][1] - oldLab[i][1]) * effectiveOpacity,
+                    oldLab[i][2] + (fullTargetLab[col][2] - oldLab[i][2]) * effectiveOpacity
+                ]);
+            }
         }
     }
 
@@ -2667,10 +3103,20 @@ function doRecolorRBF() {
         }
     }
 
-    // Build origin-to-target mapping based on columns
+    // Build origin-to-target mapping based on columns, respecting opacity
     const oldLab = originalPalette.map(c => RGB2LAB(c));
     const newLab = [];
 
+    // Cache full-opacity target LAB values for fast opacity-only rerenders
+    const fullTargetLab = {};
+    for (let col = 0; col < targetPalette.length; col++) {
+        if (targetPalette[col] !== null && targetPalette[col] !== undefined) {
+            fullTargetLab[col] = RGB2LAB(targetPalette[col]);
+        }
+    }
+    _opacityCache = { oldLab, fullTargetLab, k, algorithm: 'rbf' };
+
+    // Opacity blends between original origin color (oldLab[i]) and full target color
     for (let i = 0; i < k; i++) {
         const col = originToColumn[i];
         if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
@@ -2678,10 +3124,23 @@ function doRecolorRBF() {
         } else if (columnBypass[col]) {
             newLab.push(oldLab[i]);
         } else if (targetPalette[col] === null) {
-            // Blank target — treat as no change
             newLab.push(oldLab[i]);
         } else {
-            newLab.push(RGB2LAB(targetPalette[col]));
+            const oOpacity = (originOpacity[i] !== undefined ? originOpacity[i] : 100) / 100;
+            const tOpacity = (targetOpacity[col] !== undefined ? targetOpacity[col] : 100) / 100;
+            const effectiveOpacity = oOpacity * tOpacity;
+
+            if (effectiveOpacity >= 1.0) {
+                newLab.push(fullTargetLab[col]);
+            } else if (effectiveOpacity <= 0.0) {
+                newLab.push(oldLab[i]);
+            } else {
+                newLab.push([
+                    oldLab[i][0] + (fullTargetLab[col][0] - oldLab[i][0]) * effectiveOpacity,
+                    oldLab[i][1] + (fullTargetLab[col][1] - oldLab[i][1]) * effectiveOpacity,
+                    oldLab[i][2] + (fullTargetLab[col][2] - oldLab[i][2]) * effectiveOpacity
+                ]);
+            }
         }
     }
 
@@ -2991,9 +3450,8 @@ function togglePickerMode() {
         canvasInner.classList.add('picking-mode');
         canvasWrapper.classList.add('picking-mode');
 
-        // Show picker hints
-        if (pickerPanHint) pickerPanHint.classList.remove('hidden');
-        if (pickerCtrlHint) pickerCtrlHint.classList.remove('hidden');
+        // Show picker hints (only if tutorial is not active)
+        // Tutorial has its own hints
 
         // Rebuild markers for any existing picked colors
         document.querySelectorAll('.picker-marker').forEach(m => m.remove());
@@ -3002,6 +3460,24 @@ function togglePickerMode() {
         // Show and populate category selector
         categorySelector.classList.remove('hidden');
         updatePickerCategoryOptions();
+
+        // Tutorial logic: show full tutorial on first activation, collapsed tab on subsequent
+        if (!tutorialHasBeenShown) {
+            tutorialHasBeenShown = true;
+            tutorialStep = 0;
+            showTutorialOverlay();
+            // Hide picker hints since tutorial shows them
+            if (pickerPanHint) pickerPanHint.classList.add('hidden');
+            if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
+        } else {
+            // Subsequent activations: show collapsed tab, traditional picker visible
+            const tutorialTab = document.getElementById('tutorialTab');
+            if (tutorialTab) tutorialTab.classList.remove('hidden');
+            tutorialCollapsed = true;
+            // Show picker hints for traditional mode
+            if (pickerPanHint) pickerPanHint.classList.remove('hidden');
+            if (pickerCtrlHint) pickerCtrlHint.classList.remove('hidden');
+        }
 
         if (pickedColors.length > 0) {
             setStatus('Picker mode: ' + pickedColors.length + ' colors already selected. Click to add more.');
@@ -3033,6 +3509,11 @@ function togglePickerMode() {
         document.getElementById('pickerSwatchesList').classList.add('hidden');
         document.getElementById('pickerApplyBtn').classList.add('hidden');
         document.getElementById('pickerClearBtn').classList.add('hidden');
+
+        // Hide tutorial overlay and tab when picker deactivated
+        hideTutorialOverlay();
+        const tutorialTab = document.getElementById('tutorialTab');
+        if (tutorialTab) tutorialTab.classList.add('hidden');
     }
 
     // Only update the overlay list if picker is active (otherwise we just hid everything above)
@@ -3396,6 +3877,9 @@ function applyPickedAsOriginal() {
     document.getElementById('pickerApplyBtn').classList.add('hidden');
     document.getElementById('pickerClearBtn').classList.add('hidden');
 
+    // Hide the tutorial overlay and tab entirely (picker is done)
+    hideTutorialOverlay();
+
     // Collapse the picker instructions in the sidebar (colors have been picked)
     const pickerInstructions = document.getElementById('pickerInstructions');
     if (pickerInstructions) pickerInstructions.classList.add('hidden');
@@ -3407,6 +3891,7 @@ function applyPickedAsOriginal() {
     document.getElementById('paletteMappingPanel').classList.remove('hidden');
     document.getElementById('targetSelectorBtn').classList.remove('hidden');
     uiStage = 'colors-picked';
+    updateProgressiveInstructions('colors-picked');
     renderColumnMapping();
     // Don't auto-recolor — targets are blank, no recolor possible yet
 
@@ -3421,12 +3906,17 @@ function applyPickedAsOriginal() {
 
 function activateTargetSelection() {
     uiStage = 'target-selection';
+    updateProgressiveInstructions('target-selection');
 
     // Hide the Target Selector button itself
     document.getElementById('targetSelectorBtn').classList.add('hidden');
 
     // Show Target Choice panel
     document.getElementById('targetChoicePanel').classList.remove('hidden');
+
+    // Collapse the Color Analysis panel to save vertical space
+    const colorAnalysis = document.getElementById('colorAnalysisOptionalPanel');
+    if (colorAnalysis) colorAnalysis.removeAttribute('open');
 
     // Collapse the Origin section to save vertical space
     const originCollapsible = document.getElementById('originCollapsible');
@@ -3444,9 +3934,16 @@ function activateTargetSelection() {
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.remove('hidden');
 
-    // Show quick harmony bar below image preview
+    // Show quick harmony overlay on image
     const quickHarmonyBar = document.getElementById('quickHarmonyBar');
-    if (quickHarmonyBar) quickHarmonyBar.classList.remove('hidden');
+    if (quickHarmonyBar) {
+        quickHarmonyBar.classList.remove('hidden');
+        // Ensure panel is visible, tab is hidden (default expanded state)
+        const qhPanel = document.getElementById('quickHarmonyPanel');
+        const qhTab = document.getElementById('quickHarmonyTab');
+        if (qhPanel) qhPanel.classList.remove('hidden');
+        if (qhTab) qhTab.classList.add('hidden');
+    }
 
     // Fill blank targets with origin colors as starting point (so user has something to work with)
     for (let colIdx = 0; colIdx < targetCount; colIdx++) {
@@ -3477,10 +3974,12 @@ function revealFullUI() {
     // This is a one-way escalation — once revealed, panels never re-hide
     if (uiStage === 'complete') return;
     uiStage = 'complete';
+    updateProgressiveInstructions('complete');
 
     // Show all panels
     document.getElementById('sidebar').classList.remove('hidden');
     document.getElementById('colorAnalysisPanel').classList.remove('hidden');
+    document.getElementById('colorAnalysisOptionalPanel').classList.remove('hidden');
     document.getElementById('paletteMappingPanel').classList.remove('hidden');
     document.getElementById('targetChoicePanel').classList.remove('hidden');
 
@@ -3508,7 +4007,7 @@ function revealFullUI() {
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.remove('hidden');
 
-    // Show quick harmony bar below image preview
+    // Show quick harmony overlay on image
     const quickHarmonyBar = document.getElementById('quickHarmonyBar');
     if (quickHarmonyBar) quickHarmonyBar.classList.remove('hidden');
 
@@ -4251,24 +4750,90 @@ function harmonizePalette() {
             break;
     }
     
-    // Check for locked origins - don't change targets that only have locked origins
-    const lockedTargets = new Set();
-    for (let i = 0; i < originCount; i++) {
-        if (originToColumn[i] === 'locked') {
-            // This origin is locked, doesn't affect any target
-        }
-    }
-    
     targetPalette.forEach((color, i) => {
-        if (!color) return; // Skip blank targets
-        const [_, origS, origL] = rgbToHsl(...color);
-        const newRgb = hslToRgb(newHues[i], origS, origL);
-        targetPalette[i] = newRgb;
+        if (columnBypass[i]) return;  // Respect locked/bypassed columns
+        // If target is blank, use default saturation/lightness
+        const origS = color ? rgbToHsl(...color)[1] : 60;
+        const origL = color ? rgbToHsl(...color)[2] : 50;
+        targetPalette[i] = hslToRgb(newHues[i], origS, origL);
     });
-    
+
     renderColumnMapping();
-    setStatus('Applied ' + harmonyType + ' harmony');
+    setStatus('Adjusted colors to ' + harmonyType + ' harmony');
     updateHarmonyWheel();
+    autoRecolorImage();
+}
+
+function updateHarmonyBaseHueDisplay(value) {
+    document.getElementById('harmonyBaseHueValue').textContent = value + '°';
+    updateHarmonyWheel();
+}
+
+// Harmony Tutorial slide navigation
+let _harmonyTutorialSlide = 0;
+function harmonyTutorialNav(dir) {
+    const slides = document.querySelectorAll('#harmonyTutorialSlides .harmony-tutorial-slide');
+    if (!slides.length) return;
+    _harmonyTutorialSlide = Math.max(0, Math.min(slides.length - 1, _harmonyTutorialSlide + dir));
+    slides.forEach((s, i) => s.classList.toggle('active', i === _harmonyTutorialSlide));
+    document.getElementById('harmonyTutorialPrev').disabled = _harmonyTutorialSlide === 0;
+    document.getElementById('harmonyTutorialNext').disabled = _harmonyTutorialSlide === slides.length - 1;
+}
+
+// Generate palette from the harmony controls (base hue, sat range, lit range)
+function generateHarmonyFromControls() {
+    if (targetPalette.length === 0) {
+        setStatus('Load an image first');
+        return;
+    }
+
+    const harmonyType = document.getElementById('harmonyType').value;
+    const n = targetPalette.length;
+
+    const baseHue = parseInt(document.getElementById('harmonyBaseHue').value);
+    const satMin = parseInt(document.getElementById('harmonySatMin').value);
+    const satMax = parseInt(document.getElementById('harmonySatMax').value);
+    const litMin = parseInt(document.getElementById('harmonyLitMin').value);
+    const litMax = parseInt(document.getElementById('harmonyLitMax').value);
+
+    let hues = [];
+    switch (harmonyType) {
+        case 'complementary':
+            hues = Array(n).fill(0).map((_, i) => i % 2 === 0 ? baseHue : (baseHue + 180) % 360);
+            break;
+        case 'analogous':
+            const spread = 30;
+            hues = Array(n).fill(0).map((_, i) => (baseHue + (i - Math.floor(n/2)) * spread + 360) % 360);
+            break;
+        case 'triadic':
+            hues = Array(n).fill(0).map((_, i) => (baseHue + (i % 3) * 120) % 360);
+            break;
+        case 'split':
+            hues = Array(n).fill(0).map((_, i) => {
+                const angles = [0, 150, 210];
+                return (baseHue + angles[i % 3]) % 360;
+            });
+            break;
+        case 'tetradic':
+            hues = Array(n).fill(0).map((_, i) => (baseHue + (i % 4) * 90) % 360);
+            break;
+    }
+
+    targetPalette.forEach((color, i) => {
+        if (columnBypass[i]) return;
+        const effectiveSatMin = Math.min(satMin, satMax);
+        const effectiveSatMax = Math.max(satMin, satMax);
+        const effectiveLitMin = Math.min(litMin, litMax);
+        const effectiveLitMax = Math.max(litMin, litMax);
+        const sat = effectiveSatMin + Math.random() * (effectiveSatMax - effectiveSatMin);
+        const lit = effectiveLitMin + Math.random() * (effectiveLitMax - effectiveLitMin);
+        targetPalette[i] = hslToRgb(hues[i], sat, lit);
+    });
+
+    renderColumnMapping();
+    setStatus('Generated ' + harmonyType + ' harmony (base hue ' + baseHue + '°)');
+    updateHarmonyWheel();
+    autoRecolorImage();
 }
 
 function randomizeHarmony() {
@@ -4280,8 +4845,13 @@ function randomizeHarmony() {
     const harmonyType = document.getElementById('harmonyType').value;
     const n = targetPalette.length;
 
-    // Random base hue
+    // Random base hue - also sync the slider
     const baseHue = Math.random() * 360;
+    const hueSlider = document.getElementById('harmonyBaseHue');
+    if (hueSlider) {
+        hueSlider.value = Math.round(baseHue);
+        updateHarmonyBaseHueDisplay(Math.round(baseHue));
+    }
 
     // Generate hues from the selected harmony model
     let hues = [];
@@ -4318,7 +4888,6 @@ function randomizeHarmony() {
 
     // Generate varied but pleasing saturation/lightness per slot
     targetPalette.forEach((color, i) => {
-        if (!color) return;               // skip blank targets
         if (columnBypass[i]) return;       // respect locked/bypassed columns
 
         // Vary saturation 45–90, lightness 35–65 for a balanced palette
@@ -4381,6 +4950,44 @@ function syncHarmonySelects(value) {
     if (sidebar) sidebar.value = value;
     if (quick) quick.value = value;
     updateHarmonyWheel();
+    updateHarmonyRandomizeLabel();
+}
+
+function updateHarmonyRandomizeLabel() {
+    const label = document.getElementById('harmonyRandomizeLabel');
+    if (!label) return;
+    const select = document.getElementById('harmonyType');
+    if (!select) return;
+    const selectedOption = select.options[select.selectedIndex];
+    label.textContent = selectedOption ? selectedOption.text : select.value;
+}
+
+function updateHarmonyNudgeSwatch() {
+    const swatch = document.getElementById('harmonyNudgeSwatch');
+    if (!swatch) return;
+    const color = targetPalette[selectedSlotIndex];
+    if (color) {
+        swatch.style.background = rgbToHex(...color);
+        swatch.style.display = 'inline-block';
+        swatch.title = 'Based on selected target: ' + rgbToHex(...color);
+    } else {
+        swatch.style.display = 'none';
+    }
+}
+
+// Toggle quick harmony overlay collapse/expand
+function toggleQuickHarmonyCollapse() {
+    const panel = document.getElementById('quickHarmonyPanel');
+    const tab = document.getElementById('quickHarmonyTab');
+    if (!panel || !tab) return;
+    const isCollapsed = panel.classList.contains('hidden');
+    if (isCollapsed) {
+        panel.classList.remove('hidden');
+        tab.classList.add('hidden');
+    } else {
+        panel.classList.add('hidden');
+        tab.classList.remove('hidden');
+    }
 }
 
 // Quick bar randomize (Lock a Harmony mode)
@@ -4742,7 +5349,6 @@ function randomizeLockColor() {
     // Collect the target slot indices that will be changed (not bypassed, not the locked target)
     const changeable = [];
     for (let i = 0; i < targetPalette.length; i++) {
-        if (!targetPalette[i]) continue;
         if (columnBypass[i]) continue;
         if (i === lockedTargetIdx) continue;
         changeable.push(i);
@@ -4999,10 +5605,54 @@ document.addEventListener('mouseup', () => {
 
 function resetImage() {
     if (!originalImageData) return;
+
+    // Reset the canvas to the original image
     ctx.putImageData(originalImageData, 0, 0);
     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     updateDisplayCanvas();
-    setStatus('Image reset to original');
+
+    // Clear all target swatch selections back to null (blank)
+    for (let i = 0; i < targetPalette.length; i++) {
+        targetPalette[i] = null;
+    }
+
+    // Reset all column bypass states
+    columnBypass = new Array(targetCount).fill(false);
+
+    // Reset all origin opacities if they exist
+    if (typeof originOpacity !== 'undefined') {
+        for (let key in originOpacity) {
+            originOpacity[key] = 100;
+        }
+    }
+
+    // Reset target opacities if they exist
+    if (typeof targetOpacity !== 'undefined') {
+        for (let key in targetOpacity) {
+            targetOpacity[key] = 100;
+        }
+    }
+
+    // Reset luminosity slider
+    const lumSlider = document.getElementById('luminositySlider');
+    const lumValue = document.getElementById('luminosityValue');
+    if (lumSlider) lumSlider.value = 0;
+    if (lumValue) lumValue.textContent = '0';
+
+    // Invalidate opacity cache
+    _opacityCache = null;
+
+    // Uncheck live preview so the original image stays
+    const liveToggle = document.getElementById('livePreviewToggle');
+    if (liveToggle && liveToggle.checked) {
+        liveToggle.checked = false;
+        toggleLivePreview(false);
+    }
+
+    // Re-render the mapping to show blank targets
+    renderColumnMapping();
+
+    setStatus('Image reset to original — all target colors cleared');
 }
 
 function removeImage() {
@@ -5067,6 +5717,9 @@ function removeImage() {
     workspace.classList.add('centered-initial');
     document.getElementById('sidebar').classList.add('hidden');
     document.getElementById('colorAnalysisPanel').classList.remove('hidden'); // ready for next image
+    document.getElementById('colorAnalysisOptionalPanel').classList.add('hidden');
+    // Reset color analysis to expanded state for next image
+    document.getElementById('colorAnalysisOptionalPanel').setAttribute('open', '');
     document.getElementById('paletteMappingPanel').classList.add('hidden');
     document.getElementById('targetSelectorBtn').classList.add('hidden');
     document.getElementById('targetChoicePanel').classList.add('hidden');
@@ -5083,11 +5736,15 @@ function removeImage() {
     // Hide tool legend and restore picker instructions and early import
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.add('hidden');
+    // Hide quick harmony overlay
+    const quickHarmonyOverlay = document.getElementById('quickHarmonyBar');
+    if (quickHarmonyOverlay) quickHarmonyOverlay.classList.add('hidden');
     const pickerInstructions = document.getElementById('pickerInstructions');
     if (pickerInstructions) pickerInstructions.classList.remove('hidden');
     const earlyImport = document.getElementById('earlyImportSection');
     if (earlyImport) earlyImport.classList.remove('hidden');
     uiStage = 'initial';
+    updateProgressiveInstructions('initial');
 
     // Show upload zone again
     document.getElementById('uploadZone').classList.remove('hidden');
@@ -5120,12 +5777,17 @@ function downloadImage() {
         setStatus('No image to download');
         return;
     }
-    
+
+    // Use the current recolor history count as the suffix number
+    const recolorNum = recolorHistory.length || 1;
+    const baseName = originalFileName || 'image';
+    const fileName = `${baseName}_Recolor_${recolorNum}.png`;
+
     const link = document.createElement('a');
-    link.download = 'recolored-image.png';
+    link.download = fileName;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    setStatus('Image downloaded');
+    setStatus(`Image downloaded as ${fileName}`);
 }
 
 function showLoading() {
@@ -5185,6 +5847,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function updateLuminosityValue(value) {
     document.getElementById('luminosityValue').textContent = value;
+}
+
+function resetLuminositySlider() {
+    const slider = document.getElementById('luminositySlider');
+    const value = document.getElementById('luminosityValue');
+    if (slider) slider.value = 0;
+    if (value) value.textContent = '0';
 }
 
 // Apply luminosity as a post-processing step, respecting locked colors
@@ -5324,6 +5993,8 @@ function buildConfigSnapshot() {
         columnBypass: {...columnBypass},
         algorithm: selectedAlgorithm,
         luminosity: parseInt(document.getElementById('luminositySlider').value),
+        originOpacity: {...originOpacity},
+        targetOpacity: {...targetOpacity},
         pickedColors: pickedColors.map(c => [...c]),
         pickedPositions: pickedPositions.map(p => ({ x: p.x, y: p.y, color: [...p.color] })),
         pickedCategories: [...pickedCategories]
@@ -5376,6 +6047,9 @@ function loadConfig(configId) {
     colorPercentages = [...config.colorPercentages];
     originToColumn = [...config.originToColumn];
     columnBypass = config.columnBypass ? {...config.columnBypass} : {};
+    originOpacity = config.originOpacity ? {...config.originOpacity} : {};
+    targetOpacity = config.targetOpacity ? {...config.targetOpacity} : {};
+    _opacityCache = null;   // invalidate so recolor picks up restored values
     selectedAlgorithm = config.algorithm || 'simple';
     document.getElementById('luminositySlider').value = config.luminosity || 0;
     document.getElementById('luminosityValue').textContent = config.luminosity || 0;
@@ -5402,6 +6076,14 @@ function loadConfig(configId) {
     renderColumnMapping();
     autoRecolorImage();
     renderConfigList();
+
+    // Enable live preview when loading a config (user expects to see the recolor)
+    const liveToggle = document.getElementById('livePreviewToggle');
+    if (liveToggle && !liveToggle.checked) {
+        liveToggle.checked = true;
+        toggleLivePreview(true);
+    }
+
     // Loading a config reveals the full UI
     revealFullUI();
     // Expand origin section when loading a config so user can see the mapping
@@ -5453,7 +6135,7 @@ function renderConfigList() {
         const saveBtn = document.createElement('button');
         saveBtn.className = 'config-item-save' + (config.savedForExport ? ' saved' : '');
         if (config.savedForExport) {
-            saveBtn.innerHTML = '<span class="save-check">✓</span><span class="save-text">Saved for Export!</span>';
+            saveBtn.innerHTML = '<span class="save-check">✓</span><span class="save-text">Saved!</span>';
         } else {
             saveBtn.innerHTML = 'Save';
             saveBtn.title = 'Save for export';
@@ -5482,6 +6164,9 @@ function renderConfigList() {
         item.appendChild(deleteBtn);
         list.appendChild(item);
     });
+
+    // Update export button appearance
+    if (typeof updateExportButtonState === 'function') updateExportButtonState();
 }
 
 function exportAllConfigs() {
@@ -5590,4 +6275,292 @@ function importConfigFileEarly(event) {
 
     // Reset file input
     event.target.value = '';
+}
+
+// ============================================
+// Tutorial Overlay System
+// ============================================
+
+let tutorialStep = 0; // 0 = Background, 1 = Locked, 2+ = Accent N
+let tutorialCollapsed = false;
+let tutorialHasBeenShown = false; // Track first-time activation
+let tutorialCtrlHidden = false; // Separate from collapsed — Ctrl is temporary hide
+
+const tutorialSteps = [
+    {
+        category: 0, // CATEGORY_BACKGROUND
+        title: 'Select Background:',
+        subtitle: 'Click your mouse on the Background of your image.',
+        italic: null,
+        highlightClass: 'highlight-bg',
+        highlightWord: 'Background'
+    },
+    {
+        category: -1, // CATEGORY_LOCKED
+        title: 'Select Locked Colors:',
+        subtitle: "Click your mouse on all the colors you DON'T want recolored.",
+        italic: "The background should be separate from this, you can individually lock it later if you want.",
+        highlightClass: 'highlight-locked',
+        highlightWord: 'Locked'
+    }
+    // Accent steps are generated dynamically
+];
+
+function getOrdinal(n) {
+    if (n === 1) return 'first';
+    if (n === 2) return 'second';
+    if (n === 3) return 'third';
+    if (n === 4) return 'fourth';
+    if (n === 5) return 'fifth';
+    if (n === 6) return 'sixth';
+    return n + 'th';
+}
+
+function getAccentStep(accentNum) {
+    return {
+        category: accentNum,
+        title: `Select Accent Color ${accentNum}:`,
+        subtitle: `Select all the colors you want consolidated as your ${getOrdinal(accentNum)} accent color.`,
+        italic: 'If you select a blue spot and a red spot, and set it to recode to green, all blue and red spots will be green.',
+        greenReminder: 'Click the green button when you have categorized all your colors.',
+        highlightClass: 'highlight-accent',
+        highlightWord: `Accent Color ${accentNum}`
+    };
+}
+
+function getTutorialStepData(step) {
+    if (step < tutorialSteps.length) return tutorialSteps[step];
+    const accentNum = step - 1; // step 2 => Accent 1, step 3 => Accent 2, etc.
+    return getAccentStep(accentNum);
+}
+
+function renderTutorialText() {
+    const textEl = document.getElementById('tutorialText');
+    if (!textEl) return;
+
+    const stepData = getTutorialStepData(tutorialStep);
+    const titleWord = stepData.highlightWord;
+    const highlightClass = stepData.highlightClass;
+
+    // Build title with highlighted word
+    const titleHTML = stepData.title.replace(titleWord, `<span class="${highlightClass}">${titleWord}</span>`);
+
+    let html = `<div class="tutorial-title">${titleHTML}</div>`;
+    html += `<div class="tutorial-subtitle">${stepData.subtitle}</div>`;
+    if (stepData.greenReminder) {
+        html += `<div class="tutorial-green-reminder">${stepData.greenReminder}</div>`;
+    }
+    if (stepData.italic) {
+        html += `<div class="tutorial-italic">${stepData.italic}</div>`;
+    }
+    textEl.innerHTML = html;
+
+    // Show/hide finish button (visible from Accent 1 onward, i.e. step >= 2)
+    const finishBtn = document.getElementById('tutorialFinishBtn');
+    if (finishBtn) {
+        finishBtn.classList.toggle('hidden', tutorialStep < 2);
+    }
+
+    // Next Color button: past Accent 4 (step 5), turn red and change text to prompt moving on
+    const nextBtn = document.getElementById('tutorialNextBtn');
+    if (nextBtn) {
+        const accentNum = tutorialStep - 1; // step 2 = Accent 1, step 5 = Accent 4
+        if (accentNum >= 4) {
+            nextBtn.textContent = 'Make me another category';
+            nextBtn.classList.add('tutorial-next-btn-warn');
+        } else {
+            nextBtn.textContent = 'Next Color';
+            nextBtn.classList.remove('tutorial-next-btn-warn');
+        }
+    }
+}
+
+function renderTutorialRight() {
+    const rightEl = document.getElementById('tutorialRight');
+    if (!rightEl) return;
+
+    rightEl.innerHTML = '';
+
+    // Clone the "Picking for" category selector
+    const catSelectorOriginal = document.getElementById('pickerCategorySelector');
+    if (catSelectorOriginal) {
+        const catClone = catSelectorOriginal.cloneNode(true);
+        catClone.id = 'tutorialCategorySelector';
+        catClone.classList.remove('hidden');
+        // Make the cloned select work and act as navigation
+        const clonedSelect = catClone.querySelector('select');
+        if (clonedSelect) {
+            clonedSelect.id = 'tutorialCategorySelect';
+            clonedSelect.value = pickerTargetCategory;
+            clonedSelect.onchange = function() {
+                const newCategory = parseInt(this.value);
+                updatePickerCategory(newCategory);
+                // Sync the tutorial step to match the selected category
+                const stepIdx = categoryToTutorialStep(newCategory);
+                if (stepIdx !== null) {
+                    tutorialStep = stepIdx;
+                    renderTutorialText();
+                    renderTutorialRight();
+                }
+            };
+        }
+        rightEl.appendChild(catClone);
+    }
+
+    // Clone the picked swatches list and re-attach click handlers
+    const swatchListOriginal = document.getElementById('pickerSwatchesList');
+    if (swatchListOriginal) {
+        const swatchClone = swatchListOriginal.cloneNode(true);
+        swatchClone.id = 'tutorialSwatchesList';
+        swatchClone.classList.remove('hidden');
+        // Re-attach category cycling and delete handlers (cloneNode doesn't copy JS handlers)
+        const clonedItems = swatchClone.querySelectorAll('.picker-swatch-item');
+        clonedItems.forEach((item, i) => {
+            const catLabel = item.querySelector('.picker-swatch-category');
+            if (catLabel) {
+                catLabel.onclick = (e) => {
+                    e.stopPropagation();
+                    cyclePickedColorCategory(i);
+                    renderTutorialRight();
+                };
+            }
+            const delBtn = item.querySelector('.picker-swatch-delete');
+            if (delBtn) {
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removePickedColor(i);
+                    renderTutorialRight();
+                };
+            }
+        });
+        rightEl.appendChild(swatchClone);
+    }
+
+    // Clone the clear button
+    const clearBtnOriginal = document.getElementById('pickerClearBtn');
+    if (clearBtnOriginal) {
+        const clearClone = clearBtnOriginal.cloneNode(true);
+        clearClone.id = 'tutorialClearBtn';
+        clearClone.classList.remove('hidden');
+        clearClone.onclick = function() {
+            clearPickerSelections();
+            tutorialStep = 0;
+            syncTutorialCategory();
+            renderTutorialText();
+            renderTutorialRight();
+        };
+        rightEl.appendChild(clearClone);
+    }
+}
+
+function syncTutorialCategory() {
+    // Set the picker category to match the current tutorial step
+    const stepData = getTutorialStepData(tutorialStep);
+    pickerTargetCategory = stepData.category;
+
+    // Update the real category selector
+    const select = document.getElementById('pickerCategorySelect');
+    if (select) select.value = stepData.category;
+
+    // Also update the tutorial's cloned selector
+    const tutSelect = document.getElementById('tutorialCategorySelect');
+    if (tutSelect) tutSelect.value = stepData.category;
+}
+
+// Map a category value back to the corresponding tutorial step index
+function categoryToTutorialStep(category) {
+    if (category === CATEGORY_BACKGROUND) return 0;
+    if (category === CATEGORY_LOCKED) return 1;
+    if (category >= 1) return category + 1; // Accent N => step N+1
+    return null;
+}
+
+function tutorialNextStep() {
+    tutorialStep++;
+    syncTutorialCategory();
+    renderTutorialText();
+    renderTutorialRight();
+    updatePickerCategoryOptions();
+}
+
+function showTutorialOverlay() {
+    const overlay = document.getElementById('tutorialOverlay');
+    const tab = document.getElementById('tutorialTab');
+    const pickerOverlay = document.getElementById('pickerOverlay');
+
+    if (overlay) overlay.classList.remove('hidden');
+    if (tab) tab.classList.add('hidden');
+
+    // Hide the traditional picker overlay grouping when tutorial is visible
+    if (pickerOverlay) {
+        pickerOverlay.dataset.tutorialHidden = 'true';
+        pickerOverlay.style.display = 'none';
+    }
+
+    tutorialCollapsed = false;
+    tutorialCtrlHidden = false;
+    syncTutorialCategory();
+    renderTutorialText();
+    renderTutorialRight();
+}
+
+function hideTutorialOverlay() {
+    const overlay = document.getElementById('tutorialOverlay');
+    const tab = document.getElementById('tutorialTab');
+
+    if (overlay) overlay.classList.add('hidden');
+    if (tab) tab.classList.add('hidden');
+
+    // Restore the traditional picker overlay
+    const pickerOverlay = document.getElementById('pickerOverlay');
+    if (pickerOverlay) {
+        delete pickerOverlay.dataset.tutorialHidden;
+        pickerOverlay.style.display = '';
+    }
+}
+
+function collapseTutorial() {
+    // Collapse = "I don't need the tutorial" — show traditional picker
+    const overlay = document.getElementById('tutorialOverlay');
+    const tab = document.getElementById('tutorialTab');
+    const pickerOverlay = document.getElementById('pickerOverlay');
+
+    if (overlay) overlay.classList.add('hidden');
+    if (tab) tab.classList.remove('hidden');
+
+    // Show traditional picker overlay since tutorial is collapsed
+    if (pickerOverlay) {
+        delete pickerOverlay.dataset.tutorialHidden;
+        pickerOverlay.style.display = '';
+    }
+
+    tutorialCollapsed = true;
+}
+
+function expandTutorial() {
+    tutorialCollapsed = false;
+    showTutorialOverlay();
+}
+
+// Hook into updatePickerOverlay to also update the tutorial right panel
+const _originalUpdatePickerOverlay = updatePickerOverlay;
+updatePickerOverlay = function() {
+    _originalUpdatePickerOverlay();
+    // If tutorial is visible, refresh the right panel
+    const overlay = document.getElementById('tutorialOverlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+        renderTutorialRight();
+    }
+};
+
+// Update the export button appearance based on saved configs
+function updateExportButtonState() {
+    const exportBtn = document.getElementById('exportSavedBtn');
+    if (!exportBtn) return;
+    const hasSaved = recolorHistory.some(c => c.savedForExport);
+    if (hasSaved) {
+        exportBtn.classList.add('btn-export-active');
+    } else {
+        exportBtn.classList.remove('btn-export-active');
+    }
 }
