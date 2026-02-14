@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recolor Preview Tool</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.6.1/dist/panzoom.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Recolor Preview Tool</h1>
+            <p class="subtitle-warning">Not for photographs</p>
+            <p class="byline">Ineptly vibe-coded by David Landerman</p>
+            <!-- Progressive instructions: collapsible wrapper -->
+            <div class="instructions-wrapper" id="instructionsWrapper">
+                <button class="instructions-toggle" id="instructionsToggle" onclick="toggleInstructions()">
+                    <span class="instructions-toggle-arrow" id="instructionsToggleArrow">▾</span>
+                    <span class="instructions-toggle-label">Instructions</span>
+                </button>
+                <div class="progressive-instructions" id="progressiveInstructions">
+                    <div class="instruction-step active" data-step="initial">
+                        <span class="instruction-step-num">1</span>
+                        <span class="instruction-step-text">Upload an image to get started.</span>
+                    </div>
+                    <div class="instruction-step" data-step="image-loaded">
+                    <span class="instruction-step-num">2</span>
+                    <span class="instruction-step-text">Click the <span class="btn-highlight">🎯 Pick Colors</span> button to select <strong>"Origin"</strong> colors from the image by category (Background, Accent 1, etc). Colors of the same Origin category will all recolor to the same <strong>"Target"</strong> color.</span>
+                    <div class="instruction-hints">
+                        <span class="instruction-hint">⌥ + Scroll to zoom · ⌥ + Drag to pan · Ctrl to peek under overlay.</span>
+                        <span class="instruction-hint">Mark colors as <strong>Locked</strong> to exempt them from the recolor.</span>
+                        <span class="instruction-hint instruction-hint-advanced">Use the Color Consolidation slider to merge similar colors. <span class="advanced-tag">(Advanced)</span></span>
+                    </div>
+                    <div class="instruction-reassurance">Don't worry about using all the features displayed — pick colors, choose new ones, and recolor. The rest is optional polish.</div>
+                </div>
+                <div class="instruction-step" data-step="colors-picked">
+                    <span class="instruction-step-num">3</span>
+                    <span class="instruction-step-text">Review the color categories below, then click <span class="btn-highlight">🎨 Look's Good!</span> to start choosing target colors.</span>
+                    <div class="instruction-hints">
+                        <span class="instruction-hint">You may want to reorganize them by dragging them to different columns.</span>
+                        <span class="instruction-hint">If you forgot to add a color, use the <strong><span class="hint-icon-inline">+</span> Add Color</strong> tool in the color bank to add a color that was automatically extracted from the image.</span>
+                        <span class="instruction-hint instruction-hint-advanced">Use the <strong><svg class="hint-icon-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> Opacity</strong> tool on any origin swatch to differentiate how origins of the same category apply their target color. <span class="advanced-tag">(Advanced)</span></span>
+                    </div>
+                    <div class="instruction-reassurance">Don't worry about using all the features displayed — pick colors, choose new ones, and recolor. The rest is optional polish.</div>
+                </div>
+                <div class="instruction-step" data-step="target-selection">
+                    <span class="instruction-step-num">4</span>
+                    <span class="instruction-step-text">Time to choose your new colors — there's LOTS of ways to do this! Hit <span class="btn-highlight">Apply this recolor</span> when you're done, or just turn on <span class="btn-highlight">Recolor Live</span> to have the preview update whenever you make a change.</span>
+                    <div class="instruction-hints">
+                        <span class="instruction-hint instruction-hint-heading">Options</span>
+                        <span class="instruction-hint"><strong>🎨 Color Picker</strong> — this is the most direct control. Click the palette button under each target swatch.</span>
+                        <span class="instruction-hint"><strong><svg class="hint-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="2.2" fill="#e74c3c" stroke="none"/><circle cx="17.6" cy="9.5" r="2.2" fill="#f39c12" stroke="none"/><circle cx="16" cy="16" r="2.2" fill="#2ecc71" stroke="none"/><circle cx="8" cy="16" r="2.2" fill="#3498db" stroke="none"/><circle cx="6.4" cy="9.5" r="2.2" fill="#9b59b6" stroke="none"/></svg> Color Harmony</strong> — generate harmonious palettes. Also available as a quick overlay on the image.</span>
+                        <span class="instruction-hint"><strong><img class="hint-icon-img" src="https://cdn-icons-png.flaticon.com/128/5436/5436922.png" width="14" height="14" alt="Adobe"> Adobe Color</strong> — paste a CSS export from color.adobe.com.</span>
+                        <span class="instruction-hint instruction-hint-heading">You're gonna need this</span>
+                        <span class="instruction-hint"><strong>🔒 Lock/Bypass</strong> — keep a column's origin colors unchanged. Click the lock icon under each target swatch.</span>
+                        <span class="instruction-hint instruction-hint-heading">Fancy Stuff</span>
+                        <span class="instruction-hint"><strong><svg class="hint-icon-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> Opacity</strong> — differentiate how origins of the same category apply their target color. Click the droplet icon under a target swatch, or on individual origin swatches in the bucket panel.</span>
+                        <span class="instruction-hint"><strong>☀️ Luminosity</strong> — post-processing brightness adjustment (respects locks).</span>
+                        <span class="instruction-hint"><strong>🔀 Shuffle</strong> — randomize your target swatches to experiment.</span>
+                        <span class="instruction-hint"><strong>Simple / Advanced</strong> — switch between nearest-neighbor and RBF interpolation.</span>
+                    </div>
+                    <div class="instruction-reassurance">Don't worry about using all the features displayed — pick colors, choose new ones, and recolor. The rest is optional polish.</div>
+                </div>
+                <div class="instruction-step" data-step="complete">
+                    <span class="instruction-step-num">5</span>
+                    <span class="instruction-step-text">Save your recolor.</span>
+                    <div class="instruction-hints">
+                        <span class="instruction-hint">When you see a recolor you like, hit <span class="btn-highlight">Save Recolor Configuration</span> or go to the History list and hit save next to any of the color configurations you've seen so far. When you're done, hit the export button and hold onto that file with your image.</span>
+                        <span class="instruction-hint">You can load your image and the configuration file in at any time to pick up where you left off with your saved configurations.</span>
+                    </div>
+                </div>
+                <div class="instruction-step" data-step="complete">
+                    <span class="instruction-step-num">6</span>
+                    <span class="instruction-step-text">Download your recolored image!</span>
+                </div>
+            </div>
+            </div>
+        </header>
+
+        <div class="workspace" id="workspace">
+            <!-- ============================== -->
+            <!-- IMAGE PREVIEW BOX              -->
+            <!-- ============================== -->
+            <div class="canvas-area" id="canvasArea">
+                <div class="canvas-header">
+                    <span class="canvas-title">Image Preview</span>
+                    <!-- Algorithm toggle MOVED to Target Choice box -->
+                    <div class="btn-group hidden" id="imageButtonGroup">
+                        <button class="btn" onclick="resetImage()">Reset Recolor</button>
+                        <button class="btn" onclick="removeImage()" title="Remove image and start fresh">Remove this image</button>
+                    </div>
+                </div>
+                <!-- Resize handles (hidden until image loaded) -->
+                <div class="resize-handle resize-handle-right hidden" id="resizeRight"></div>
+                <div class="resize-handle resize-handle-bottom hidden" id="resizeBottom"></div>
+                <div class="resize-handle resize-handle-corner hidden" id="resizeCorner"></div>
+
+                <!-- Color tolerance and color strips MOVED to Color Analysis box -->
+
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                        <div class="step-circle">1</div>
+                        <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                        <div class="upload-text">Click to upload an image</div>
+                        <div class="upload-hint">PNG, JPG, WebP, SVG, GIF</div>
+                    </div>
+                    <div class="canvas-inner" id="canvasInner">
+                        <canvas id="imageCanvas"></canvas>
+                    </div>
+                    <div class="loading-overlay hidden" id="loadingOverlay">
+                        <div class="spinner"></div>
+                    </div>
+                    <!-- Floating tools column: zoom + harmony, positioned together -->
+                    <div class="canvas-tools-column" id="canvasToolsColumn">
+                        <div class="zoom-slider-container hidden" id="zoomSliderContainer">
+                            <div class="zoom-hint-note">Hold ⌥ + Scroll</div>
+                            <span class="zoom-value-display" id="zoomValueDisplay">100%</span>
+                            <input type="range" class="zoom-slider-vertical" id="zoomSlider"
+                                   min="100" max="400" value="100"
+                                   oninput="setZoomFromSlider(this.value)">
+                            <span class="zoom-slider-label">ZOOM</span>
+                        </div>
+                        <div class="quick-harmony-overlay hidden" id="quickHarmonyBar">
+                            <div class="quick-harmony-overlay-panel" id="quickHarmonyPanel">
+                                <div class="quick-harmony-overlay-header">
+                                    <span class="quick-harmony-overlay-title">Color Harmony</span>
+                                    <button class="quick-harmony-collapse-btn" onclick="toggleQuickHarmonyCollapse()" title="Collapse">✕</button>
+                                </div>
+                                <div class="quick-harmony-mode-toggle">
+                                    <span class="quick-harmony-mode-label active" id="quickModeHarmonyLabel" onclick="setHarmonyMode('harmony')">Harmony</span>
+                                    <div class="quick-harmony-mode-switch" id="quickModeSwitch" onclick="toggleHarmonyMode()"></div>
+                                    <span class="quick-harmony-mode-label" id="quickModeColorLabel" onclick="setHarmonyMode('color')">Color</span>
+                                </div>
+                                <!-- Lock a Harmony controls -->
+                                <div class="quick-harmony-controls" id="quickHarmonyControls">
+                                    <select class="quick-harmony-select" id="quickHarmonyType" onchange="syncHarmonySelects(this.value)">
+                                        <option value="complementary">Complementary</option>
+                                        <option value="analogous">Analogous</option>
+                                        <option value="triadic">Triadic</option>
+                                        <option value="split">Split-Comp</option>
+                                        <option value="tetradic">Tetradic</option>
+                                    </select>
+                                    <button class="btn btn-small quick-harmony-btn" onclick="quickRandomizeHarmony()" title="Generate Random Palette">🎲 Generate</button>
+                                    <button class="btn btn-small quick-harmony-btn" onclick="harmonizePalette()" title="Nudge existing target colors toward this harmony">↗ Nudge</button>
+                                </div>
+                                <!-- Lock a Color controls -->
+                                <div class="quick-harmony-controls hidden" id="quickColorControls">
+                                    <div class="quick-lock-color-select-wrapper" id="quickLockColorSelectWrapper"></div>
+                                    <button class="btn btn-small quick-harmony-btn" onclick="randomizeLockColor()" title="Randomize around locked color">🎲 Randomize</button>
+                                </div>
+                                <div class="quick-harmony-result hidden" id="quickHarmonyResult"></div>
+                            </div>
+                            <!-- Collapsed tab (color wheel icon) -->
+                            <button class="quick-harmony-tab hidden" id="quickHarmonyTab" onclick="toggleQuickHarmonyCollapse()" title="Color Harmony">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <circle cx="12" cy="5.5" r="2.2" fill="#e74c3c" stroke="none"/>
+                                    <circle cx="17.6" cy="9.5" r="2.2" fill="#f39c12" stroke="none"/>
+                                    <circle cx="16" cy="16" r="2.2" fill="#2ecc71" stroke="none"/>
+                                    <circle cx="8" cy="16" r="2.2" fill="#3498db" stroke="none"/>
+                                    <circle cx="6.4" cy="9.5" r="2.2" fill="#9b59b6" stroke="none"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Tutorial overlay for color picker -->
+                    <div class="tutorial-overlay hidden" id="tutorialOverlay">
+                        <div class="tutorial-content">
+                            <div class="tutorial-left">
+                                <div class="tutorial-text" id="tutorialText"></div>
+                                <div class="tutorial-hints">
+                                    <span class="tutorial-hint-item tutorial-ctrl-hint">Hit Ctrl to temporarily hide this menu</span>
+                                    <span class="tutorial-hint-item">Change a color's category by clicking its <span style="color:#e08530;font-weight:600;">orange label</span></span>
+                                    <span class="tutorial-hint-item">When zoomed: Hold ⌥ + drag to explore</span>
+                                </div>
+                            </div>
+                            <div class="tutorial-right" id="tutorialRight">
+                                <!-- Picking For box, selected colors list, and clear will be mirrored here -->
+                            </div>
+                        </div>
+                        <div class="tutorial-bottom-row">
+                            <button class="tutorial-hide-btn" id="tutorialHideBtn" onclick="collapseTutorial()">Hide Tutorial</button>
+                            <div class="tutorial-buttons-right">
+                                <button class="tutorial-finish-btn hidden" id="tutorialFinishBtn" onclick="applyPickedAsOriginal()">That's all my colors, let's move on!</button>
+                                <button class="tutorial-next-btn" id="tutorialNextBtn" onclick="tutorialNextStep()">Next Color</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tutorial collapsed tab -->
+                    <div class="tutorial-tab hidden" id="tutorialTab" onclick="expandTutorial()">Tutorial</div>
+
+                    <!-- Picker overlay -->
+                    <div class="picker-overlay hidden" id="pickerOverlay">
+                        <button class="picker-toggle-btn" id="pickerToggleBtn" onclick="togglePickerMode()">
+                            <span>🎯</span>
+                            <span class="picker-toggle-text">Pick Colors</span>
+                        </button>
+                        <div class="picker-category-selector hidden" id="pickerCategorySelector">
+                            <span class="picker-category-label">Picking for:</span>
+                            <select id="pickerCategorySelect" onchange="updatePickerCategory(this.value)">
+                                <!-- Options populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="picker-swatches-list hidden" id="pickerSwatchesList"></div>
+                        <button class="picker-apply-btn hidden" id="pickerApplyBtn" onclick="applyPickedAsOriginal()" disabled>
+                            Apply as Origin
+                        </button>
+                        <button class="picker-clear-btn hidden" id="pickerClearBtn" onclick="clearPickerSelections()">
+                            Clear Selections
+                        </button>
+                        <!-- Hints shown when picker is active -->
+                        <div class="picker-pan-hint hidden" id="pickerPanHint">When Zoomed: Hold ⌥ + drag to explore</div>
+                        <div class="picker-pan-hint hidden" id="pickerCtrlHint">Hit Ctrl to temporarily hide this menu</div>
+                    </div>
+
+                    <div class="zoom-controls hidden" id="zoomControls">
+                        <button class="zoom-btn zoom-btn-wide" onclick="resetZoom()" title="Reset View">⟲ Reset View</button>
+                    </div>
+                    <div class="pan-hint" id="panHint">Alt+Drag to pan • Alt+Scroll to zoom</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+
+                <!-- Tool Legend (shown when target choice appears) -->
+                <div class="tool-legend-panel hidden" id="toolLegendPanel">
+                    <div class="tool-legend-title">Tool Reference</div>
+                    <div class="tool-legend-grid">
+                        <div class="tool-legend-item">
+                            <span class="tool-legend-emoji">🎨</span>
+                            <span class="tool-legend-desc"><strong>Color Picker</strong> — Opens a manual color picker to set the target color</span>
+                        </div>
+                        <div class="tool-legend-item">
+                            <span class="tool-legend-emoji">🔒</span>
+                            <span class="tool-legend-desc"><strong>Lock/Bypass</strong> — Keeps origin colors unchanged through the recolor</span>
+                        </div>
+                        <div class="tool-legend-item">
+                            <span class="tool-legend-emoji">🔀</span>
+                            <span class="tool-legend-desc"><strong>Shuffle</strong> — Randomizes the order of the target swatches</span>
+                        </div>
+                        <div class="tool-legend-item">
+                            <span class="tool-legend-emoji">⟲</span>
+                            <span class="tool-legend-desc"><strong>Reset View</strong> — Resets zoom, pan, and image viewing area height</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================== -->
+            <!-- SIDEBAR (hidden until image)   -->
+            <!-- ============================== -->
+            <div class="sidebar hidden" id="sidebar">
+
+                <!-- ============================== -->
+                <!-- COLOR ANALYSIS BOX             -->
+                <!-- ============================== -->
+                <div class="panel" id="colorAnalysisPanel">
+                    <!-- Pick Colors button at top -->
+                    <button class="btn btn-primary btn-full pick-colors-sidebar-btn btn-with-step" id="sidebarPickColorsBtn" onclick="togglePickerMode()">
+                        <span class="step-circle step-circle-btn">2</span>
+                        <span>🎯</span> Pick Colors
+                    </button>
+                    <div class="pick-colors-description-wrapper" id="pickerInstructions">
+                        <div class="pick-colors-description">
+                            A. Pick Colors by Category<br>
+                            B. Colors with the Same Category will later be consolidated<br>
+                            C. Locked Colors will maintain their identity
+                        </div>
+                    </div>
+
+                    <!-- Import config shortcut (hidden once Target Choice panel reveals full config) -->
+                    <div class="early-import-section" id="earlyImportSection">
+                        <button class="btn btn-subtle" onclick="document.getElementById('earlyConfigFileInput').click()">
+                            📁 Import Saved Configuration
+                        </button>
+                        <input type="file" id="earlyConfigFileInput" accept=".json" style="display:none" onchange="importConfigFileEarly(event)">
+                    </div>
+                </div>
+
+                <!-- ============================== -->
+                <!-- COLOR ANALYSIS (OPTIONAL) BOX  -->
+                <!-- ============================== -->
+                <details class="panel hidden color-analysis-collapsible" id="colorAnalysisOptionalPanel" open>
+                    <summary class="panel-title color-analysis-summary">Color Analysis <span class="tolerance-optional">(OPTIONAL)</span></summary>
+
+                    <div class="color-analysis-body">
+                        <!-- Color distribution strips -->
+                        <div class="color-strip-container" id="colorStripContainer">
+                            <div class="color-strip-header">
+                                <span class="color-strip-label">Original Distribution</span>
+                                <label class="descale-checkbox">
+                                    <input type="checkbox" id="descaleBgCheckbox" onchange="renderColorStrip()">
+                                    <span>Descale BG</span>
+                                </label>
+                            </div>
+                            <div class="color-strip" id="colorStrip"></div>
+                            <div class="color-strip-header recolored-header">
+                                <span class="color-strip-label">Recolored Distribution</span>
+                            </div>
+                            <div class="color-strip recolored-strip grayed-out" id="recoloredStrip"></div>
+                        </div>
+
+                        <!-- Color Consolidation tool -->
+                        <div class="tolerance-container" id="toleranceContainer">
+                            <div class="tolerance-header">
+                                <span class="tolerance-label-main">Color Consolidation <span class="tolerance-optional">(optional)</span></span>
+                                <div class="tolerance-sublabel">Increase this to combine similar colors in the analysis</div>
+                            </div>
+                            <div class="tolerance-slider-row">
+                                <input type="range" class="slider" id="toleranceSlider" min="0" max="50" value="0">
+                                <span class="tolerance-value" id="toleranceValue">0</span>
+                            </div>
+                            <div class="tolerance-controls">
+                                <button class="btn btn-small" onclick="resetTolerance()">Default</button>
+                                <button class="btn btn-small" id="toleranceApplyBtn" onclick="reExtractWithTolerance()">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- ============================== -->
+                <!-- PALETTE MAPPING BOX            -->
+                <!-- ============================== -->
+                <div class="panel hidden" id="paletteMappingPanel">
+                    <div class="panel-title">Review Color Bucketing</div>
+
+                    <!-- Column-based mapping area -->
+                    <div class="column-mapping-container" id="columnMappingContainer">
+                        <!-- Collapsible Origin section -->
+                        <details class="target-tool-section origin-collapsible" id="originCollapsible" open>
+                            <summary class="target-tool-summary">🎨 Origin</summary>
+                            <div class="target-tool-content origin-collapsible-content">
+                                <div class="origin-drag-hint">Drag to reorganize (optional)</div>
+                                <!-- Overflow bank for locked/extra origins -->
+                                <div class="origin-overflow-bank" id="originOverflowBank">
+                                    <div class="overflow-bank-title">🔒 Extra Colors (Locked - No Change)</div>
+                                    <div class="overflow-origins-grid" id="overflowOriginsGrid"></div>
+                                </div>
+                                <div class="mapping-columns" id="mappingColumns">
+                                    <!-- Columns will be rendered here -->
+                                </div>
+                            </div>
+                        </details>
+                        <!-- Targets row (always visible, outside collapsible) -->
+                        <div class="mapping-targets-row" id="mappingTargetsRow">
+                            <!-- Target swatches will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Target count control (hidden until target selection stage) -->
+                    <div class="palette-row" id="targetControlRow">
+                        <span class="palette-row-label">Target</span>
+                        <button class="btn btn-icon btn-small hidden" id="shuffleBtn" onclick="shuffleTargetPalette()" title="Shuffle colors">
+                            <span>🔀</span>
+                        </button>
+                        <div style="flex:1"></div>
+                        <div class="palette-count-control">
+                            <button class="palette-count-btn" onclick="changeTargetCount(-1)">−</button>
+                            <input type="text" id="targetCountDisplay" value="5" readonly>
+                            <button class="palette-count-btn" onclick="changeTargetCount(1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Color Gradient Picker (COMMENTED OUT - redundant with per-swatch pickers) -->
+                    <!--
+                    <div class="color-picker-area" id="mainGradientPicker">
+                        <div class="color-gradient-container" id="colorGradientContainer">
+                            <div class="color-gradient-sv" id="colorGradientSV">
+                                <div class="color-gradient-white"></div>
+                                <div class="color-gradient-black"></div>
+                                <div class="color-gradient-cursor" id="colorGradientCursor"></div>
+                            </div>
+                        </div>
+                        <input type="range" class="color-hue-slider" id="colorHueSlider"
+                               min="0" max="360" value="0"
+                               oninput="updateGradientHue(this.value)">
+                    </div>
+
+                    <div class="hex-input-row">
+                        <input type="text" class="hex-input" id="hexInput" placeholder="#FF5733" maxlength="7">
+                        <div class="color-preview-small" id="hexPreview"></div>
+                        <button class="btn" onclick="applyHexToSelected()">Set</button>
+                    </div>
+                    -->
+                    <!-- Keep hidden inputs for JS that may reference them -->
+                    <div style="display:none">
+                        <div id="colorGradientContainer"><div id="colorGradientSV"><div class="color-gradient-cursor" id="colorGradientCursor"></div></div></div>
+                        <input id="colorHueSlider" type="range" min="0" max="360" value="0">
+                        <input type="text" id="hexInput" placeholder="#FF5733" maxlength="7">
+                        <div id="hexPreview"></div>
+                    </div>
+
+                    <!-- Harmony, Luminosity, Config MOVED to Target Choice box -->
+                </div>
+
+                <!-- Target Selector Button (between Palette Mapping and Target Choice) -->
+                <button class="btn btn-primary btn-full btn-large btn-with-step hidden" id="targetSelectorBtn" onclick="activateTargetSelection()">
+                    <span class="step-circle step-circle-btn">3</span>
+                    Look's Good!
+                </button>
+
+                <!-- ============================== -->
+                <!-- TARGET CHOICE BOX              -->
+                <!-- ============================== -->
+                <div class="panel hidden" id="targetChoicePanel">
+                    <div class="panel-title">Pick your new colors</div>
+
+                    <div class="target-choice-description">
+                        Choose your target colors manually above or use the tools below.
+                    </div>
+
+                    <!-- I. Import Theme From Adobe Color (collapsible) -->
+                    <details class="target-tool-section">
+                        <summary class="target-tool-summary"><img class="tool-summary-icon" src="https://cdn-icons-png.flaticon.com/128/5436/5436922.png" width="16" height="16" alt="Adobe"> Import Theme From Adobe Color</summary>
+                        <div class="target-tool-content">
+                            <div class="adobe-section">
+                                <a class="adobe-color-link-top" href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a>
+                                <details class="adobe-instructions">
+                                    <summary>How to get CSS from Adobe Color</summary>
+                                    <div class="adobe-instructions-content">
+                                        <ol>
+                                            <li><a href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a></li>
+                                            <li>Create or choose a theme</li>
+                                            <li>Save it to your library</li>
+                                            <li>Open the <strong>Libraries</strong> tab at the top</li>
+                                            <li>Find your theme, click <strong>⋯</strong> → <strong>Copy as CSS</strong></li>
+                                            <li>Paste below</li>
+                                        </ol>
+                                    </div>
+                                </details>
+                                <textarea class="adobe-textarea" id="adobeInput"
+                                          placeholder="Paste CSS from color.adobe.com"
+                                          oninput="previewAdobeColors(this.value)"></textarea>
+                                <div class="import-preview hidden" id="importPreview">
+                                    <span class="import-label">Preview:</span>
+                                    <div class="import-colors" id="importColors"></div>
+                                </div>
+                                <button class="btn btn-full" onclick="importAdobePalette()">Import Palette</button>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- II. Color Harmony (collapsible) -->
+                    <details class="target-tool-section">
+                        <summary class="target-tool-summary"><svg class="tool-summary-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="2.2" fill="#e74c3c" stroke="none"/><circle cx="17.6" cy="9.5" r="2.2" fill="#f39c12" stroke="none"/><circle cx="16" cy="16" r="2.2" fill="#2ecc71" stroke="none"/><circle cx="8" cy="16" r="2.2" fill="#3498db" stroke="none"/><circle cx="6.4" cy="9.5" r="2.2" fill="#9b59b6" stroke="none"/></svg> Color Harmony</summary>
+                        <div class="target-tool-content">
+                            <div class="harmony-section">
+                                <!-- Mode toggle: Lock a Harmony / Lock a Color -->
+                                <div class="harmony-mode-toggle">
+                                    <span class="harmony-mode-label active" id="harmonyModeHarmonyLabel" onclick="setHarmonyMode('harmony')">Lock a Harmony</span>
+                                    <div class="harmony-mode-switch" id="harmonyModeSwitch" onclick="toggleHarmonyMode()"></div>
+                                    <span class="harmony-mode-label" id="harmonyModeColorLabel" onclick="setHarmonyMode('color')">Lock a Color</span>
+                                </div>
+
+                                <!-- Lock a Harmony panel (default) -->
+                                <div class="harmony-mode-panel" id="harmonyPanelHarmony">
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
+                                        Generate a new palette following the selected harmony rule
+                                    </div>
+                                    <div class="harmony-row">
+                                        <select class="harmony-select" id="harmonyType" onchange="syncHarmonySelects(this.value); updateHarmonyWheel();">
+                                            <option value="complementary">Complementary</option>
+                                            <option value="analogous">Analogous</option>
+                                            <option value="triadic">Triadic</option>
+                                            <option value="split">Split-Complementary</option>
+                                            <option value="tetradic">Tetradic (Square)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Hue offset slider -->
+                                    <div class="harmony-control-row">
+                                        <span class="harmony-control-label">Base Hue</span>
+                                        <input type="range" class="harmony-hue-slider" id="harmonyBaseHue" min="0" max="360" value="180"
+                                               oninput="updateHarmonyBaseHueDisplay(this.value)">
+                                        <span class="harmony-control-value" id="harmonyBaseHueValue">180°</span>
+                                    </div>
+
+                                    <!-- Saturation range -->
+                                    <div class="harmony-control-row">
+                                        <span class="harmony-control-label">Saturation</span>
+                                        <span class="harmony-range-label">min</span>
+                                        <input type="range" class="harmony-range-slider" id="harmonySatMin" min="0" max="100" value="45"
+                                               oninput="document.getElementById('harmonySatMinVal').textContent = this.value">
+                                        <span class="harmony-control-value" id="harmonySatMinVal">45</span>
+                                        <span class="harmony-control-sep">–</span>
+                                        <span class="harmony-range-label">max</span>
+                                        <input type="range" class="harmony-range-slider" id="harmonySatMax" min="0" max="100" value="90"
+                                               oninput="document.getElementById('harmonySatMaxVal').textContent = this.value">
+                                        <span class="harmony-control-value" id="harmonySatMaxVal">90</span>
+                                    </div>
+
+                                    <!-- Lightness range -->
+                                    <div class="harmony-control-row">
+                                        <span class="harmony-control-label">Lightness</span>
+                                        <span class="harmony-range-label">min</span>
+                                        <input type="range" class="harmony-range-slider" id="harmonyLitMin" min="0" max="100" value="35"
+                                               oninput="document.getElementById('harmonyLitMinVal').textContent = this.value">
+                                        <span class="harmony-control-value" id="harmonyLitMinVal">35</span>
+                                        <span class="harmony-control-sep">–</span>
+                                        <span class="harmony-range-label">max</span>
+                                        <input type="range" class="harmony-range-slider" id="harmonyLitMax" min="0" max="100" value="65"
+                                               oninput="document.getElementById('harmonyLitMaxVal').textContent = this.value">
+                                        <span class="harmony-control-value" id="harmonyLitMaxVal">65</span>
+                                    </div>
+
+                                    <div class="harmony-btn-row">
+                                        <button class="btn btn-randomize-harmony harmony-btn-half" onclick="randomizeHarmony()" id="harmonyRandomizeBtn">🎲 Randomize within <span id="harmonyRandomizeLabel">Complementary</span></button>
+                                        <button class="btn btn-randomize-harmony harmony-btn-half" onclick="generateHarmonyFromControls()">🎨 Generate Palette based on selections</button>
+                                    </div>
+                                    <div class="harmony-or-divider">Or</div>
+                                    <div class="harmony-nudge-row">
+                                        <button class="btn btn-full harmony-nudge-btn" onclick="harmonizePalette()">
+                                            <span>Nudge Existing Target Colors to Harmony</span>
+                                            <span class="harmony-nudge-swatch" id="harmonyNudgeSwatch" title="Based on selected target"></span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Harmony Tutorial -->
+                                    <details class="harmony-tutorial" id="harmonyTutorial">
+                                        <summary class="harmony-tutorial-summary">How does this work?</summary>
+                                        <div class="harmony-tutorial-slides" id="harmonyTutorialSlides">
+                                            <div class="harmony-tutorial-slide active" data-slide="0">
+                                                <div class="harmony-tutorial-slide-number">1 / 5</div>
+                                                <div class="harmony-tutorial-slide-title">Two Modes</div>
+                                                <div class="harmony-tutorial-slide-body">
+                                                    The toggle at the top switches between two modes:<br><br>
+                                                    <b>Lock a Harmony</b> &mdash; You control the harmony type and parameters. The tool generates or adjusts target colors to follow that harmony rule.<br><br>
+                                                    <b>Lock a Color</b> &mdash; You pick one color to keep fixed, and the tool generates the other colors around it using a random harmony.
+                                                </div>
+                                            </div>
+                                            <div class="harmony-tutorial-slide" data-slide="1">
+                                                <div class="harmony-tutorial-slide-number">2 / 5</div>
+                                                <div class="harmony-tutorial-slide-title">Harmony Types</div>
+                                                <div class="harmony-tutorial-slide-body">
+                                                    The dropdown selects which color relationship to use:<br><br>
+                                                    <b>Complementary</b> &mdash; Opposite sides of the wheel (180&deg; apart). High contrast.<br>
+                                                    <b>Analogous</b> &mdash; Neighboring hues (30&deg; apart). Smooth, cohesive.<br>
+                                                    <b>Triadic</b> &mdash; Three evenly spaced (120&deg;). Vibrant, balanced.<br>
+                                                    <b>Split-Complementary</b> &mdash; Base + two neighbors of its complement.<br>
+                                                    <b>Tetradic</b> &mdash; Four colors at 90&deg; intervals. Rich, complex.
+                                                </div>
+                                            </div>
+                                            <div class="harmony-tutorial-slide" data-slide="2">
+                                                <div class="harmony-tutorial-slide-number">3 / 5</div>
+                                                <div class="harmony-tutorial-slide-title">The Controls</div>
+                                                <div class="harmony-tutorial-slide-body">
+                                                    <b>Base Hue</b> &mdash; The starting angle on the color wheel. All other colors are placed relative to this.<br><br>
+                                                    <b>Saturation (min&ndash;max)</b> &mdash; How vivid the generated colors are. Low = muted/gray, high = pure color.<br><br>
+                                                    <b>Lightness (min&ndash;max)</b> &mdash; How bright or dark. Each color gets a random value within your range.
+                                                </div>
+                                            </div>
+                                            <div class="harmony-tutorial-slide" data-slide="3">
+                                                <div class="harmony-tutorial-slide-number">4 / 5</div>
+                                                <div class="harmony-tutorial-slide-title">The Three Buttons</div>
+                                                <div class="harmony-tutorial-slide-body">
+                                                    <b>Generate Palette</b> &mdash; Creates entirely new target colors using your chosen harmony type, base hue, saturation, and lightness ranges.<br><br>
+                                                    <b>Randomize Everything</b> &mdash; Same as Generate, but picks a random base hue for you first. Great for exploring.<br><br>
+                                                    <b>Adjust Existing Colors</b> &mdash; Keeps your current target colors but shifts their hues to match the selected harmony pattern. Preserves each color's original saturation and lightness.
+                                                </div>
+                                            </div>
+                                            <div class="harmony-tutorial-slide" data-slide="4">
+                                                <div class="harmony-tutorial-slide-number">5 / 5</div>
+                                                <div class="harmony-tutorial-slide-title">Locked Colors</div>
+                                                <div class="harmony-tutorial-slide-body">
+                                                    Any target swatch with the lock engaged is <b>skipped</b> by all three buttons. This lets you protect colors you like while regenerating the rest.<br><br>
+                                                    The color wheel below shows where your current target colors sit. Harmony patterns will appear as evenly-spaced dots around the wheel.
+                                                </div>
+                                            </div>
+                                            <div class="harmony-tutorial-nav">
+                                                <button class="harmony-tutorial-prev" id="harmonyTutorialPrev" onclick="harmonyTutorialNav(-1)">&larr; Prev</button>
+                                                <button class="harmony-tutorial-next" id="harmonyTutorialNext" onclick="harmonyTutorialNav(1)">Next &rarr;</button>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+
+                                <!-- Lock a Color panel (hidden by default) -->
+                                <div class="harmony-mode-panel hidden" id="harmonyPanelColor">
+                                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
+                                        Lock one target color and generate compatible colors around it
+                                    </div>
+                                    <div class="lock-color-swatch-picker" id="lockColorSwatchPicker">
+                                        <!-- Populated dynamically with swatch-style color options -->
+                                    </div>
+                                    <button class="btn btn-full btn-randomize-harmony" onclick="randomizeLockColor()">🎲 Randomize Around Locked Color</button>
+                                    <div class="lock-color-result-label hidden" id="lockColorResultLabel">
+                                        <!-- Shows which harmony was selected after randomize -->
+                                    </div>
+                                </div>
+
+                                <div class="harmony-wheel-container">
+                                    <canvas id="harmonyWheelCanvas" width="100" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- III. Theme Presets (collapsible) -->
+                    <details class="target-tool-section">
+                        <summary class="target-tool-summary">🖼️ Theme Presets</summary>
+                        <div class="target-tool-content">
+                            <div class="theme-section">
+                                <div class="theme-scroll-container" id="themeScrollContainer"></div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Apply Recolor Button (moved here between Theme Presets and Color Adjust) -->
+                    <div class="apply-recolor-group" style="margin: 0.75rem 0;">
+                        <button class="btn btn-primary btn-full btn-with-step" id="applyRecolorBtn" onclick="applyRecolor()">
+                            <span class="step-circle step-circle-btn">4</span>
+                            <span id="applyRecolorText">Apply this recolor</span>
+                        </button>
+                        <label class="live-preview-toggle-below hidden" id="livePreviewToggleWrapper" title="Enable live preview updates">
+                            <input type="checkbox" id="livePreviewToggle" onchange="toggleLivePreview(this.checked)">
+                            <span class="live-preview-label">Recolor Live</span>
+                        </label>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Color Adjust box (algorithm toggle + luminosity) -->
+                    <div class="color-adjust-box">
+                        <span class="color-adjust-box-title">Color Adjust <span class="tolerance-optional">(optional)</span></span>
+
+                        <!-- Algorithm toggle (Simple / Advanced) -->
+                        <div class="algorithm-toggle-bottom">
+                            <span class="algorithm-toggle-sublabel">Recolor algorithm</span>
+                        </div>
+                        <div class="algorithm-toggle-bottom" style="margin-top: 0;">
+                            <span class="algorithm-toggle-label" id="algoLabelSimple" onclick="setAlgorithm('simple')">Simple</span>
+                            <div class="algorithm-toggle-switch" id="algoSwitch" onclick="toggleAlgorithm()" title="Toggle recolor algorithm"></div>
+                            <span class="algorithm-toggle-label" id="algoLabelRBF" onclick="setAlgorithm('rbf')">Advanced</span>
+                        </div>
+
+                        <!-- Color Luminosity (Post Processing) -->
+                        <details class="target-tool-section" style="margin-top: 0.75rem;">
+                            <summary class="target-tool-summary">☀️ Color Luminosity (Post Processing)</summary>
+                            <div class="target-tool-content">
+                                <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.4rem; font-style: italic;">
+                                    Adjusts brightness after recolor. Respects locked colors.
+                                </div>
+                                <div class="slider-row">
+                                    <div class="slider-label">
+                                        <span>Brightness Adjustment</span>
+                                        <span class="slider-value" id="luminosityValue">0</span>
+                                    </div>
+                                    <input type="range" class="slider" id="luminositySlider" min="-50" max="50" value="0"
+                                           oninput="updateLuminosityValue(this.value)">
+                                </div>
+                                <div class="luminosity-btn-row">
+                                    <button class="btn btn-full" onclick="applyLuminosityPostProcess()">Apply Luminosity</button>
+                                    <button class="btn btn-small" onclick="resetLuminositySlider()" title="Reset to default">↻ Reset</button>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Save/History box -->
+                    <div class="save-history-box">
+                        <span class="save-history-box-title">Save / History</span>
+                        <button class="btn btn-primary btn-full btn-save-config btn-with-step" onclick="saveCurrentConfig()">
+                            <span class="step-circle step-circle-btn">5</span>
+                            Save recolor configuration
+                        </button>
+                        <div class="config-import-export-row">
+                            <button class="btn" id="exportSavedBtn" onclick="exportAllConfigs()">Export</button>
+                            <button class="btn" onclick="document.getElementById('configFileInput').click()">Import</button>
+                        </div>
+                        <input type="file" id="configFileInput" accept=".json" style="display:none" onchange="importConfigFile(event)">
+                        <button class="btn btn-full btn-download-recolor btn-with-step" id="downloadRecolorBtn" onclick="downloadImage()">
+                            <span class="step-circle step-circle-btn">6</span>
+                            Download Recolored Image
+                        </button>
+                        <div class="config-history-header">Recolor History</div>
+                        <div class="config-list" id="configList"></div>
+                    </div>
+                </div>
+
+                <div id="statusPanel" class="status"></div>
+            </div>
+        </div>
+
+        <footer class="site-footer">
+            <h3>Credits</h3>
+            <p>With thanks to original code referenced from the
+                <a href="https://recolor.cs.princeton.edu/demo/index.html" target="_blank">Princeton Recoloring Demo</a></p>
+            <p>Inspiration &amp; reference:</p>
+            <ul class="credits-links">
+                <li><a href="https://github.com/ziap/repalette" target="_blank">github.com/ziap/repalette</a></li>
+                <li><a href="https://github.com/ashish0kumar/tint" target="_blank">github.com/ashish0kumar/tint</a></li>
+                <li><a href="https://github.com/rupareddy5/Palette-based-photo-recoloring" target="_blank">github.com/rupareddy5/Palette-based-photo-recoloring</a></li>
+                <li><a href="https://github.com/pipi3838/DIP_Final" target="_blank">github.com/pipi3838/DIP_Final</a></li>
+                <li><a href="https://github.com/danielgafni/repalette" target="_blank">github.com/danielgafni/repalette</a></li>
+                <li><a href="https://github.com/b-z/photo_recoloring" target="_blank">github.com/b-z/photo_recoloring</a></li>
+                <li><a href="https://www.realtimecolors.com/" target="_blank">realtimecolors.com</a></li>
+            </ul>
+        </footer>
+    </div>
+
+    <!-- Hidden elements for origin count tracking (still used by JS) -->
+    <input type="hidden" id="originCountDisplay" value="5">
+
+    <script src="app.js"></script>
+</body>
+</html>

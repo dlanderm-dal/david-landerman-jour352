@@ -134,22 +134,25 @@
                                     <div class="quick-harmony-mode-switch" id="quickModeSwitch" onclick="toggleHarmonyMode()"></div>
                                     <span class="quick-harmony-mode-label" id="quickModeColorLabel" onclick="setHarmonyMode('color')">Color</span>
                                 </div>
-                                <!-- Lock a Harmony controls -->
-                                <div class="quick-harmony-controls" id="quickHarmonyControls">
-                                    <select class="quick-harmony-select" id="quickHarmonyType" onchange="syncHarmonySelects(this.value)">
-                                        <option value="complementary">Complementary</option>
-                                        <option value="analogous">Analogous</option>
-                                        <option value="triadic">Triadic</option>
-                                        <option value="split">Split-Comp</option>
-                                        <option value="tetradic">Tetradic</option>
-                                    </select>
-                                    <button class="btn btn-small quick-harmony-btn" onclick="quickRandomizeHarmony()" title="Generate Random Palette">🎲 Generate</button>
-                                    <button class="btn btn-small quick-harmony-btn" onclick="harmonizePalette()" title="Nudge existing target colors toward this harmony">↗ Nudge</button>
-                                </div>
-                                <!-- Lock a Color controls -->
-                                <div class="quick-harmony-controls hidden" id="quickColorControls">
-                                    <div class="quick-lock-color-select-wrapper" id="quickLockColorSelectWrapper"></div>
-                                    <button class="btn btn-small quick-harmony-btn" onclick="randomizeLockColor()" title="Randomize around locked color">🎲 Randomize</button>
+                                <div class="quick-harmony-controls-wrapper">
+                                    <!-- Lock a Harmony controls -->
+                                    <div class="quick-harmony-controls" id="quickHarmonyControls">
+                                        <select class="quick-harmony-select" id="quickHarmonyType" onchange="syncHarmonySelects(this.value)">
+                                            <option value="complementary">Complementary</option>
+                                            <option value="analogous">Analogous</option>
+                                            <option value="triadic">Triadic</option>
+                                            <option value="split">Split-Comp</option>
+                                            <option value="tetradic">Tetradic</option>
+                                        </select>
+                                        <button class="btn btn-small quick-harmony-btn" onclick="quickRandomizeHarmony()" title="Random base hue + selected harmony">🎲 Randomize</button>
+                                        <button class="btn btn-small quick-harmony-btn" onclick="quickGenerateHarmony()" title="Generate from slider settings">🎨 Generate</button>
+                                        <button class="btn btn-small quick-harmony-btn" onclick="harmonizePalette()" title="Nudge existing target colors toward this harmony">↗ Nudge <span class="harmony-nudge-swatch" id="quickNudgeSwatch" title="Based on selected target"></span></button>
+                                    </div>
+                                    <!-- Lock a Color controls -->
+                                    <div class="quick-harmony-controls hidden" id="quickColorControls">
+                                        <div class="quick-lock-color-select-wrapper" id="quickLockColorSelectWrapper"></div>
+                                        <button class="btn btn-small quick-harmony-btn" onclick="randomizeLockColor()" title="Randomize around locked color">🎲 Randomize</button>
+                                    </div>
                                 </div>
                                 <div class="quick-harmony-result hidden" id="quickHarmonyResult"></div>
                             </div>
@@ -217,7 +220,7 @@
                     </div>
 
                     <div class="zoom-controls hidden" id="zoomControls">
-                        <button class="zoom-btn zoom-btn-wide" onclick="resetZoom()" title="Reset View">⟲ Reset View</button>
+                        <button class="zoom-btn zoom-btn-wide" onclick="resetZoom()" title="Reset View"><span class="reset-view-icon">⟲</span> Reset View</button>
                     </div>
                     <div class="pan-hint" id="panHint">Alt+Drag to pan • Alt+Scroll to zoom</div>
                 </div>
@@ -291,7 +294,7 @@
                                 <span class="color-strip-label">Original Distribution</span>
                                 <label class="descale-checkbox">
                                     <input type="checkbox" id="descaleBgCheckbox" onchange="renderColorStrip()">
-                                    <span>Descale BG</span>
+                                    <span>Descale Background on Distribution</span>
                                 </label>
                             </div>
                             <div class="color-strip" id="colorStrip"></div>
@@ -589,6 +592,7 @@
                                     </div>
                                 </div>
 
+                                <div class="harmony-nudge-hint" id="harmonyNudgeHint">Select a target for Nudge: click a dot on the wheel or a target swatch above</div>
                                 <div class="harmony-wheel-container">
                                     <canvas id="harmonyWheelCanvas" width="100" height="100"></canvas>
                                 </div>

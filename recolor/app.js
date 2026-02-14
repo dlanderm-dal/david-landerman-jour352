@@ -117,8 +117,16 @@ let webglCanvas = null;
 let simpleRecolorProgram = null;
 let rbfRecolorProgram = null;
 let webglInitialized = false;
+let _webglImageTexture = null; // Persistent source image texture (avoids re-upload per frame)
+let _webglDirty = true;        // True when CPU-side imageData is stale and needs sync
+let _lastWebGLRenderType = null; // 'simple' or 'rbf' — tracks what's currently on the WebGL canvas
+let _lastSimpleUniforms = null;  // Cache last simple recolor uniforms for re-render on zoom
+let _lastRBFUniforms = null;     // Cache last RBF recolor uniforms for re-render on zoom
+let _simpleUniformLocs = null;   // Cached uniform locations for simple shader
+let _rbfUniformLocs = null;      // Cached uniform locations for RBF shader
 
 // Vertex shader (shared by both programs) - simple fullscreen quad
+// Tex coords in setupWebGLBuffers already handle Y orientation, so pass through directly.
 const vertexShaderSource = `
     attribute vec2 a_position;
     attribute vec2 a_texCoord;
@@ -256,6 +264,12 @@ const rbfRecolorFragmentSource = `
     uniform float u_lutSize;
     uniform float u_luminosity;
 
+    // Bypass correction: palette colors whose columns are locked/bypassed.
+    // After the LUT lookup, pixels close to a bypassed color are blended back
+    // toward their original value so the global RBF transform cannot bleed into them.
+    uniform vec3 u_bypassedRGB[20];  // up to 20 bypassed palette entries (RGB 0-1)
+    uniform int  u_bypassedCount;
+
     void main() {
         vec4 texColor = texture2D(u_image, v_texCoord);
 
@@ -292,6 +306,26 @@ const rbfRecolorFragmentSource = `
         vec3 c1 = mix(c10, c11, frac.y);
         vec3 newRgb = mix(c0, c1, frac.x);
 
+        // Bypass correction: blend back toward original for pixels near bypassed colors.
+        // Uses a Gaussian weight in RGB space — the closer the pixel is to a bypassed
+        // palette color, the more it keeps its original value.
+        if (u_bypassedCount > 0) {
+            float maxKeep = 0.0;  // max "keep original" weight across all bypassed colors
+            for (int j = 0; j < 20; j++) {
+                if (j >= u_bypassedCount) break;
+                vec3 diff = texColor.rgb - u_bypassedRGB[j];
+                float d2 = dot(diff, diff);
+                // Gaussian falloff: sigma ~0.12 in 0-1 space (~30 in 0-255 space)
+                // At distance 0:    keep = 1.0  (fully original)
+                // At distance 0.12: keep ≈ 0.6
+                // At distance 0.24: keep ≈ 0.14
+                // At distance 0.35: keep ≈ 0.01
+                float keep = exp(-d2 / (2.0 * 0.12 * 0.12));
+                maxKeep = max(maxKeep, keep);
+            }
+            newRgb = mix(newRgb, texColor.rgb, maxKeep);
+        }
+
         // Apply luminosity
         if (u_luminosity != 0.0) {
             float factor = 1.0 + (u_luminosity / 100.0);
@@ -306,9 +340,11 @@ function initWebGL() {
     if (webglInitialized) return webglInitialized;
 
     try {
-        webglCanvas = document.createElement('canvas');
-        gl = webglCanvas.getContext('webgl', { preserveDrawingBuffer: true }) ||
-             webglCanvas.getContext('experimental-webgl', { preserveDrawingBuffer: true });
+        // Create a dedicated WebGL canvas (separate from 2D displayCanvas)
+        webglCanvas = document.getElementById('webglDisplayCanvas') || document.createElement('canvas');
+        webglCanvas.id = 'webglDisplayCanvas';
+        gl = webglCanvas.getContext('webgl', { preserveDrawingBuffer: true, alpha: false }) ||
+             webglCanvas.getContext('experimental-webgl', { preserveDrawingBuffer: true, alpha: false });
 
         if (!gl) {
             console.warn('WebGL not available, falling back to CPU');
@@ -324,8 +360,26 @@ function initWebGL() {
             return false;
         }
 
+        // Cache uniform locations (avoids repeated lookups on every render)
+        _simpleUniformLocs = {
+            u_image: gl.getUniformLocation(simpleRecolorProgram, 'u_image'),
+            u_oldLab: gl.getUniformLocation(simpleRecolorProgram, 'u_oldLab'),
+            u_diffLab: gl.getUniformLocation(simpleRecolorProgram, 'u_diffLab'),
+            u_paletteSize: gl.getUniformLocation(simpleRecolorProgram, 'u_paletteSize'),
+            u_blendSharpness: gl.getUniformLocation(simpleRecolorProgram, 'u_blendSharpness'),
+            u_luminosity: gl.getUniformLocation(simpleRecolorProgram, 'u_luminosity')
+        };
+        _rbfUniformLocs = {
+            u_image: gl.getUniformLocation(rbfRecolorProgram, 'u_image'),
+            u_lut: gl.getUniformLocation(rbfRecolorProgram, 'u_lut'),
+            u_lutSize: gl.getUniformLocation(rbfRecolorProgram, 'u_lutSize'),
+            u_luminosity: gl.getUniformLocation(rbfRecolorProgram, 'u_luminosity'),
+            u_bypassedRGB: gl.getUniformLocation(rbfRecolorProgram, 'u_bypassedRGB[0]'),
+            u_bypassedCount: gl.getUniformLocation(rbfRecolorProgram, 'u_bypassedCount')
+        };
+
         webglInitialized = true;
-        console.log('WebGL initialized successfully');
+        console.log('WebGL initialized successfully (direct display mode)');
         return true;
     } catch (e) {
         console.warn('WebGL initialization failed:', e);
@@ -366,43 +420,174 @@ function compileShader(gl, type, source) {
     return shader;
 }
 
+let _webglPositionBuffer = null;
+let _webglTexCoordBuffer = null;
+
 function setupWebGLBuffers(gl, program) {
-    // Create fullscreen quad
-    const positions = new Float32Array([
-        -1, -1,  1, -1,  -1, 1,
-        -1,  1,  1, -1,   1, 1
-    ]);
-    const texCoords = new Float32Array([
-        0, 1,  1, 1,  0, 0,
-        0, 0,  1, 1,  1, 0
-    ]);
+    // Create fullscreen quad buffers once, reuse on subsequent calls
+    if (!_webglPositionBuffer) {
+        const positions = new Float32Array([
+            -1, -1,  1, -1,  -1, 1,
+            -1,  1,  1, -1,   1, 1
+        ]);
+        _webglPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, _webglPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    }
+    if (!_webglTexCoordBuffer) {
+        const texCoords = new Float32Array([
+            0, 1,  1, 1,  0, 0,
+            0, 0,  1, 1,  1, 0
+        ]);
+        _webglTexCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, _webglTexCoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+    }
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
+    // Bind position buffer and set attribute pointer
+    gl.bindBuffer(gl.ARRAY_BUFFER, _webglPositionBuffer);
     const positionLoc = gl.getAttribLocation(program, 'a_position');
     gl.enableVertexAttribArray(positionLoc);
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
 
-    const texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
-
+    // Bind texcoord buffer and set attribute pointer
+    gl.bindBuffer(gl.ARRAY_BUFFER, _webglTexCoordBuffer);
     const texCoordLoc = gl.getAttribLocation(program, 'a_texCoord');
     gl.enableVertexAttribArray(texCoordLoc);
     gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
 }
 
-function createTexture(gl, imageData) {
+function createTexture(gl, imageData, useLinear) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    // Source image uses LINEAR for smooth display at various resolutions.
+    // LUT textures use NEAREST to avoid interpolation artifacts in lookup tables.
+    const filter = useLinear ? gl.LINEAR : gl.NEAREST;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, imageData.width, imageData.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, imageData.data);
     return texture;
+}
+
+// Ensure the persistent source image texture is uploaded (reuse across frames)
+function ensureImageTexture() {
+    if (!_webglImageTexture && originalImageData && gl) {
+        _webglImageTexture = createTexture(gl, originalImageData, true);
+    }
+    return _webglImageTexture;
+}
+
+// Invalidate persistent image texture (call when image changes)
+function invalidateImageTexture() {
+    if (_webglImageTexture && gl) {
+        gl.deleteTexture(_webglImageTexture);
+    }
+    _webglImageTexture = null;
+}
+
+// Lazy sync: read WebGL pixels back to CPU-side imageData and 2D canvas.
+// Only called when something needs CPU pixel access (export, strip, luminosity).
+function syncWebGLToCPU() {
+    if (!_webglDirty || !gl || !webglCanvas) return;
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Temporarily resize WebGL canvas to image dimensions for readback
+    const savedCSSWidth = webglCanvas.style.width;
+    const savedCSSHeight = webglCanvas.style.height;
+    const savedWidth = webglCanvas.width;
+    const savedHeight = webglCanvas.height;
+
+    // We need to re-render at image resolution for the readback
+    webglCanvas.width = width;
+    webglCanvas.height = height;
+    gl.viewport(0, 0, width, height);
+
+    // Re-render the last recolor at image resolution using cached uniform locations
+    if (_lastWebGLRenderType === 'simple' && _lastSimpleUniforms && _simpleUniformLocs) {
+        const u = _lastSimpleUniforms;
+        const loc = _simpleUniformLocs;
+        gl.useProgram(simpleRecolorProgram);
+        setupWebGLBuffers(gl, simpleRecolorProgram);
+        const tex = ensureImageTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.uniform1i(loc.u_image, 0);
+        gl.uniform3fv(loc.u_oldLab, u.oldLabFlat);
+        gl.uniform3fv(loc.u_diffLab, u.diffLabFlat);
+        gl.uniform1i(loc.u_paletteSize, u.k);
+        gl.uniform1f(loc.u_blendSharpness, 2.0);
+        gl.uniform1f(loc.u_luminosity, u.luminosity);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    } else if (_lastWebGLRenderType === 'rbf' && _lastRBFUniforms && _rbfUniformLocs) {
+        const u = _lastRBFUniforms;
+        const loc = _rbfUniformLocs;
+        gl.useProgram(rbfRecolorProgram);
+        setupWebGLBuffers(gl, rbfRecolorProgram);
+        const tex = ensureImageTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.uniform1i(loc.u_image, 0);
+        // Re-create LUT texture
+        const lutTexture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
+        gl.uniform1i(loc.u_lut, 1);
+        gl.uniform1f(loc.u_lutSize, u.lutSize);
+        gl.uniform1f(loc.u_luminosity, u.luminosity);
+        // Bypass correction uniforms
+        gl.uniform3fv(loc.u_bypassedRGB, u.bypassedFlat || new Float32Array(60));
+        gl.uniform1i(loc.u_bypassedCount, u.bypassedCount || 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.deleteTexture(lutTexture);
+    }
+
+    // Read pixels back — readPixels always returns bottom-to-top row order,
+    // so we must flip Y rows to get correct top-to-bottom orientation for the 2D canvas.
+    const pixels = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    // Flip rows: swap row i with row (height-1-i)
+    const rowSize = width * 4;
+    const tempRow = new Uint8Array(rowSize);
+    for (let y = 0; y < Math.floor(height / 2); y++) {
+        const topOffset = y * rowSize;
+        const bottomOffset = (height - 1 - y) * rowSize;
+        tempRow.set(pixels.subarray(topOffset, topOffset + rowSize));
+        pixels.copyWithin(topOffset, bottomOffset, bottomOffset + rowSize);
+        pixels.set(tempRow, bottomOffset);
+    }
+
+    const newData = ctx.createImageData(width, height);
+    newData.data.set(pixels);
+    ctx.putImageData(newData, 0, 0);
+    imageData = newData;
+
+    _webglDirty = false;
+
+    // Re-render the WebGL canvas at display resolution (resizing cleared the framebuffer).
+    // Only needed if the webglCanvas is currently visible (i.e., we're in WebGL display mode).
+    if (webglCanvas.style.display !== 'none' && webglCanvas.parentNode && _lastWebGLRenderType) {
+        renderWebGLToDisplay(_lastWebGLRenderType);
+    } else {
+        // Not currently displaying WebGL — just restore buffer dimensions
+        webglCanvas.width = savedWidth;
+        webglCanvas.height = savedHeight;
+        webglCanvas.style.width = savedCSSWidth;
+        webglCanvas.style.height = savedCSSHeight;
+        if (savedWidth > 0 && savedHeight > 0) {
+            gl.viewport(0, 0, savedWidth, savedHeight);
+        }
+    }
+
+    console.log('syncWebGLToCPU: pixels synced to CPU');
 }
 
 // ============================================
@@ -415,6 +600,7 @@ let originalPalette = [];
 let targetPalette = [];
 let selectedSlotIndex = 0;
 let harmonyMode = 'harmony'; // 'harmony' or 'color'
+let _currentHarmonyType = 'complementary'; // cached harmony type, survives DOM hidden/show resets
 let lockColorSelectedIdx = 0; // Which target is selected in Lock a Color mode
 let canvas, ctx;
 let displayCanvas, displayCtx; // For high-quality scaled display
@@ -575,6 +761,48 @@ const THEMES = {
 };
 
 // ============================================
+// Sticky Overlay Positioning
+// ============================================
+
+// Keeps left-side tools (zoom slider + harmony overlay) and right-side picker overlay
+// centered in the visible portion of the canvas wrapper as the page scrolls.
+function updateStickyOverlays() {
+    const wrapper = document.getElementById('canvasWrapper');
+    const toolsColumn = document.getElementById('canvasToolsColumn');
+    const pickerOverlay = document.getElementById('pickerOverlay');
+    if (!wrapper) return;
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    const visibleTop = Math.max(wrapperRect.top, 0);
+    const visibleBottom = Math.min(wrapperRect.bottom, viewportHeight);
+    const visibleHeight = visibleBottom - visibleTop;
+
+    if (visibleHeight <= 0) return;
+
+    const visibleCenterInWrapper = (visibleTop - wrapperRect.top + visibleBottom - wrapperRect.top) / 2;
+    const wrapperH = wrapperRect.height;
+
+    // Clamp so overlays (centered via translateY(-50%)) don't overflow the wrapper edges
+    function clampCenter(el) {
+        if (!el) return visibleCenterInWrapper;
+        const elH = el.getBoundingClientRect().height || 0;
+        const halfH = elH / 2;
+        return Math.max(halfH, Math.min(wrapperH - halfH, visibleCenterInWrapper));
+    }
+
+    // Position tools column (zoom slider + harmony overlay) at visible center
+    if (toolsColumn) {
+        toolsColumn.style.top = clampCenter(toolsColumn) + 'px';
+    }
+    // Position picker overlay at visible center
+    if (pickerOverlay) {
+        pickerOverlay.style.top = clampCenter(pickerOverlay) + 'px';
+    }
+}
+
+// ============================================
 // Initialization
 // ============================================
 
@@ -582,12 +810,14 @@ document.addEventListener('DOMContentLoaded', function() {
     canvas = document.getElementById('imageCanvas');
     ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    // Create display canvas for high-quality scaled rendering
+    // Create display canvas for 2D fallback rendering (used when WebGL is inactive)
     displayCanvas = document.createElement('canvas');
     displayCanvas.id = 'displayCanvas';
     displayCtx = displayCanvas.getContext('2d', { alpha: false });
     displayCtx.imageSmoothingEnabled = true;
     displayCtx.imageSmoothingQuality = 'high';
+
+    // WebGL display canvas is created by initWebGL() on first recolor
 
     // Set initial workspace state - centered with no sidebar
     const workspace = document.getElementById('workspace');
@@ -645,32 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (applyBtn) applyBtn.classList.add('tolerance-dirty');
     });
 
-    // Sticky overlay positioning for zoom and picker controls
-    function updateStickyOverlays() {
-        const wrapper = document.getElementById('canvasWrapper');
-        const zoomSlider = document.getElementById('zoomSliderContainer');
-        const pickerOverlay = document.getElementById('pickerOverlay');
-        if (!wrapper) return;
-
-        const wrapperRect = wrapper.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-
-        const visibleTop = Math.max(wrapperRect.top, 0);
-        const visibleBottom = Math.min(wrapperRect.bottom, viewportHeight);
-        const visibleHeight = visibleBottom - visibleTop;
-
-        if (visibleHeight <= 0) return;
-
-        const visibleCenterInWrapper = (visibleTop - wrapperRect.top + visibleBottom - wrapperRect.top) / 2;
-
-        if (zoomSlider) {
-            zoomSlider.style.top = visibleCenterInWrapper + 'px';
-        }
-        if (pickerOverlay) {
-            pickerOverlay.style.top = visibleCenterInWrapper + 'px';
-        }
-    }
-
+    // Sticky overlay event listeners (function defined at file scope)
     window.addEventListener('scroll', updateStickyOverlays, { passive: true });
     window.addEventListener('resize', updateStickyOverlays, { passive: true });
 
@@ -698,6 +903,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const pickerOverlay = document.getElementById('pickerOverlay');
             const zoomControls = document.getElementById('zoomControls');
             const zoomSlider = document.getElementById('zoomSliderContainer');
+            const quickHarmony = document.getElementById('quickHarmonyBar');
             const tutorialOverlayEl = document.getElementById('tutorialOverlay');
             const tutorialTabEl = document.getElementById('tutorialTab');
 
@@ -713,6 +919,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (zoomSlider && !zoomSlider.classList.contains('hidden')) {
                     zoomSlider.style.opacity = '0';
                     zoomSlider.style.pointerEvents = 'none';
+                }
+                if (quickHarmony && !quickHarmony.classList.contains('hidden')) {
+                    quickHarmony.style.opacity = '0';
+                    quickHarmony.style.pointerEvents = 'none';
                 }
                 // Temporarily hide tutorial overlay (not collapse — no traditional picker shown)
                 if (tutorialOverlayEl && !tutorialOverlayEl.classList.contains('hidden')) {
@@ -731,6 +941,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (zoomControls) { zoomControls.style.opacity = ''; zoomControls.style.pointerEvents = ''; }
                 if (zoomSlider) { zoomSlider.style.opacity = ''; zoomSlider.style.pointerEvents = ''; }
+                if (quickHarmony) { quickHarmony.style.opacity = ''; quickHarmony.style.pointerEvents = ''; }
                 // Restore tutorial overlay
                 if (tutorialOverlayEl) {
                     tutorialOverlayEl.style.opacity = '';
@@ -920,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', function() {
             constrainPan();
             updateMarkers();
             updateZoomDisplay();
+            updateStickyOverlays();
 
             // Deferred 1x layout cleanup: if we're at 1x, schedule the layout
             // teardown for after scrolling stops (avoids layout thrashing during
@@ -1026,6 +1238,13 @@ function loadImage(img) {
     imageData = ctx.getImageData(0, 0, width, height);
     originalImageData = ctx.getImageData(0, 0, width, height);
 
+    // Invalidate WebGL image texture and render state for new image
+    invalidateImageTexture();
+    _lastWebGLRenderType = null;
+    _lastSimpleUniforms = null;
+    _lastRBFUniforms = null;
+    _webglDirty = false;
+
     // Auto-size the canvas area to fit the image
     autoSizeCanvasArea();
 
@@ -1036,6 +1255,9 @@ function loadImage(img) {
 
     // Update high-quality display
     updateDisplayCanvas();
+
+    // Re-center overlays after layout change
+    requestAnimationFrame(updateStickyOverlays);
 
     extractPalette();
     setStatus('Image loaded. Palette extracted.');
@@ -1875,10 +2097,7 @@ function deleteTarget(colIdx) {
 
 function createOriginSwatch(originIndex) {
     const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
-    wrapper.style.flexDirection = 'column';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.marginBottom = '8px';
+    wrapper.className = 'origin-swatch-wrapper';
 
     const swatch = document.createElement('div');
     swatch.className = 'origin-swatch';
@@ -1921,20 +2140,16 @@ function createOriginSwatch(originIndex) {
         });
     });
 
-    // Row containing swatch + opacity icon on right
-    const swatchRow = document.createElement('div');
-    swatchRow.className = 'origin-swatch-row';
-
     const currentOpacity = originOpacity[originIndex] !== undefined ? originOpacity[originIndex] : 100;
 
-    // Opacity icon button (right of swatch)
+    // Opacity icon button — absolutely positioned to the right of the swatch
     const opBtn = document.createElement('button');
     opBtn.className = 'origin-opacity-btn';
     opBtn.title = 'Color opacity: ' + currentOpacity + '%';
     opBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
     if (currentOpacity < 100) opBtn.classList.add('has-custom');
 
-    // Popup panel (left of swatch, initially hidden)
+    // Popup panel (positioned absolutely, initially hidden)
     const opPopup = document.createElement('div');
     opPopup.className = 'origin-opacity-popup';
     opPopup.id = `originOpPopup_${originIndex}`;
@@ -1984,17 +2199,25 @@ function createOriginSwatch(originIndex) {
         updateOpacity(100);
     };
 
-    // Toggle popup visibility
+    // Toggle popup visibility — popup is a sibling of the swatch (not a child),
+    // so we position it with fixed coordinates relative to the swatch
     opBtn.onclick = (e) => {
         e.stopPropagation();
         const isOpen = opPopup.classList.contains('open');
-        // Close any other open popups first
-        document.querySelectorAll('.origin-opacity-popup.open').forEach(p => p.classList.remove('open'));
-        if (!isOpen) opPopup.classList.add('open');
+        document.querySelectorAll('.origin-opacity-popup.open').forEach(p => {
+            p.classList.remove('open');
+            p.style.position = '';
+        });
+        if (!isOpen) {
+            const swatchRect = swatch.getBoundingClientRect();
+            opPopup.style.position = 'fixed';
+            opPopup.style.left = (swatchRect.left - 4) + 'px';
+            opPopup.style.top = (swatchRect.top + swatchRect.height / 2) + 'px';
+            opPopup.style.transform = 'translateX(-100%) translateY(-50%)';
+            opPopup.style.right = 'auto';
+            opPopup.classList.add('open');
+        }
     };
-
-    // Close popup when clicking outside
-    opPopup.addEventListener('mousedown', e => e.stopPropagation());
 
     const opInputRow = document.createElement('div');
     opInputRow.className = 'origin-opacity-input-row';
@@ -2005,11 +2228,10 @@ function createOriginSwatch(originIndex) {
     opPopup.appendChild(opInputRow);
     opPopup.appendChild(opReset);
 
-    swatchRow.appendChild(opPopup);
-    swatchRow.appendChild(swatch);
-    swatchRow.appendChild(opBtn);
-
-    wrapper.appendChild(swatchRow);
+    // Build DOM: button inside swatch, popup as sibling (avoids drag conflict)
+    swatch.appendChild(opBtn);
+    wrapper.appendChild(swatch);
+    wrapper.appendChild(opPopup);
 
     const info = document.createElement('div');
     info.className = 'origin-swatch-info';
@@ -2420,7 +2642,10 @@ document.addEventListener('click', (e) => {
     }
     // Close origin opacity popups when clicking outside
     if (!e.target.closest('.origin-opacity-popup') && !e.target.closest('.origin-opacity-btn')) {
-        document.querySelectorAll('.origin-opacity-popup.open').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.origin-opacity-popup.open').forEach(p => {
+            p.classList.remove('open');
+            p.style.position = '';
+        });
     }
 });
 
@@ -2764,10 +2989,10 @@ function recolorImageOpacityFast() {
         return;
     }
 
-    const { oldLab, fullTargetLab } = _opacityCache;
+    const { oldLab, fullTargetLab, bgLab } = _opacityCache;
 
     // Recompute newLab with current opacity values (instant — just array math)
-    // Opacity blends between original origin color (oldLab[i]) and full target color
+    // Opacity simulates synthetic transparency: blends target color over active background
     const newLab = [];
     for (let i = 0; i < k; i++) {
         const col = originToColumn[i];
@@ -2785,12 +3010,14 @@ function recolorImageOpacityFast() {
             if (effectiveOpacity >= 1.0) {
                 newLab.push(fullTargetLab[col]);
             } else if (effectiveOpacity <= 0.0) {
-                newLab.push(oldLab[i]);
+                // Fully transparent: show background color
+                newLab.push([...bgLab]);
             } else {
+                // Blend target color over background at effectiveOpacity
                 newLab.push([
-                    oldLab[i][0] + (fullTargetLab[col][0] - oldLab[i][0]) * effectiveOpacity,
-                    oldLab[i][1] + (fullTargetLab[col][1] - oldLab[i][1]) * effectiveOpacity,
-                    oldLab[i][2] + (fullTargetLab[col][2] - oldLab[i][2]) * effectiveOpacity
+                    bgLab[0] + (fullTargetLab[col][0] - bgLab[0]) * effectiveOpacity,
+                    bgLab[1] + (fullTargetLab[col][1] - bgLab[1]) * effectiveOpacity,
+                    bgLab[2] + (fullTargetLab[col][2] - bgLab[2]) * effectiveOpacity
                 ]);
             }
         }
@@ -2884,10 +3111,11 @@ function doRecolorSimple() {
             fullTargetLab[col] = RGB2LAB(targetPalette[col]);
         }
     }
-    _opacityCache = { oldLab, fullTargetLab, k, algorithm: 'simple' };
+    const bgLab = getActiveBackgroundLab(oldLab);
+    _opacityCache = { oldLab, fullTargetLab, bgLab, k, algorithm: 'simple' };
 
     // Build origin-to-target mapping based on columns, respecting opacity
-    // Opacity blends between original origin color (oldLab[i]) and full target color
+    // Opacity simulates synthetic transparency: blends target color over active background
     for (let i = 0; i < k; i++) {
         const col = originToColumn[i];
         if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
@@ -2904,12 +3132,14 @@ function doRecolorSimple() {
             if (effectiveOpacity >= 1.0) {
                 newLab.push(fullTargetLab[col]);
             } else if (effectiveOpacity <= 0.0) {
-                newLab.push(oldLab[i]);
+                // Fully transparent: show background color
+                newLab.push([...bgLab]);
             } else {
+                // Blend target color over background at effectiveOpacity
                 newLab.push([
-                    oldLab[i][0] + (fullTargetLab[col][0] - oldLab[i][0]) * effectiveOpacity,
-                    oldLab[i][1] + (fullTargetLab[col][1] - oldLab[i][1]) * effectiveOpacity,
-                    oldLab[i][2] + (fullTargetLab[col][2] - oldLab[i][2]) * effectiveOpacity
+                    bgLab[0] + (fullTargetLab[col][0] - bgLab[0]) * effectiveOpacity,
+                    bgLab[1] + (fullTargetLab[col][1] - bgLab[1]) * effectiveOpacity,
+                    bgLab[2] + (fullTargetLab[col][2] - bgLab[2]) * effectiveOpacity
                 ]);
             }
         }
@@ -2934,76 +3164,151 @@ function doRecolorSimple() {
     doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity);
 }
 
-// WebGL implementation of simple recolor
+// WebGL implementation of simple recolor — renders directly to visible display canvas
 function doRecolorSimpleWebGL(width, height, k, oldLab, diffLab, luminosity) {
     try {
         const startTime = performance.now();
 
-        webglCanvas.width = width;
-        webglCanvas.height = height;
-        gl.viewport(0, 0, width, height);
-
-        gl.useProgram(simpleRecolorProgram);
-        setupWebGLBuffers(gl, simpleRecolorProgram);
-
-        // Upload source image as texture
-        const texture = createTexture(gl, originalImageData);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.uniform1i(gl.getUniformLocation(simpleRecolorProgram, 'u_image'), 0);
-
         // Upload palette data as uniform arrays
-        const oldLabFlat = [];
-        const diffLabFlat = [];
+        const oldLabFlat = new Float32Array(60); // 20 * 3
+        const diffLabFlat = new Float32Array(60);
         for (let i = 0; i < 20; i++) {
             if (i < k) {
-                oldLabFlat.push(oldLab[i][0], oldLab[i][1], oldLab[i][2]);
-                diffLabFlat.push(diffLab[i][0], diffLab[i][1], diffLab[i][2]);
-            } else {
-                oldLabFlat.push(0, 0, 0);
-                diffLabFlat.push(0, 0, 0);
+                oldLabFlat[i*3] = oldLab[i][0]; oldLabFlat[i*3+1] = oldLab[i][1]; oldLabFlat[i*3+2] = oldLab[i][2];
+                diffLabFlat[i*3] = diffLab[i][0]; diffLabFlat[i*3+1] = diffLab[i][1]; diffLabFlat[i*3+2] = diffLab[i][2];
             }
         }
 
-        gl.uniform3fv(gl.getUniformLocation(simpleRecolorProgram, 'u_oldLab'), new Float32Array(oldLabFlat));
-        gl.uniform3fv(gl.getUniformLocation(simpleRecolorProgram, 'u_diffLab'), new Float32Array(diffLabFlat));
-        gl.uniform1i(gl.getUniformLocation(simpleRecolorProgram, 'u_paletteSize'), k);
-        gl.uniform1f(gl.getUniformLocation(simpleRecolorProgram, 'u_blendSharpness'), 2.0);
-        gl.uniform1f(gl.getUniformLocation(simpleRecolorProgram, 'u_luminosity'), luminosity);
+        // Cache uniforms for re-render on zoom and for deferred CPU sync
+        _lastSimpleUniforms = { oldLabFlat, diffLabFlat, k, luminosity };
+        _lastWebGLRenderType = 'simple';
+        _lastRBFUniforms = null;
 
-        // Render
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        // Render to display canvas at current display size
+        renderWebGLToDisplay('simple');
 
-        // Read back result
-        const pixels = new Uint8Array(width * height * 4);
-        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-        // WebGL has Y flipped, need to flip it back
-        const newData = ctx.createImageData(width, height);
-        for (let y = 0; y < height; y++) {
-            const srcRow = (height - 1 - y) * width * 4;
-            const dstRow = y * width * 4;
-            for (let x = 0; x < width * 4; x++) {
-                newData.data[dstRow + x] = pixels[srcRow + x];
-            }
-        }
-
-        ctx.putImageData(newData, 0, 0);
-        imageData = newData;
-
-        // Cleanup
-        gl.deleteTexture(texture);
+        // Mark CPU-side imageData as stale
+        _webglDirty = true;
 
         const elapsed = performance.now() - startTime;
         console.log(`WebGL simple recolor: ${elapsed.toFixed(1)}ms`);
 
-        updateDisplayCanvas();
-        renderRecoloredStrip();
+        renderRecoloredStripDeferred();
         return true;
     } catch (e) {
         console.warn('WebGL simple recolor failed:', e);
         return false;
     }
+}
+
+// Core WebGL-to-display renderer — sets up the display canvas at zoom-appropriate
+// resolution, renders the recolor shader, and updates CSS sizing for zoom/pan.
+// Called after every recolor AND after every zoom change.
+function renderWebGLToDisplay(type) {
+    if (!gl || !webglCanvas) return;
+
+    const wrapper = document.getElementById('canvasWrapper');
+    if (!wrapper) return;
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    if (imgWidth === 0 || imgHeight === 0) return;
+    const aspectRatio = imgWidth / imgHeight;
+
+    const baseWidth = wrapperRect.width;
+    const baseHeight = baseWidth / aspectRatio;
+
+    // Guard: mid-layout-transition
+    if (baseWidth < 1 || baseHeight < 1) return;
+
+    // Display size on screen = base * zoom
+    const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
+    const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
+
+    // Render at retina density, capped at original image size
+    const scaleFactor = Math.min(2, imgWidth / displayWidth, imgHeight / displayHeight);
+    const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
+    const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
+
+    // Set WebGL canvas pixel buffer
+    webglCanvas.width = renderWidth;
+    webglCanvas.height = renderHeight;
+    gl.viewport(0, 0, renderWidth, renderHeight);
+
+    // Render the appropriate shader using cached uniform locations
+    const renderType = type || _lastWebGLRenderType;
+    if (renderType === 'simple' && _lastSimpleUniforms && _simpleUniformLocs) {
+        const u = _lastSimpleUniforms;
+        const loc = _simpleUniformLocs;
+        gl.useProgram(simpleRecolorProgram);
+        setupWebGLBuffers(gl, simpleRecolorProgram);
+        const tex = ensureImageTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.uniform1i(loc.u_image, 0);
+        gl.uniform3fv(loc.u_oldLab, u.oldLabFlat);
+        gl.uniform3fv(loc.u_diffLab, u.diffLabFlat);
+        gl.uniform1i(loc.u_paletteSize, u.k);
+        gl.uniform1f(loc.u_blendSharpness, 2.0);
+        gl.uniform1f(loc.u_luminosity, u.luminosity);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    } else if (renderType === 'rbf' && _lastRBFUniforms && _rbfUniformLocs) {
+        const u = _lastRBFUniforms;
+        const loc = _rbfUniformLocs;
+        gl.useProgram(rbfRecolorProgram);
+        setupWebGLBuffers(gl, rbfRecolorProgram);
+        const tex = ensureImageTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.uniform1i(loc.u_image, 0);
+        const lutTexture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
+        gl.uniform1i(loc.u_lut, 1);
+        gl.uniform1f(loc.u_lutSize, u.lutSize);
+        gl.uniform1f(loc.u_luminosity, u.luminosity);
+        // Bypass correction uniforms
+        gl.uniform3fv(loc.u_bypassedRGB, u.bypassedFlat || new Float32Array(60));
+        gl.uniform1i(loc.u_bypassedCount, u.bypassedCount || 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.deleteTexture(lutTexture);
+    }
+
+    // CSS size = actual zoomed display size
+    webglCanvas.style.width = displayWidth + 'px';
+    webglCanvas.style.height = displayHeight + 'px';
+    webglCanvas.style.transform = 'scale(1)';
+    webglCanvas.style.transformOrigin = '0 0';
+
+    baseDisplayWidth = displayWidth;
+    baseDisplayHeight = displayHeight;
+    lastRenderedZoom = zoomLevel;
+
+    // Show WebGL canvas, hide both CPU canvases
+    const canvasInner = document.getElementById('canvasInner');
+    if (canvasInner && !webglCanvas.parentNode) {
+        canvasInner.insertBefore(webglCanvas, canvas);
+    }
+    webglCanvas.style.display = 'block';
+    if (displayCanvas) displayCanvas.style.display = 'none';
+    canvas.style.display = 'none';
+}
+
+// Deferred strip rebuild — syncs CPU pixels then rebuilds the strip.
+// Uses a short debounce to avoid repeated syncs during rapid updates.
+let _stripRebuildTimeout = null;
+function renderRecoloredStripDeferred() {
+    if (_stripRebuildTimeout) clearTimeout(_stripRebuildTimeout);
+    _stripRebuildTimeout = setTimeout(() => {
+        syncWebGLToCPU();
+        renderRecoloredStrip();
+        _stripRebuildTimeout = null;
+    }, 200);
 }
 
 // CPU fallback for simple recolor
@@ -3075,6 +3380,8 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
 
     ctx.putImageData(newData, 0, 0);
     imageData = newData;
+    _lastWebGLRenderType = null; // Using CPU path, not WebGL
+    _webglDirty = false;
     updateDisplayCanvas();
     renderRecoloredStrip();
 }
@@ -3083,7 +3390,7 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
 // Better for smooth gradients in photos
 function doRecolorRBF() {
     const RBF_param_coff = 5;
-    const ngrid = 10;
+    const ngrid = 16;
     const width = canvas.width;
     const height = canvas.height;
     const k = originalPalette.length;
@@ -3114,9 +3421,10 @@ function doRecolorRBF() {
             fullTargetLab[col] = RGB2LAB(targetPalette[col]);
         }
     }
-    _opacityCache = { oldLab, fullTargetLab, k, algorithm: 'rbf' };
+    const bgLab = getActiveBackgroundLab(oldLab);
+    _opacityCache = { oldLab, fullTargetLab, bgLab, k, algorithm: 'rbf' };
 
-    // Opacity blends between original origin color (oldLab[i]) and full target color
+    // Opacity simulates synthetic transparency: blends target color over active background
     for (let i = 0; i < k; i++) {
         const col = originToColumn[i];
         if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
@@ -3133,12 +3441,14 @@ function doRecolorRBF() {
             if (effectiveOpacity >= 1.0) {
                 newLab.push(fullTargetLab[col]);
             } else if (effectiveOpacity <= 0.0) {
-                newLab.push(oldLab[i]);
+                // Fully transparent: show background color
+                newLab.push([...bgLab]);
             } else {
+                // Blend target color over background at effectiveOpacity
                 newLab.push([
-                    oldLab[i][0] + (fullTargetLab[col][0] - oldLab[i][0]) * effectiveOpacity,
-                    oldLab[i][1] + (fullTargetLab[col][1] - oldLab[i][1]) * effectiveOpacity,
-                    oldLab[i][2] + (fullTargetLab[col][2] - oldLab[i][2]) * effectiveOpacity
+                    bgLab[0] + (fullTargetLab[col][0] - bgLab[0]) * effectiveOpacity,
+                    bgLab[1] + (fullTargetLab[col][1] - bgLab[1]) * effectiveOpacity,
+                    bgLab[2] + (fullTargetLab[col][2] - bgLab[2]) * effectiveOpacity
                 ]);
             }
         }
@@ -3221,38 +3531,41 @@ function doRecolorRBF() {
     // Luminosity is now a separate post-processing step (applyLuminosityPostProcess)
     const luminosity = 0;
 
+    // Collect bypassed palette colors for per-pixel correction.
+    // RBF is a global color space transform — the LUT can bleed changes into
+    // bypassed regions.  After the LUT lookup, pixels close to a bypassed
+    // palette color are blended back toward their original value.
+    const bypassedRGB = [];
+    for (let i = 0; i < k; i++) {
+        const col = originToColumn[i];
+        // Collect all origin colors whose diffLab is [0,0,0] — they should stay put.
+        // This includes: bypassed columns, locked/bank entries, unassigned entries,
+        // and entries mapped to null target slots.
+        if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
+            bypassedRGB.push(originalPalette[i]);
+        } else if (columnBypass[col]) {
+            bypassedRGB.push(originalPalette[i]);
+        } else if (targetPalette[col] === null) {
+            bypassedRGB.push(originalPalette[i]);
+        }
+    }
+
     // Try WebGL for the per-pixel trilinear interpolation (the slow part)
-    if (initWebGL() && doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity)) {
+    if (initWebGL() && doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRGB)) {
         return;
     }
 
     // CPU fallback
     console.log('Using CPU fallback for RBF recolor');
-    doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity);
+    doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB);
 }
 
 // WebGL implementation of RBF recolor (trilinear interpolation on GPU)
-function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity) {
+// Renders directly to visible display canvas — no readPixels
+function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRGB) {
     try {
         const startTime = performance.now();
         const lutSize = ngrid + 1;
-
-        webglCanvas.width = width;
-        webglCanvas.height = height;
-        gl.viewport(0, 0, width, height);
-
-        gl.useProgram(rbfRecolorProgram);
-        setupWebGLBuffers(gl, rbfRecolorProgram);
-
-        // Upload source image as texture
-        const imageTexture = createTexture(gl, originalImageData);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, imageTexture);
-        gl.uniform1i(gl.getUniformLocation(rbfRecolorProgram, 'u_image'), 0);
-
-        // Create 3D LUT as 2D texture
-        // Layout: lutSize^2 width x lutSize height
-        // Position (r,g,b) -> pixel at (r + g*lutSize, b)
         const lutWidth = lutSize * lutSize;
         const lutHeight = lutSize;
         const lutData = new Uint8Array(lutWidth * lutHeight * 4);
@@ -3273,48 +3586,30 @@ function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity) {
             }
         }
 
-        const lutTexture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, lutWidth, lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, lutData);
-
-        gl.uniform1i(gl.getUniformLocation(rbfRecolorProgram, 'u_lut'), 1);
-        gl.uniform1f(gl.getUniformLocation(rbfRecolorProgram, 'u_lutSize'), lutSize);
-        gl.uniform1f(gl.getUniformLocation(rbfRecolorProgram, 'u_luminosity'), luminosity);
-
-        // Render
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-        // Read back result
-        const pixels = new Uint8Array(width * height * 4);
-        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-        // WebGL has Y flipped, need to flip it back
-        const newData = ctx.createImageData(width, height);
-        for (let y = 0; y < height; y++) {
-            const srcRow = (height - 1 - y) * width * 4;
-            const dstRow = y * width * 4;
-            for (let x = 0; x < width * 4; x++) {
-                newData.data[dstRow + x] = pixels[srcRow + x];
-            }
+        // Pack bypassed palette colors as flat Float32Array (RGB 0-1 range)
+        const bypassedFlat = new Float32Array(60); // 20 * 3 max
+        const bypassedCount = Math.min(bypassedRGB ? bypassedRGB.length : 0, 20);
+        for (let i = 0; i < bypassedCount; i++) {
+            bypassedFlat[i * 3]     = bypassedRGB[i][0] / 255;
+            bypassedFlat[i * 3 + 1] = bypassedRGB[i][1] / 255;
+            bypassedFlat[i * 3 + 2] = bypassedRGB[i][2] / 255;
         }
 
-        ctx.putImageData(newData, 0, 0);
-        imageData = newData;
+        // Cache uniforms for re-render on zoom and deferred CPU sync
+        _lastRBFUniforms = { lutData, lutWidth, lutHeight, lutSize, luminosity, bypassedFlat, bypassedCount };
+        _lastWebGLRenderType = 'rbf';
+        _lastSimpleUniforms = null;
 
-        // Cleanup
-        gl.deleteTexture(imageTexture);
-        gl.deleteTexture(lutTexture);
+        // Render to display canvas at current display size
+        renderWebGLToDisplay('rbf');
+
+        // Mark CPU-side imageData as stale
+        _webglDirty = true;
 
         const elapsed = performance.now() - startTime;
         console.log(`WebGL RBF recolor: ${elapsed.toFixed(1)}ms`);
 
-        updateDisplayCanvas();
-        renderRecoloredStrip();
+        renderRecoloredStripDeferred();
         return true;
     } catch (e) {
         console.warn('WebGL RBF recolor failed:', e);
@@ -3323,11 +3618,15 @@ function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity) {
 }
 
 // CPU fallback for RBF recolor
-function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity) {
+function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB) {
     const startTime = performance.now();
     const newData = ctx.createImageData(width, height);
     const ntmp = ngrid + 1;
     const ntmpsqr = ntmp * ntmp;
+
+    // Pre-normalize bypassed colors to 0-1 range for distance calculation
+    const bypassedNorm = (bypassedRGB || []).map(c => [c[0] / 255, c[1] / 255, c[2] / 255]);
+    const sigma2x2 = 2.0 * 0.12 * 0.12; // Gaussian sigma matching WebGL shader
 
     for (let i = 0; i < originalImageData.data.length; i += 4) {
         const r = originalImageData.data[i];
@@ -3373,6 +3672,25 @@ function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity) {
             newB += gridRGB[indices[idx]][2] * weights[idx];
         }
 
+        // Bypass correction: blend back toward original for pixels near bypassed colors
+        if (bypassedNorm.length > 0) {
+            const rn = r / 255, gn = g / 255, bn = b / 255;
+            let maxKeep = 0;
+            for (let j = 0; j < bypassedNorm.length; j++) {
+                const dr = rn - bypassedNorm[j][0];
+                const dg = gn - bypassedNorm[j][1];
+                const db = bn - bypassedNorm[j][2];
+                const d2 = dr * dr + dg * dg + db * db;
+                const keep = Math.exp(-d2 / sigma2x2);
+                if (keep > maxKeep) maxKeep = keep;
+            }
+            if (maxKeep > 0.001) {
+                newR = newR + (r - newR) * maxKeep;
+                newG = newG + (g - newG) * maxKeep;
+                newB = newB + (b - newB) * maxKeep;
+            }
+        }
+
         if (luminosity !== 0) {
             const factor = 1 + (luminosity / 100);
             newR = Math.max(0, Math.min(255, newR * factor));
@@ -3391,6 +3709,8 @@ function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity) {
 
     ctx.putImageData(newData, 0, 0);
     imageData = newData;
+    _lastWebGLRenderType = null; // Using CPU path, not WebGL
+    _webglDirty = false;
     updateDisplayCanvas();
     renderRecoloredStrip();
 }
@@ -3406,12 +3726,12 @@ function updatePickColorsButtonState(colorsPicked) {
 
     if (colorsPicked) {
         if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (add or subtract)';
+            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Origin Colors';
             sidebarBtn.classList.add('colors-picked');
         }
         if (overlayBtn) {
             const textSpan = overlayBtn.querySelector('.picker-toggle-text');
-            if (textSpan) textSpan.innerHTML = 'Pick Colors<br><span class="picker-toggle-subtitle">(add or subtract)</span>';
+            if (textSpan) textSpan.innerHTML = 'Edit Origin<br><span class="picker-toggle-subtitle">Colors</span>';
             overlayBtn.classList.add('colors-picked');
         }
     } else {
@@ -3490,7 +3810,7 @@ function togglePickerMode() {
             sidebarPickBtn.classList.remove('active');
             // Text will be restored by updatePickColorsButtonState below or by caller
             if (pickedColors.length > 0) {
-                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (add or subtract)';
+                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Origin Colors';
             } else {
                 sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors';
             }
@@ -3652,9 +3972,16 @@ function cyclePickedColorCategory(index) {
     setStatus('Changed color ' + (index + 1) + ' to ' + getTargetCategoryLabel(nextCat));
 }
 
+// Returns whichever canvas is currently visible to the user
+function getVisibleCanvas() {
+    if (webglCanvas && webglCanvas.style.display !== 'none' && webglCanvas.parentNode) return webglCanvas;
+    if (displayCanvas && displayCanvas.style.display !== 'none') return displayCanvas;
+    return canvas;
+}
+
 function getCanvasCoords(e) {
     // Use whichever canvas is currently visible for positioning
-    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
+    const visibleCanvas = getVisibleCanvas();
     const rect = visibleCanvas.getBoundingClientRect();
     // Always map to original canvas coordinates
     const scaleX = canvas.width / rect.width;
@@ -3672,12 +3999,12 @@ function createMarker(index) {
     // Markers are children of canvasInner (which Panzoom transforms).
     // Position them in canvasInner's LOCAL coordinate space using the
     // display canvas CSS size (not screen/getBoundingClientRect size).
-    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
-    const localWidth = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
-    const localHeight = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
+    const vc = getVisibleCanvas();
+    const localWidth = parseFloat(vc.style.width) || vc.offsetWidth;
+    const localHeight = parseFloat(vc.style.height) || vc.offsetHeight;
     const displayX = (pos.x / canvas.width) * localWidth;
     const displayY = (pos.y / canvas.height) * localHeight;
-    
+
     const marker = document.createElement('div');
     marker.className = 'picker-marker';
     marker.dataset.index = index;
@@ -3714,9 +4041,9 @@ function createMarker(index) {
 function updateMarkers() {
     // Position markers in canvasInner's LOCAL coordinate space.
     // Use the display canvas CSS size (not screen rect) since Panzoom transforms canvasInner.
-    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
-    const localWidth = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
-    const localHeight = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
+    const vc = getVisibleCanvas();
+    const localWidth = parseFloat(vc.style.width) || vc.offsetWidth;
+    const localHeight = parseFloat(vc.style.height) || vc.offsetHeight;
     pickedPositions.forEach((pos, i) => {
         const marker = document.querySelector(`.picker-marker[data-index="${i}"]`);
         if (marker) {
@@ -4018,6 +4345,9 @@ function revealFullUI() {
     const workspace = document.getElementById('workspace');
     workspace.classList.remove('centered-initial');
     workspace.classList.add('image-loaded');
+
+    // Re-center overlays now that panels have been revealed (layout may have changed)
+    requestAnimationFrame(updateStickyOverlays);
 }
 
 // ============================================
@@ -4058,6 +4388,7 @@ function resetZoom() {
     renderAtCurrentZoom();
     updateMarkers();
     updateZoomDisplay();
+    updateStickyOverlays();
 }
 
 function setZoomFromSlider(value) {
@@ -4109,6 +4440,7 @@ function setZoomFromSlider(value) {
     constrainPan();
     updateMarkers();
     updateZoomDisplay();
+    updateStickyOverlays();
 
     // Deferred 1x layout cleanup (same as wheel handler)
     if (zoomLevel <= 1) {
@@ -4143,9 +4475,9 @@ function constrainPan() {
     const wH = wrapperRect.height;
 
     // Current canvas display size
-    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
-    const cW = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
-    const cH = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
+    const vc = getVisibleCanvas();
+    const cW = parseFloat(vc.style.width) || vc.offsetWidth;
+    const cH = parseFloat(vc.style.height) || vc.offsetHeight;
 
     // During temporary CSS scale, actual visual size may differ from style.width
     // Use the zoomed size directly
@@ -4212,8 +4544,7 @@ function updateCanvasTransform(zoomChanged = false) {
     updateMarkers();
 }
 
-// High-quality display canvas rendering
-// Renders at base resolution, uses CSS transform for instant zoom, then re-renders at high quality after delay
+// Display canvas rendering — WebGL direct or 2D fallback
 // Track base dimensions for zoom calculations
 let baseDisplayWidth = 0;
 let baseDisplayHeight = 0;
@@ -4221,7 +4552,9 @@ let lastRenderedZoom = 1;
 let zoomRenderTimeout = null;
 
 function updateDisplayCanvas() {
-    if (!canvas || !imageData || !useHighQualityDisplay) return;
+    if (!canvas || !useHighQualityDisplay) return;
+    // Need either imageData (CPU path) or WebGL uniforms (GPU path)
+    if (!imageData && !_lastWebGLRenderType) return;
 
     const canvasInner = document.getElementById('canvasInner');
     const wrapper = document.getElementById('canvasWrapper');
@@ -4230,9 +4563,9 @@ function updateDisplayCanvas() {
     const wrapperRect = wrapper.getBoundingClientRect();
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
+    if (imgWidth === 0 || imgHeight === 0) return;
     const aspectRatio = imgWidth / imgHeight;
 
-    // Base display size to fit wrapper (at zoom=1)
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
@@ -4246,32 +4579,60 @@ function updateDisplayCanvas() {
         }
     }
 
-    // Use CSS scale for INSTANT zoom feedback while waiting for hi-res render.
-    // This is temporary — renderAtCurrentZoom() replaces it with a pixel-perfect buffer.
-    const cssScale = zoomLevel / lastRenderedZoom;
-    displayCanvas.style.transform = `scale(${cssScale})`;
-    displayCanvas.style.transformOrigin = '0 0';
+    // If WebGL is active with cached uniforms, re-render directly on GPU
+    if (webglInitialized && _lastWebGLRenderType) {
+        // Use CSS scale on webglCanvas for instant feedback, then re-render at proper resolution
+        const cssScale = zoomLevel / lastRenderedZoom;
+        webglCanvas.style.transform = `scale(${cssScale})`;
+        webglCanvas.style.transformOrigin = '0 0';
 
-    // Debounce the high-quality re-render
-    if (zoomRenderTimeout) {
-        clearTimeout(zoomRenderTimeout);
-    }
-    zoomRenderTimeout = setTimeout(() => {
-        renderAtCurrentZoom();
-    }, 150);
+        if (zoomRenderTimeout) clearTimeout(zoomRenderTimeout);
+        zoomRenderTimeout = setTimeout(() => {
+            renderAtCurrentZoom();
+        }, 100);
 
-    // Show display canvas, hide original
-    if (!displayCanvas.parentNode) {
-        canvasInner.insertBefore(displayCanvas, canvas);
+        // Show WebGL canvas, hide CPU canvases
+        if (canvasInner && !webglCanvas.parentNode) {
+            canvasInner.insertBefore(webglCanvas, canvas);
+        }
+        webglCanvas.style.display = 'block';
+        displayCanvas.style.display = 'none';
+        canvas.style.display = 'none';
+    } else {
+        // CPU fallback path — use 2D context
+        const cssScale = zoomLevel / lastRenderedZoom;
+        displayCanvas.style.transform = `scale(${cssScale})`;
+        displayCanvas.style.transformOrigin = '0 0';
+
+        if (zoomRenderTimeout) clearTimeout(zoomRenderTimeout);
+        zoomRenderTimeout = setTimeout(() => {
+            renderAtCurrentZoom();
+        }, 150);
+
+        // Show 2D display canvas, hide WebGL + original
+        if (canvasInner && !displayCanvas.parentNode) {
+            canvasInner.insertBefore(displayCanvas, canvas);
+        }
+        displayCanvas.style.display = 'block';
+        if (webglCanvas) webglCanvas.style.display = 'none';
+        canvas.style.display = 'none';
     }
-    displayCanvas.style.display = 'block';
-    canvas.style.display = 'none';
 }
 
 // Render displayCanvas at the actual zoomed pixel size for crisp, pixel-perfect display.
-// Panzoom handles ONLY panning (translate) — we handle zoom via canvas size + CSS size.
+// WebGL path: re-renders the shader at zoom-appropriate resolution.
+// CPU fallback: draws the 2D canvas at zoom-appropriate resolution.
 function renderAtCurrentZoom() {
-    if (!canvas || !imageData) return;
+    if (!canvas) return;
+
+    // WebGL path: re-render the shader directly at display resolution
+    if (webglInitialized && _lastWebGLRenderType) {
+        renderWebGLToDisplay(_lastWebGLRenderType);
+        return;
+    }
+
+    // CPU fallback path: use 2D context to scale the hidden canvas
+    if (!imageData) return;
 
     const wrapper = document.getElementById('canvasWrapper');
     if (!wrapper) return;
@@ -4284,38 +4645,44 @@ function renderAtCurrentZoom() {
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
-    // Guard: if wrapper has no width (e.g. mid-layout-transition), skip render
     if (baseWidth < 1 || baseHeight < 1) return;
 
-    // The display size on screen = base * zoom
     const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
     const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
 
-    // Render at 2x pixel density for retina sharpness, capped at original image size
     const scaleFactor = Math.min(2, imgWidth / displayWidth, imgHeight / displayHeight);
     const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
     const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
 
-    // Set canvas pixel buffer to high resolution
+    // For CPU fallback, ensure we have a 2D context
+    if (!displayCtx) {
+        displayCtx = displayCanvas.getContext('2d', { alpha: false });
+    }
+
     displayCanvas.width = renderWidth;
     displayCanvas.height = renderHeight;
 
-    // Use high-quality smoothing
     displayCtx.imageSmoothingEnabled = true;
     displayCtx.imageSmoothingQuality = 'high';
     displayCtx.drawImage(canvas, 0, 0, renderWidth, renderHeight);
 
-    // CSS size = actual zoomed display size (1:1 with screen pixels, no CSS stretching)
     displayCanvas.style.width = displayWidth + 'px';
     displayCanvas.style.height = displayHeight + 'px';
-
-    // Clear the temporary CSS scale — the canvas is now pixel-perfect at this zoom
     displayCanvas.style.transform = 'scale(1)';
     displayCanvas.style.transformOrigin = '0 0';
 
     baseDisplayWidth = displayWidth;
     baseDisplayHeight = displayHeight;
     lastRenderedZoom = zoomLevel;
+
+    // Show 2D display canvas, hide WebGL + original
+    const canvasInner = document.getElementById('canvasInner');
+    if (canvasInner && !displayCanvas.parentNode) {
+        canvasInner.insertBefore(displayCanvas, canvas);
+    }
+    displayCanvas.style.display = 'block';
+    if (webglCanvas) webglCanvas.style.display = 'none';
+    canvas.style.display = 'none';
 }
 
 function updateZoomDisplay() {
@@ -4398,6 +4765,7 @@ function initResizeHandles() {
             // Re-render after resize is complete
             updateDisplayCanvas();
             updateMarkers();
+            updateStickyOverlays();
         }
     });
 
@@ -4414,6 +4782,7 @@ function initResizeHandles() {
                     updateDisplayCanvas();
                     updateMarkers();
                 }
+                updateStickyOverlays();
             }, 50);
         });
         ro.observe(wrapperObs);
@@ -4422,6 +4791,7 @@ function initResizeHandles() {
         window.addEventListener('resize', () => {
             updateDisplayCanvas();
             updateMarkers();
+            updateStickyOverlays();
         });
     }
 }
@@ -4714,11 +5084,11 @@ function harmonizePalette() {
         return;
     }
     const [h, s, l] = rgbToHsl(...baseColor);
-    const harmonyType = document.getElementById('harmonyType').value;
-    
+    const harmonyType = _currentHarmonyType;
+
     let newHues = [];
     const n = targetPalette.length;
-    
+
     switch (harmonyType) {
         case 'complementary':
             newHues = Array(n).fill(0).map((_, i) => {
@@ -4749,7 +5119,7 @@ function harmonizePalette() {
             });
             break;
     }
-    
+
     targetPalette.forEach((color, i) => {
         if (columnBypass[i]) return;  // Respect locked/bypassed columns
         // If target is blank, use default saturation/lightness
@@ -4787,7 +5157,7 @@ function generateHarmonyFromControls() {
         return;
     }
 
-    const harmonyType = document.getElementById('harmonyType').value;
+    const harmonyType = _currentHarmonyType;
     const n = targetPalette.length;
 
     const baseHue = parseInt(document.getElementById('harmonyBaseHue').value);
@@ -4842,7 +5212,7 @@ function randomizeHarmony() {
         return;
     }
 
-    const harmonyType = document.getElementById('harmonyType').value;
+    const harmonyType = _currentHarmonyType;
     const n = targetPalette.length;
 
     // Random base hue - also sync the slider
@@ -4935,6 +5305,17 @@ function setHarmonyMode(mode) {
     const quickResult = document.getElementById('quickHarmonyResult');
     if (quickResult) quickResult.classList.add('hidden');
 
+    // Restore harmony type dropdowns from cached value (CSS hidden/show can reset selects in some browsers)
+    const sidebar = document.getElementById('harmonyType');
+    const quick = document.getElementById('quickHarmonyType');
+    if (sidebar) sidebar.value = _currentHarmonyType;
+    if (quick) quick.value = _currentHarmonyType;
+    updateHarmonyRandomizeLabel();
+
+    // Show nudge hint only in Harmony mode
+    const nudgeHint = document.getElementById('harmonyNudgeHint');
+    if (nudgeHint) nudgeHint.classList.toggle('hidden', isColor);
+
     // Populate the lock-a-color dropdowns when switching to color mode
     if (isColor) populateLockColorDropdowns();
 }
@@ -4945,6 +5326,7 @@ function toggleHarmonyMode() {
 
 // Sync all harmony type selects (sidebar + quick bar)
 function syncHarmonySelects(value) {
+    _currentHarmonyType = value;
     const sidebar = document.getElementById('harmonyType');
     const quick = document.getElementById('quickHarmonyType');
     if (sidebar) sidebar.value = value;
@@ -4956,23 +5338,27 @@ function syncHarmonySelects(value) {
 function updateHarmonyRandomizeLabel() {
     const label = document.getElementById('harmonyRandomizeLabel');
     if (!label) return;
-    const select = document.getElementById('harmonyType');
-    if (!select) return;
-    const selectedOption = select.options[select.selectedIndex];
-    label.textContent = selectedOption ? selectedOption.text : select.value;
+    // Use cached harmony type to build the label text
+    const names = { complementary: 'Complementary', analogous: 'Analogous', triadic: 'Triadic', split: 'Split-Complementary', tetradic: 'Tetradic (Square)' };
+    label.textContent = names[_currentHarmonyType] || _currentHarmonyType;
 }
 
 function updateHarmonyNudgeSwatch() {
-    const swatch = document.getElementById('harmonyNudgeSwatch');
-    if (!swatch) return;
+    const swatches = [
+        document.getElementById('harmonyNudgeSwatch'),
+        document.getElementById('quickNudgeSwatch')
+    ];
     const color = targetPalette[selectedSlotIndex];
-    if (color) {
-        swatch.style.background = rgbToHex(...color);
-        swatch.style.display = 'inline-block';
-        swatch.title = 'Based on selected target: ' + rgbToHex(...color);
-    } else {
-        swatch.style.display = 'none';
-    }
+    swatches.forEach(swatch => {
+        if (!swatch) return;
+        if (color) {
+            swatch.style.background = rgbToHex(...color);
+            swatch.style.display = 'inline-block';
+            swatch.title = 'Based on selected target: ' + rgbToHex(...color);
+        } else {
+            swatch.style.display = 'none';
+        }
+    });
 }
 
 // Toggle quick harmony overlay collapse/expand
@@ -4992,9 +5378,17 @@ function toggleQuickHarmonyCollapse() {
 
 // Quick bar randomize (Lock a Harmony mode)
 function quickRandomizeHarmony() {
+    // Sync quick bar dropdown to sidebar before running
     const quickSelect = document.getElementById('quickHarmonyType');
     if (quickSelect) syncHarmonySelects(quickSelect.value);
     randomizeHarmony();
+}
+
+function quickGenerateHarmony() {
+    // Sync quick bar dropdown to sidebar before running
+    const quickSelect = document.getElementById('quickHarmonyType');
+    if (quickSelect) syncHarmonySelects(quickSelect.value);
+    generateHarmonyFromControls();
 }
 
 // Populate the "Lock a Color" swatch pickers with current target colors
@@ -5071,9 +5465,9 @@ function populateLockColorDropdowns() {
         if (!addBtn) return;
 
         if (isLockedItem(selIdx)) {
-            // A locked item is selected — show its color swatch
+            // A locked item is selected — show its color swatch with L indicator
             const color = getSelectableColor(selIdx);
-            addBtn.innerHTML = '';
+            addBtn.innerHTML = '<span class="quick-locked-L">L</span>';
             addBtn.style.background = color;
             addBtn.style.borderStyle = 'solid';
             addBtn.style.borderColor = 'var(--accent)';
@@ -5277,7 +5671,7 @@ function populateLockColorDropdowns() {
             // If a locked item is currently selected, show its swatch on the button
             if (isLockedItem(lockColorSelectedIdx)) {
                 const color = getSelectableColor(lockColorSelectedIdx);
-                addBtn.innerHTML = '';
+                addBtn.innerHTML = '<span class="quick-locked-L">L</span>';
                 addBtn.style.background = color;
                 addBtn.style.borderStyle = 'solid';
                 addBtn.style.borderColor = 'var(--accent)';
@@ -5609,6 +6003,13 @@ function resetImage() {
     // Reset the canvas to the original image
     ctx.putImageData(originalImageData, 0, 0);
     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Clear WebGL render state so display falls back to showing original
+    _lastWebGLRenderType = null;
+    _lastSimpleUniforms = null;
+    _lastRBFUniforms = null;
+    _webglDirty = false;
+
     updateDisplayCanvas();
 
     // Clear all target swatch selections back to null (blank)
@@ -5682,6 +6083,12 @@ function removeImage() {
     shouldKeepPickedMarkers = false;
     document.querySelectorAll('.picker-marker').forEach(m => m.remove());
 
+    // Dismiss tutorial overlay and tab (they float over the canvas area)
+    hideTutorialOverlay();
+
+    // Reset Pick Colors button back to its initial "Pick Colors" text
+    updatePickColorsButtonState(false);
+
     // Reset counts
     originCount = 5;
     targetCount = 5;
@@ -5749,9 +6156,12 @@ function removeImage() {
     // Show upload zone again
     document.getElementById('uploadZone').classList.remove('hidden');
     canvas.style.display = 'none';
-    // Hide display canvas too
+    // Hide display canvases too
     if (displayCanvas) {
         displayCanvas.style.display = 'none';
+    }
+    if (webglCanvas) {
+        webglCanvas.style.display = 'none';
     }
 
     // Reset canvas area inline styles
@@ -5773,10 +6183,13 @@ function removeImage() {
 }
 
 function downloadImage() {
-    if (!imageData) {
+    if (!imageData && !_lastWebGLRenderType) {
         setStatus('No image to download');
         return;
     }
+
+    // Sync WebGL pixels to CPU canvas if needed
+    syncWebGLToCPU();
 
     // Use the current recolor history count as the suffix number
     const recolorNum = recolorHistory.length || 1;
@@ -5869,6 +6282,9 @@ function applyLuminosityPostProcess() {
         return;
     }
 
+    // Sync WebGL pixels to CPU before manipulating them
+    syncWebGLToCPU();
+
     showLoading();
     setStatus('Applying luminosity post-processing...');
 
@@ -5938,6 +6354,9 @@ function applyLuminosityPostProcess() {
 
         ctx.putImageData(currentData, 0, 0);
         imageData = ctx.getImageData(0, 0, width, height);
+        // Luminosity is a CPU post-process — display must use 2D canvas now
+        _lastWebGLRenderType = null;
+        _webglDirty = false;
         updateDisplayCanvas();
         hideLoading();
         setStatus('Luminosity applied (locked colors preserved)');
@@ -5977,6 +6396,7 @@ window.debugMapping = function() {
 let savedConfigs = []; // kept for backward compat with imports
 let configCounter = 0;
 let recolorHistory = []; // tracks every previewed recolor transformation
+let currentViewedConfigId = null; // ID of the config currently being viewed
 
 function buildConfigSnapshot() {
     return {
@@ -6007,6 +6427,7 @@ function addToRecolorHistory() {
     const snapshot = buildConfigSnapshot();
     snapshot.name = `Recolor ${recolorHistory.length + 1}`;
     recolorHistory.push(snapshot);
+    currentViewedConfigId = snapshot.id;
     renderConfigList();
 }
 
@@ -6016,11 +6437,23 @@ function saveCurrentConfig() {
         return;
     }
 
-    // Save the currently displayed config into history as a saved entry
+    // If we're viewing a history entry, mark it as saved
+    if (currentViewedConfigId) {
+        const entry = recolorHistory.find(c => c.id === currentViewedConfigId);
+        if (entry && !entry.savedForExport) {
+            entry.savedForExport = true;
+            renderConfigList();
+            setStatus(`Saved current configuration for export`);
+            return;
+        }
+    }
+
+    // Otherwise create a new saved entry
     const snapshot = buildConfigSnapshot();
     snapshot.savedForExport = true;
     snapshot.name = `Recolor ${recolorHistory.length + 1}`;
     recolorHistory.push(snapshot);
+    currentViewedConfigId = snapshot.id;
     renderConfigList();
     setStatus(`Saved current configuration for export`);
 }
@@ -6039,6 +6472,7 @@ function loadConfig(configId) {
         setStatus('Configuration not found');
         return;
     }
+    currentViewedConfigId = configId;
 
     originCount = config.originCount;
     targetCount = config.targetCount;
@@ -6089,6 +6523,8 @@ function loadConfig(configId) {
     // Expand origin section when loading a config so user can see the mapping
     const originCollapsible = document.getElementById('originCollapsible');
     if (originCollapsible) originCollapsible.setAttribute('open', '');
+    // Re-center overlays in case wrapper size changed
+    updateStickyOverlays();
     setStatus(`Loaded configuration: ${config.name}`);
 }
 
@@ -6105,7 +6541,7 @@ function renderConfigList() {
 
     list.innerHTML = '';
 
-    recolorHistory.forEach((config, index) => {
+    [...recolorHistory].reverse().forEach((config, index) => {
         const item = document.createElement('div');
         item.className = 'config-item';
         item.onclick = () => loadConfig(config.id);
@@ -6167,6 +6603,18 @@ function renderConfigList() {
 
     // Update export button appearance
     if (typeof updateExportButtonState === 'function') updateExportButtonState();
+    updateSaveButtonState();
+}
+
+function updateSaveButtonState() {
+    const btn = document.querySelector('.btn-save-config');
+    if (!btn) return;
+    const currentEntry = currentViewedConfigId
+        ? recolorHistory.find(c => c.id === currentViewedConfigId)
+        : null;
+    const alreadySaved = currentEntry && currentEntry.savedForExport;
+    btn.disabled = !!alreadySaved;
+    btn.classList.toggle('btn-disabled', !!alreadySaved);
 }
 
 function exportAllConfigs() {
