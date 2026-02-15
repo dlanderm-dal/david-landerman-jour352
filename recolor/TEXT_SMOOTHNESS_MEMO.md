@@ -95,13 +95,14 @@ All three can be implemented within the existing single-pass fragment shader wit
 *Created: February 15, 2026*
 *Updated: February 15, 2026*
 
-## Implementation Status (v32)
+## Implementation Status (v32b)
 
 ### Completed
 - **Full-resolution rendering** — Root cause of most text bleeding was zoom-dependent downsampling. Shader now always renders at `imgWidth × imgHeight`. This was the highest-impact fix.
-- **Distance-based attenuation** — Gaussian attenuation `exp(-minDist² / 1800)` (sigma=30 ΔE) in Simple mode. Pixels far from all palette colors receive weaker shifts. Implemented in both GLSL shader and CPU fallback.
+- **Eyedropper diagnostic probe** (v32b) — Render log pixel sampling tool that logs original color, rendered color, nearest origin, mapping chain, expected Simple-algorithm output, and top-3 weight contributors. Useful for diagnosing color accuracy issues at specific pixel locations.
 
 ### Tried & Rolled Back
+- **Distance-based attenuation** — Gaussian attenuation `exp(-minDist² / 1800)` (sigma=30 ΔE). Weakened recolor shifts even for legitimate palette-adjacent pixels (5-20% loss at 10-20 ΔE), causing inaccurate target color reproduction. Reverted from both GLSL shader and CPU fallback.
 - **blendSharpness 2→8** — Too aggressive. Recolored subtle gray table lines that should have been left alone.
 - **RBF ngrid 16→32** — No improvement on bleeding; rolled back.
 

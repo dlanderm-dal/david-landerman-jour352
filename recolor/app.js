@@ -306,16 +306,7 @@ const simpleRecolorFragmentSource = `
             }
         }
 
-        // Distance-based attenuation: fade recolor shift for pixels far from
-        // all palette colors.  Pixels whose nearest palette colour is beyond
-        // ~30 ΔE receive a progressively weaker shift, leaving neutrals and
-        // subtle grays untouched.
-        float distSq  = minDist * minDist;
-        float sigma2  = 1800.0;               // 2 * 30^2
-        float atten   = exp(-distSq / sigma2);
-        vec3 attenuatedDLab = dLab * atten;
-
-        vec3 newLab = pixelLab + attenuatedDLab;
+        vec3 newLab = pixelLab + dLab;
         vec3 newRgb = lab2rgb(newLab);
 
         // Apply luminosity
@@ -1694,10 +1685,12 @@ function reExtractWithTolerance() {
 function renderColorStrip() {
     const strip = document.getElementById('colorStrip');
     strip.innerHTML = '';
-    
+
     const descaleEnabled = document.getElementById('descaleBgCheckbox').checked;
-    let displayData = [...fullColorDistribution];
-    
+
+    // Filter out tiny colors FIRST so their percentages don't leave a gap
+    let displayData = fullColorDistribution.filter(item => item.pct >= 0.5);
+
     if (descaleEnabled && displayData.length >= 2) {
         const secondLargest = displayData[1].pct;
         displayData = displayData.map((item, i) => ({
@@ -1710,11 +1703,15 @@ function renderColorStrip() {
             displayPct: (item.displayPct / total) * 100
         }));
     } else {
-        displayData = displayData.map(item => ({ ...item, displayPct: item.pct }));
+        // Normalize so visible segments sum to 100%
+        const total = displayData.reduce((sum, item) => sum + item.pct, 0);
+        displayData = displayData.map(item => ({
+            ...item,
+            displayPct: total > 0 ? (item.pct / total) * 100 : 0
+        }));
     }
-    
+
     for (const item of displayData) {
-        if (item.pct < 0.5) continue;
         const seg = document.createElement('div');
         seg.className = 'color-strip-segment';
         seg.style.background = rgbToHex(...item.color);
@@ -1793,12 +1790,15 @@ function renderRecoloredStrip() {
     // Sort by percentage descending for display
     recoloredDistribution.sort((a, b) => b.pct - a.pct);
 
-    for (const item of recoloredDistribution) {
-        if (item.pct < 0.5) continue;
+    // Filter out tiny colors and normalize so segments sum to 100%
+    const visible = recoloredDistribution.filter(item => item.pct >= 0.5);
+    const total = visible.reduce((sum, item) => sum + item.pct, 0);
+
+    for (const item of visible) {
         const seg = document.createElement('div');
         seg.className = 'color-strip-segment';
         seg.style.background = rgbToHex(...item.color);
-        seg.style.width = item.pct + '%';
+        seg.style.width = (total > 0 ? (item.pct / total) * 100 : 0) + '%';
         seg.dataset.pct = item.pct.toFixed(1) + '%';
         seg.title = rgbToHex(...item.color) + ' - ' + item.pct.toFixed(1) + '%';
         strip.appendChild(seg);
@@ -1877,7 +1877,17 @@ function renderColumnMapping() {
     const targetsRow = document.getElementById('mappingTargetsRow');
     const mappingContainer = document.getElementById('columnMappingContainer');
     const overflowBank = document.getElementById('originOverflowBank');
-    
+
+    // Diagnostic: log target swatch colors — only when uiStage or target colors changed
+    const selectable = (uiStage === 'target-selection' || uiStage === 'complete');
+    const tgtKey = targetPalette.map((t, i) => t ? rgbToHex(...t) : 'null').join(',');
+    if (renderColumnMapping._lastTgtKey !== tgtKey || renderColumnMapping._lastStage !== uiStage) {
+        renderColumnMapping._lastTgtKey = tgtKey;
+        renderColumnMapping._lastStage = uiStage;
+        const tgtSummary = targetPalette.map((t, i) => t ? `col${i}:${rgbToHex(...t)}` : `col${i}:null`).join(', ');
+        debugLog(`[render-swatches] uiStage=${uiStage}, selectable=${selectable}, targets=[${tgtSummary}]`);
+    }
+
     // Update data attribute for responsive styling
     mappingContainer.setAttribute('data-target-count', targetCount);
     const overflowGrid = document.getElementById('overflowOriginsGrid');
@@ -2021,9 +2031,10 @@ function renderColumnMapping() {
         slot.className = slotClass;
 
         if (!isBlank) {
-            slot.style.background = rgbToHex(...targetPalette[colIdx]);
+            const swatchHex = rgbToHex(...targetPalette[colIdx]);
+            slot.style.background = swatchHex;
             slot.title = targetsSelectable
-                ? rgbToHex(...targetPalette[colIdx]) + ' (click to select, drag to swap)'
+                ? swatchHex + ' (click to select, drag to swap)'
                 : 'Engage Target Selector to modify';
         } else {
             slot.style.background = 'transparent';
@@ -3078,6 +3089,7 @@ function autoRecolorImage() {
     debugLog('[auto-recolor] triggered, invalidating opacity cache');
     // Invalidate opacity cache — palette/mapping changed, need full recompute
     _opacityCache = null;
+    if (recolorImageOpacityFast._hitCount) recolorImageOpacityFast._hitCount = 0;
     // Silently recolor without loading UI (but still async for UI responsiveness)
     setTimeout(() => recolorImage(), 10);
     // Debounced history add — records after 1s of no further changes
@@ -3180,8 +3192,30 @@ function recolorImageOpacityFast() {
         return;
     }
 
-    debugLog(`[opacity-fast] cache HIT, algo=${selectedAlgorithm}`);
-    const { oldLab, fullTargetLab, bgLab } = _opacityCache;
+    const { oldLab, bgLab } = _opacityCache;
+
+    // Read target palette LIVE (not from cache) to guarantee we always use the
+    // current targetPalette values.  Only oldLab and bgLab are stable enough to cache.
+    const liveTargetLab = {};
+    for (let col = 0; col < targetPalette.length; col++) {
+        if (targetPalette[col] !== null && targetPalette[col] !== undefined) {
+            liveTargetLab[col] = RGB2LAB(targetPalette[col]);
+        }
+    }
+
+    // Log cache state — only on first call + every 60th to avoid flooding
+    if (!recolorImageOpacityFast._hitCount) recolorImageOpacityFast._hitCount = 0;
+    recolorImageOpacityFast._hitCount++;
+    if (recolorImageOpacityFast._hitCount === 1 || recolorImageOpacityFast._hitCount % 60 === 0) {
+        const targetSummary = Object.entries(liveTargetLab).map(([col, lab]) => {
+            const curTP = targetPalette[col];
+            const curHex = curTP ? rgbToHex(...curTP) : 'null';
+            return `col${col}:${curHex}→L${lab[0].toFixed(0)}`;
+        }).join(', ');
+        debugLog(`[opacity-fast] cache HIT #${recolorImageOpacityFast._hitCount}, algo=${selectedAlgorithm}, targets=[${targetSummary}]`);
+    }
+    // Intermediate hits logged only to console (not render log) for minimal noise
+    // Use browser DevTools console if you need per-tick visibility
 
     // Recompute newLab with current opacity values (instant — just array math)
     // Opacity simulates synthetic transparency: blends target color over active background
@@ -3192,7 +3226,7 @@ function recolorImageOpacityFast() {
             newLab.push(oldLab[i]);
         } else if (columnBypass[col]) {
             newLab.push(oldLab[i]);
-        } else if (targetPalette[col] === null) {
+        } else if (targetPalette[col] === null || !liveTargetLab[col]) {
             newLab.push(oldLab[i]);
         } else {
             const oOpacity = (originOpacity[i] !== undefined ? originOpacity[i] : 100) / 100;
@@ -3200,16 +3234,16 @@ function recolorImageOpacityFast() {
             const effectiveOpacity = oOpacity * tOpacity;
 
             if (effectiveOpacity >= 1.0) {
-                newLab.push(fullTargetLab[col]);
+                newLab.push(liveTargetLab[col]);
             } else if (effectiveOpacity <= 0.0) {
                 // Fully transparent: show background color
                 newLab.push([...bgLab]);
             } else {
                 // Blend target color over background at effectiveOpacity
                 newLab.push([
-                    bgLab[0] + (fullTargetLab[col][0] - bgLab[0]) * effectiveOpacity,
-                    bgLab[1] + (fullTargetLab[col][1] - bgLab[1]) * effectiveOpacity,
-                    bgLab[2] + (fullTargetLab[col][2] - bgLab[2]) * effectiveOpacity
+                    bgLab[0] + (liveTargetLab[col][0] - bgLab[0]) * effectiveOpacity,
+                    bgLab[1] + (liveTargetLab[col][1] - bgLab[1]) * effectiveOpacity,
+                    bgLab[2] + (liveTargetLab[col][2] - bgLab[2]) * effectiveOpacity
                 ]);
             }
         }
@@ -3231,6 +3265,27 @@ function recolorImageOpacityFast() {
     } else {
         // Simple algorithm: just need oldLab + diffLab — skip palette rebuild
         const luminosity = 0;
+
+        // Debug: compare opacity-fast diffLab vs last full-recolor diffLab
+        // Only log on first tick of each opacity drag session (not every frame)
+        // to reduce render log noise. Drift is expected during opacity changes.
+        if (_lastSimpleUniforms && _lastSimpleUniforms.diffLabFlat && recolorImageOpacityFast._hitCount === 1) {
+            const prev = _lastSimpleUniforms.diffLabFlat;
+            let maxDelta = 0;
+            let maxIdx = -1;
+            for (let i = 0; i < k; i++) {
+                for (let c = 0; c < 3; c++) {
+                    const delta = Math.abs(diffLab[i][c] - prev[i*3 + c]);
+                    if (delta > maxDelta) { maxDelta = delta; maxIdx = i; }
+                }
+            }
+            if (maxDelta > 0.5) {
+                const col = originToColumn[maxIdx];
+                const curTP = col >= 0 && col < targetPalette.length && targetPalette[col] ? rgbToHex(...targetPalette[col]) : '?';
+                debugLog(`[opacity-fast-drift] first-tick maxΔ=${maxDelta.toFixed(2)} at origin#${maxIdx}→col${col} target=${curTP}`);
+            }
+        }
+
         if (initWebGL() && doRecolorSimpleWebGL(width, height, k, oldLab, diffLab, luminosity)) {
             return;
         }
@@ -3307,6 +3362,13 @@ function doRecolorSimple() {
     }
     const bgLab = getActiveBackgroundLab(oldLab);
     _opacityCache = { oldLab, fullTargetLab, bgLab, k, algorithm: 'simple' };
+
+    // Log cache contents for debugging target color accuracy
+    const cacheTargets = Object.entries(fullTargetLab).map(([col, lab]) => {
+        const tp = targetPalette[col];
+        return `col${col}:${tp ? rgbToHex(...tp) : 'null'}→L${lab[0].toFixed(1)}a${lab[1].toFixed(1)}b${lab[2].toFixed(1)}`;
+    }).join(', ');
+    debugLog(`[opacity-cache-built] targets=[${cacheTargets}], bg=L${bgLab[0].toFixed(1)}`);
 
     // Build origin-to-target mapping based on columns, respecting opacity
     // Opacity simulates synthetic transparency: blends target color over active background
@@ -3521,6 +3583,9 @@ function renderWebGLToDisplay(type) {
     requestAnimationFrame(_resyncCSS);
     // Deferred (catches sidebar/panel transitions that settle after the swap)
     setTimeout(_resyncCSS, 250);
+    // Extra safety: some layout shifts (sidebar reveal, collapsible expansion) may
+    // not settle until well after 250ms — catch those too
+    setTimeout(_resyncCSS, 600);
 }
 
 // Deferred strip rebuild — syncs CPU pixels then rebuilds the strip.
@@ -3577,13 +3642,6 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
                 dB += normalizedWeight * diffLab[j][2];
             }
         }
-
-        // Distance-based attenuation: match the WebGL shader —
-        // fade recolor shift for pixels far from all palette colors
-        const distAtten = Math.exp(-(minDist * minDist) / 1800);  // 1800 = 2 * 30^2
-        dL *= distAtten;
-        dA *= distAtten;
-        dB *= distAtten;
 
         const newPixelLab = [
             pixelLab[0] + dL,
@@ -6756,6 +6814,309 @@ function renderDebugConsole() {
     body.scrollTop = body.scrollHeight;
 }
 
+// ============================================
+// Eyedropper Diagnostic Probe (Full-Page Mode)
+// ============================================
+// When active, ALL clicks on the page are intercepted via a document-level
+// capture listener + a visual overlay with crosshair cursor. The probe
+// samples the element beneath the cursor and logs color, element identity,
+// and CSS cascade info. For canvas pixels within the recolor image, it also
+// performs the full mapping chain analysis.
+// The only interactive element during probe mode is the Probe button itself.
+// Scrolling still works normally (wheel events are not blocked).
+
+let _eyedropperActive = false;
+let _eyedropperOverlay = null;
+
+function _eyedropperCaptureClick(e) {
+    if (!_eyedropperActive) return;
+
+    // Allow Probe button clicks through to toggle off
+    const btn = document.getElementById('debugEyedropperBtn');
+    if (btn && (e.target === btn || btn.contains(e.target))) {
+        return; // Let the onclick handler fire normally
+    }
+
+    // Block ALL other clicks
+    e.stopPropagation();
+    e.preventDefault();
+
+    eyedropperSample(e);
+}
+
+function toggleDebugEyedropper() {
+    _eyedropperActive = !_eyedropperActive;
+    const btn = document.getElementById('debugEyedropperBtn');
+    if (btn) btn.classList.toggle('active', _eyedropperActive);
+
+    if (_eyedropperActive) {
+        // Expand the debug console so user can see results
+        const dc = document.getElementById('debugConsole');
+        if (dc && dc.classList.contains('collapsed')) dc.classList.remove('collapsed');
+
+        // Auto-enable recording if off
+        if (!_debugRecording) toggleDebugRecording();
+
+        // Add document-level capture listeners to intercept ALL clicks
+        document.addEventListener('click', _eyedropperCaptureClick, true);
+        document.addEventListener('mousedown', _eyedropperBlockEvent, true);
+        document.addEventListener('mouseup', _eyedropperBlockEvent, true);
+        document.addEventListener('keydown', _eyedropperKeyHandler);
+
+        // Set crosshair cursor on entire page
+        document.body.classList.add('probe-active');
+
+        // Add visual overlay border indicator (pointer-events: none so
+        // scrolling works normally through it)
+        if (!_eyedropperOverlay) {
+            _eyedropperOverlay = document.createElement('div');
+            _eyedropperOverlay.id = 'eyedropperOverlay';
+        }
+        document.body.appendChild(_eyedropperOverlay);
+
+        debugLog('[probe] Activated — click anywhere on the page to inspect. Click Probe again to exit.', 'info');
+        setStatus('Probe active — click anywhere to inspect element/pixel');
+    } else {
+        document.removeEventListener('click', _eyedropperCaptureClick, true);
+        document.removeEventListener('mousedown', _eyedropperBlockEvent, true);
+        document.removeEventListener('mouseup', _eyedropperBlockEvent, true);
+        document.removeEventListener('keydown', _eyedropperKeyHandler);
+
+        document.body.classList.remove('probe-active');
+
+        if (_eyedropperOverlay && _eyedropperOverlay.parentNode) {
+            _eyedropperOverlay.parentNode.removeChild(_eyedropperOverlay);
+        }
+        debugLog('[probe] Deactivated', 'info');
+        setStatus('Probe deactivated');
+    }
+}
+
+function _eyedropperKeyHandler(e) {
+    if (!_eyedropperActive) return;
+    if (e.key === 'Escape') {
+        toggleDebugEyedropper();
+    }
+}
+
+function _eyedropperBlockEvent(e) {
+    if (!_eyedropperActive) return;
+    const btn = document.getElementById('debugEyedropperBtn');
+    if (btn && (e.target === btn || btn.contains(e.target))) return;
+    e.stopPropagation();
+    e.preventDefault();
+}
+
+function eyedropperSample(e) {
+    if (!_eyedropperActive) return;
+
+    const realTarget = e.target;
+    if (!realTarget) {
+        debugLog('[probe] No element at click position', 'warn');
+        return;
+    }
+
+    // --- Determine if we clicked on the recolor image canvas ---
+    const isCanvasPixel = realTarget.tagName === 'CANVAS' ||
+        (realTarget.id === 'canvasInner' || realTarget.closest('#canvasInner'));
+
+    if (isCanvasPixel && canvas && canvas.width > 0) {
+        eyedropperSampleCanvas(e);
+        return;
+    }
+
+    // --- General DOM element probe ---
+    eyedropperSampleElement(realTarget, e);
+}
+
+function eyedropperSampleElement(el, e) {
+    const computed = window.getComputedStyle(el);
+    const bgColor = computed.backgroundColor;
+    const color = computed.color;
+    const tag = el.tagName.toLowerCase();
+    const id = el.id ? `#${el.id}` : '';
+    const cls = el.className && typeof el.className === 'string'
+        ? '.' + el.className.trim().split(/\s+/).join('.')
+        : '';
+    const selector = `${tag}${id}${cls}`;
+
+    // Inline style background (if any)
+    const inlineBg = el.style.background || el.style.backgroundColor || '';
+
+    // Walk up to find the nearest visible background
+    let bgSource = '(transparent)';
+    let bgEl = el;
+    while (bgEl) {
+        const cs = window.getComputedStyle(bgEl);
+        const bg = cs.backgroundColor;
+        if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+            const bgTag = bgEl.tagName.toLowerCase();
+            const bgId = bgEl.id ? `#${bgEl.id}` : '';
+            bgSource = `${bg} from ${bgTag}${bgId}`;
+            break;
+        }
+        bgEl = bgEl.parentElement;
+    }
+
+    // Try to read hex from text content (for swatch labels)
+    const textContent = el.textContent ? el.textContent.trim().substring(0, 30) : '';
+
+    debugLog(`[probe] ─── Element Probe ───`, 'info');
+    debugLog(`[probe]   element: <${selector}>`, 'info');
+    debugLog(`[probe]   text: "${textContent}"`, 'info');
+    debugLog(`[probe]   computed bg: ${bgColor}`, 'info');
+    debugLog(`[probe]   computed color: ${color}`, 'info');
+    if (inlineBg) {
+        debugLog(`[probe]   inline style bg: ${inlineBg}`, 'info');
+    }
+    debugLog(`[probe]   effective bg: ${bgSource}`, 'info');
+    debugLog(`[probe]   position: (${e.clientX}, ${e.clientY}) viewport`, 'info');
+    debugLog(`[probe] ─── End Probe ───`, 'info');
+}
+
+function eyedropperSampleCanvas(e) {
+    // Get image-space coordinates
+    const coords = getCanvasCoords(e);
+    const { x, y } = coords;
+
+    // Bounds check
+    if (x < 0 || y < 0 || !canvas || x >= canvas.width || y >= canvas.height) {
+        debugLog(`[probe] Canvas out of bounds: (${x}, ${y})`, 'warn');
+        return;
+    }
+
+    // 1. Read ORIGINAL pixel from hidden canvas
+    const ctx2d = canvas.getContext('2d');
+    const origPixel = ctx2d.getImageData(x, y, 1, 1).data;
+    const origRGB = [origPixel[0], origPixel[1], origPixel[2]];
+    const origHex = rgbToHex(...origRGB);
+    const origLab = RGB2LAB(origRGB);
+
+    // 2. Read RECOLORED pixel from visible canvas
+    let recoloredRGB = null;
+    let recoloredHex = '?';
+    const vc = getVisibleCanvas();
+
+    if (vc === webglCanvas && gl) {
+        const glX = x;
+        const glY = webglCanvas.height - 1 - y;
+        const pixel = new Uint8Array(4);
+        gl.readPixels(glX, glY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        recoloredRGB = [pixel[0], pixel[1], pixel[2]];
+        recoloredHex = rgbToHex(...recoloredRGB);
+    } else if (vc === displayCanvas) {
+        const dCtx = displayCanvas.getContext('2d');
+        const dpx = dCtx.getImageData(x, y, 1, 1).data;
+        recoloredRGB = [dpx[0], dpx[1], dpx[2]];
+        recoloredHex = rgbToHex(...recoloredRGB);
+    }
+
+    // 3. Find nearest origin palette color
+    let nearestOrigin = -1;
+    let nearestDist = Infinity;
+    const oldLabArr = [];
+    for (let i = 0; i < originalPalette.length; i++) {
+        const oLab = RGB2LAB(originalPalette[i]);
+        oldLabArr.push(oLab);
+        const dL = origLab[0] - oLab[0];
+        const dA = origLab[1] - oLab[1];
+        const dB = origLab[2] - oLab[2];
+        const dist = Math.sqrt(dL*dL + dA*dA + dB*dB);
+        if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestOrigin = i;
+        }
+    }
+
+    // 4. Trace the mapping chain
+    let mappingInfo = '';
+    if (nearestOrigin >= 0) {
+        const col = originToColumn[nearestOrigin];
+        const bypass = columnBypass[col] ? ' BYPASS' : '';
+        const oOpacity = originOpacity[nearestOrigin] !== undefined ? originOpacity[nearestOrigin] : 100;
+        const tOpacity = col !== undefined && col !== 'locked' && col !== 'bank' && targetOpacity[col] !== undefined ? targetOpacity[col] : 100;
+        const effOpacity = (oOpacity / 100) * (tOpacity / 100);
+
+        let targetHex = '?';
+        if (typeof col === 'number' && col < targetPalette.length && targetPalette[col] !== null) {
+            targetHex = rgbToHex(...targetPalette[col]);
+        }
+
+        mappingInfo = `origin#${nearestOrigin}→col${col}${bypass}, ` +
+            `originColor=${rgbToHex(...originalPalette[nearestOrigin])}, ` +
+            `targetColor=${targetHex}, ` +
+            `opacity=(o:${oOpacity}%,t:${tOpacity}%,eff:${(effOpacity*100).toFixed(0)}%)`;
+
+        // 5. Compute expected recolored value via Simple algorithm weights
+        if (typeof col === 'number' && !columnBypass[col] && targetPalette[col] !== null) {
+            const k = originalPalette.length;
+            const blendSharpness = 2.0;
+            let distances = [];
+            let minDist = Infinity;
+            for (let j = 0; j < k; j++) {
+                const dL = origLab[0] - oldLabArr[j][0];
+                const dA = origLab[1] - oldLabArr[j][1];
+                const dB = origLab[2] - oldLabArr[j][2];
+                const d = Math.sqrt(dL*dL + dA*dA + dB*dB);
+                distances.push(d);
+                if (d < minDist) minDist = d;
+            }
+
+            let totalWeight = 0;
+            let weights = [];
+            for (let j = 0; j < k; j++) {
+                const relDist = distances[j] / Math.max(minDist, 1.0);
+                const w = Math.exp(-blendSharpness * (relDist - 1.0));
+                weights.push(w);
+                totalWeight += w;
+            }
+
+            let dL = 0, dA = 0, dB = 0;
+            if (totalWeight > 0) {
+                for (let j = 0; j < k; j++) {
+                    const nw = weights[j] / totalWeight;
+                    const colJ = originToColumn[j];
+                    if (typeof colJ === 'number' && colJ < targetPalette.length && targetPalette[colJ] !== null) {
+                        const tLabJ = RGB2LAB(targetPalette[colJ]);
+                        dL += nw * (tLabJ[0] - oldLabArr[j][0]);
+                        dA += nw * (tLabJ[1] - oldLabArr[j][1]);
+                        dB += nw * (tLabJ[2] - oldLabArr[j][2]);
+                    }
+                }
+            }
+
+            const expectedLab = [origLab[0] + dL, origLab[1] + dA, origLab[2] + dB];
+            const expectedRGB = LAB2RGB(expectedLab);
+            const expectedHex = rgbToHex(...expectedRGB);
+
+            // Top 3 weights
+            const indexed = weights.map((w, i) => ({ i, w: w / totalWeight }));
+            indexed.sort((a, b) => b.w - a.w);
+            const top3 = indexed.slice(0, 3).map(e => {
+                const c = originToColumn[e.i];
+                const th = typeof c === 'number' && c < targetPalette.length && targetPalette[c] !== null ? rgbToHex(...targetPalette[c]) : '?';
+                return `o#${e.i}→col${c}(${th}) w=${(e.w*100).toFixed(1)}%`;
+            }).join(', ');
+
+            mappingInfo += `, expected=${expectedHex}, weights=[${top3}]`;
+        }
+    }
+
+    // 6. Detect what rendered this pixel (WebGL vs CPU, render type)
+    const renderSource = _lastWebGLRenderType
+        ? `WebGL/${_lastWebGLRenderType}`
+        : (vc === displayCanvas ? 'CPU/2D' : 'original');
+
+    // Log everything
+    debugLog(`[probe] ─── Pixel Probe (${x}, ${y}) ───`, 'info');
+    debugLog(`[probe]   original: ${origHex} (L=${origLab[0].toFixed(1)} a=${origLab[1].toFixed(1)} b=${origLab[2].toFixed(1)})`, 'info');
+    debugLog(`[probe]   rendered: ${recoloredHex} (source: ${renderSource}, ΔE=${nearestDist.toFixed(1)} to nearest origin)`, 'info');
+    if (mappingInfo) {
+        debugLog(`[probe]   mapping: ${mappingInfo}`, 'info');
+    }
+    debugLog(`[probe] ─── End Probe ───`, 'info');
+}
+
 function showLoading() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
 }
@@ -7159,6 +7520,11 @@ function loadConfig(configId) {
     document.getElementById('columnMappingContainer').setAttribute('data-target-count', targetCount);
 
     updateAlgorithmUI();
+
+    // Reveal full UI BEFORE rendering swatches — ensures uiStage='complete' so
+    // target swatches get correct selectability/opacity classes (not `.not-selectable`)
+    revealFullUI();
+
     renderColumnMapping();
     autoRecolorImage();
     renderConfigList();
@@ -7169,9 +7535,6 @@ function loadConfig(configId) {
         liveToggle.checked = true;
         toggleLivePreview(true);
     }
-
-    // Loading a config reveals the full UI
-    revealFullUI();
     // Expand origin section when loading a config so user can see the mapping
     const originCollapsible = document.getElementById('originCollapsible');
     if (originCollapsible) originCollapsible.setAttribute('open', '');

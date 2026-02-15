@@ -31,6 +31,28 @@ This document compiles all feature requests, bug fixes, and changes from past co
 | v30 | Feb 14 | WebGL direct display (Option A), GPU-accelerated rendering, 3-canvas architecture |
 | v31 | Feb 15 | Dual logo system, UI polish, tolerance default fix, header restructure |
 | v32 | Feb 15 | Full-resolution rendering, distance-based attenuation, render log system, scroll fix |
+| v32b | Feb 15 | Eyedropper probe tool, config-load swatch fix, drift log noise reduction |
+
+---
+
+## v32b Changes (February 15, 2026)
+
+### Target Swatch Display Fix
+1. **`revealFullUI()` before `renderColumnMapping()`** — In `loadConfig()`, moved `revealFullUI()` before `renderColumnMapping()` so that `uiStage='complete'` is set before swatch DOM is created. Previously, early config import could render swatches with `uiStage='image-loaded'`, causing `.not-selectable` CSS class (opacity 0.7, pointer-events: none) to persist on target swatches even after the full UI was revealed.
+2. **Swatch render diagnostic logging** — `renderColumnMapping()` now logs `[render-swatches]` with uiStage, selectability, and all target hex values. Only logs when targets or stage actually change (deduped via `_lastTgtKey`/`_lastStage`).
+
+### Eyedropper Diagnostic Probe
+3. **Pixel probe tool in Render Log toolbar** — New "Probe" button activates a crosshair cursor over the image. Clicking any pixel logs a comprehensive diagnostic to the render log:
+   - **Original pixel**: hex color and LAB values from the hidden canvas
+   - **Rendered pixel**: hex color read from WebGL framebuffer (`gl.readPixels`) or CPU canvas, with render source (WebGL/simple, WebGL/rbf, CPU/2D)
+   - **Nearest origin**: palette index, ΔE distance
+   - **Mapping chain**: origin → column → target color, with bypass status and effective opacity (origin × target)
+   - **Expected color**: CPU-side Simple algorithm weight computation showing the expected recolored hex, plus top-3 contributing weights with their origin/column/target colors
+4. **Auto-enables recording** — Activating the probe automatically starts recording and expands the console panel if collapsed.
+
+### Render Log Noise Reduction
+5. **Opacity fast-path logging** — Changed from logging every tick to logging only on 1st + every 60th call. Removed the per-tick `cache HIT` message entirely (was firing hundreds of times per opacity drag).
+6. **Drift comparison throttled** — `[opacity-fast-drift]` now only fires on the first tick of each opacity drag session (when `_hitCount === 1`) with a raised threshold of 0.5 ΔE (was 0.1). Drift is expected during opacity changes, so routine drift no longer floods the log.
 
 ---
 
@@ -42,9 +64,12 @@ This document compiles all feature requests, bug fixes, and changes from past co
 3. **CPU fallback full-res** — `renderAtCurrentZoom()` CPU path now renders `displayCanvas` at `imgWidth × imgHeight` with CSS scaling, matching the WebGL path behavior.
 4. **Simplified `syncWebGLToCPU()`** — Since the WebGL framebuffer is already at full image resolution, `readPixels` runs directly without a temporary re-render. Safety check re-renders only if dimensions mismatch.
 
-### Distance-Based Color Attenuation (Simple Mode)
-5. **Shader attenuation** — Added Gaussian attenuation to the Simple recolor fragment shader: `atten = exp(-minDist² / 1800.0)` where 1800 = 2×30². Pixels whose nearest palette color is beyond ~30 ΔE receive progressively weaker recolor shifts, leaving subtle grays, whites, and neutrals untouched.
-6. **CPU fallback attenuation** — Matching attenuation logic in `doRecolorSimpleCPU()` for consistency.
+### Distance-Based Color Attenuation (Simple Mode) — ROLLED BACK
+5. ~~**Shader attenuation** — Added then reverted. Gaussian attenuation `exp(-minDist²/1800)` weakened recolor shifts even for legitimate palette-adjacent pixels (5-20% loss at 10-20 ΔE), causing inaccurate target color reproduction. Reverted from both GLSL shader and CPU fallback.~~
+
+### Opacity Cache Stale Target Fix
+6. **Live target palette reads** — `recolorImageOpacityFast()` now reads `targetPalette` live via `RGB2LAB()` on every call instead of using cached `fullTargetLab`. Fixes opacity slider fading to OLD target color after changing a target via the color picker. The cache now only stores `oldLab` and `bgLab` (which don't change during opacity dragging).
+7. **Opacity drift detection logging** — Added `[opacity-fast-drift]` log entry that fires when the opacity fast path's computed `diffLab` diverges from the last full-recolor's uniforms, with origin index, column, target hex, and opacity values.
 
 ### Initial Render Resolution Fix
 7. **`_resyncCSS` closure** — After `renderWebGLToDisplay()`, `requestAnimationFrame` + `setTimeout(250ms)` re-measures the wrapper and corrects `webglCanvas` CSS sizing. Fixes the "crappy resolution on initial load, fixed with zoom in/out" regression caused by measuring wrapper width before DOM reflow after canvas insertion.

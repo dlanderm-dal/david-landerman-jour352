@@ -176,10 +176,12 @@ This was a major overhaul of the display pipeline. Recoloring now runs as WebGL 
 - **Bug:** First render after image load showed low resolution because `wrapperRect.width` was measured before the webglCanvas DOM insertion caused a reflow. The wrapper reported pre-insertion width.
 - **Fix:** After `renderWebGLToDisplay()`, a `_resyncCSS` closure runs via `requestAnimationFrame` + `setTimeout(250ms)`. It re-measures the wrapper, compares to current CSS sizing, and corrects if mismatched. Logs corrections via `[resyncCSS]`.
 
-#### Distance-Based Attenuation (Simple Mode)
-- **Concept:** Gaussian attenuation `exp(-minDist² / 1800.0)` (sigma=30 ΔE) fades the recolor shift for pixels whose nearest palette color is far away. Subtle grays, whites, and neutrals that don't closely match any picked palette entry are left untouched.
-- **GLSL implementation:** Uses explicit `float` intermediate variables (`distSq`, `sigma2`, `atten`) and creates a new `vec3 attenuatedDLab = dLab * atten` — avoids compound `*=` on vec3 that caused silent shader compilation failure on some drivers.
-- **CPU fallback:** Matching attenuation in `doRecolorSimpleCPU()`.
+#### Distance-Based Attenuation (Simple Mode) — ROLLED BACK
+- **Attempted:** Gaussian attenuation `exp(-minDist² / 1800.0)` (sigma=30 ΔE) to fade recolor shift for pixels far from palette colors. Reverted because it weakened shifts for legitimate palette-adjacent pixels too (5-20% loss at 10-20 ΔE), causing inaccurate target color reproduction. Removed from both GLSL shader and CPU fallback.
+
+#### Opacity Cache Fix
+- **Bug:** `recolorImageOpacityFast()` used cached `fullTargetLab` values that could become stale after target color changes, causing opacity slider to fade toward OLD target colors.
+- **Fix:** Reads `targetPalette` live via `RGB2LAB()` on every opacity fast path call. Cache now only stores `oldLab` and `bgLab`.
 
 #### Scroll Restoration Fix
 - **Bug:** `window.scrollTo(0, 0)` in DOMContentLoaded wasn't working because browsers restore scroll position AFTER that event fires.
@@ -387,15 +389,25 @@ getCanvasCoords(event):
 - **Why:** Previously, shader failures fell back silently to CPU path, causing a "grainy resolution" display that looked like a rendering bug rather than a shader bug
 - **Where:** `compileShader()` (~line 482), `createProgram()` (~line 469)
 
-### 19. Distance-Based Attenuation Guard (v32)
-- **What:** Simple recolor attenuates shift based on `exp(-minDist² / 1800.0)` — pixels far from all palette colors receive weaker shifts
-- **Why:** Prevents subtle grays, whites, and neutral tones (that don't closely match any picked palette color) from being tinted by the nearest palette entry
-- **Where:** Simple fragment shader (lines ~313-316), `doRecolorSimpleCPU()` (lines ~3581-3586)
+### 19. Distance-Based Attenuation Guard (v32) — ROLLED BACK
+- **What:** Was: Simple recolor attenuated shift based on `exp(-minDist² / 1800.0)`. Reverted because it reduced color accuracy for legitimate palette-adjacent pixels.
+- **Replaced by:** Opacity cache now reads `targetPalette` live instead of caching `fullTargetLab`, preventing stale target color values in the opacity fast path.
 
 ### 20. Browser Scroll Restoration Override (v32)
 - **What:** `history.scrollRestoration = 'manual'` set before DOMContentLoaded
 - **Why:** Browsers restore previous scroll position AFTER DOMContentLoaded fires, overriding `window.scrollTo(0, 0)`. Setting `scrollRestoration` to manual prevents this.
 - **Where:** Before DOMContentLoaded listener (~line 951)
+
+### 21. Config Load UI Stage Race (v32b)
+- **What:** `loadConfig()` calls `revealFullUI()` BEFORE `renderColumnMapping()` to ensure `uiStage='complete'` before swatch DOM is created
+- **Why:** Early config import could call `loadConfig()` while `uiStage` was still `'image-loaded'` or `'initial'`. The old order (`renderColumnMapping()` → `revealFullUI()`) rendered swatches with `.not-selectable` class (opacity 0.7, pointer-events: none), then set `uiStage='complete'` without re-rendering — leaving stale CSS on the swatch DOM.
+- **Where:** `loadConfig()` (~line 7201)
+
+### 22. Eyedropper Diagnostic Probe (v32b)
+- **What:** Render log "Probe" button activates crosshair cursor on image; clicking samples pixel and logs original color, rendered color, nearest origin, mapping chain, expected Simple-algorithm output, and top-3 weight contributors
+- **WebGL pixel read:** Uses `gl.readPixels(x, height-1-y, 1, 1)` with Y-flip since WebGL origin is bottom-left
+- **Event handling:** Captures click on `canvasWrapper` with `capture: true` and `stopPropagation()` to prevent picker/panzoom interference. Only fires when target is within `#canvasInner`.
+- **Where:** `toggleDebugEyedropper()` / `eyedropperSample()` (~line 6812)
 
 ---
 
@@ -493,12 +505,31 @@ Use this list to manually verify correct behavior after any display pipeline cha
 - [ ] Zoom in/out after recolor — image stays crisp at all zoom levels (CSS-only zoom, no re-render)
 - [ ] White text on colored rows shows NO color bleeding/tinting in Simple mode
 - [ ] White text on colored rows shows NO color bleeding/tinting in RBF mode
-- [ ] Subtle gray lines/borders are NOT recolored (distance attenuation preserves neutrals)
+- [ ] Opacity slider fades smoothly from target color to background (no snap to old target value)
 - [ ] Export after full-res render — output matches display quality
 - [ ] Render log shows `[renderWebGL] pixels=WxH` matching original image dimensions
 - [ ] No `[shader-compile-error]` entries in render log
 - [ ] `_resyncCSS` fires and corrects CSS on first render (check log for `[resyncCSS]`)
 - [ ] Page reload starts at top of page (scroll restoration override works)
+
+### Config Load Swatch Tests (v32b)
+- [ ] Import config via early import → target swatches are clickable (not grayed out with opacity 0.7)
+- [ ] Import config via early import → swatch background-color matches hex label below it
+- [ ] Load config from history when uiStage already 'complete' → swatches update correctly
+- [ ] Load config → render log shows `[render-swatches] uiStage=complete, selectable=true`
+
+### Eyedropper Probe Tests (v32b)
+- [ ] Click "Probe" button in render log toolbar → button highlights blue, cursor becomes crosshair over image
+- [ ] Click on image pixel → render log shows original hex, rendered hex, nearest origin, mapping chain
+- [ ] Probe reads correct pixel coordinates at 1x zoom
+- [ ] Probe reads correct pixel coordinates at zoomed+panned state
+- [ ] Probe auto-enables recording if paused
+- [ ] Probe auto-expands render log panel if collapsed
+- [ ] Multiple probe clicks produce multiple log entries
+- [ ] Click "Probe" again → deactivates, cursor returns to normal
+- [ ] Probe doesn't interfere with picker mode (deactivate probe first)
+- [ ] Probe "expected" color roughly matches "rendered" color for Simple algorithm
+- [ ] Probe works on both WebGL and CPU fallback paths
 
 ### Edge Case Combinations
 - [ ] Zoom to 3x → resize wrapper smaller → pan → reset view (everything clean?)
@@ -514,5 +545,5 @@ Use this list to manually verify correct behavior after any display pipeline cha
 ---
 
 *Created: February 14, 2026*
-*Updated: February 15, 2026 (v32 — full-resolution rendering, distance attenuation, render log)*
+*Updated: February 15, 2026 (v32b — eyedropper probe, config-load swatch fix, drift log noise reduction)*
 *For use as regression reference during display pipeline refactoring*
