@@ -680,6 +680,12 @@ let instructionsCollapsed = false;
 // Beginner/Advanced mode state
 let appMode = 'beginner'; // 'beginner' or 'advanced'
 
+// Demo mode state — unique filenames prevent accidental collision with user files
+let _isDemoImage = false;
+const _DEMO_IMAGE_FILE = '_ps_demo_83x7q.svg';
+// Demo config embedded directly — avoids XHR/fetch issues on file:// protocol
+const _DEMO_CONFIG_DATA = {"version":"18","exportDate":"2026-02-15T04:48:51.770Z","configs":[{"id":1771043608455.106,"name":"Recolor 29","timestamp":"2026-02-14T04:33:28.455Z","savedForExport":true,"originCount":16,"targetCount":3,"originalPalette":[[255,255,255],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142]],"targetPalette":[[70,179,237],[102,209,211],[211,160,71]],"colorPercentages":[75.83719016764373,0.9349609174123212,0.8095495217525456,4.4956546333436185,2.097796461997326,2.152113545202098,3.4038491206417767,2.151277897768179,1.7511313380643834,1.5580325002571223,0.8700375398539545,0.968708217628304,0.6571402859199835,0.15568754499640028,1.8221613699475472,0.33470893757070863],"originToColumn":[0,1,1,1,1,1,2,2,2,"bank","bank","bank","bank","bank","bank","bank"],"columnBypass":{"0":true},"algorithm":"simple","luminosity":0,"originOpacity":{},"targetOpacity":{},"pickedColors":[[255,255,255],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166]],"pickedPositions":[{"x":1664,"y":881,"color":[255,255,255]},{"x":836,"y":350,"color":[0,0,0]},{"x":968,"y":898,"color":[219,200,183]},{"x":947,"y":1003,"color":[212,191,164]},{"x":1059,"y":1084,"color":[137,111,78]},{"x":1228,"y":1045,"color":[130,95,63]},{"x":1311,"y":1048,"color":[151,122,92]},{"x":1128,"y":991,"color":[199,172,142]},{"x":933,"y":764,"color":[31,58,95]},{"x":1561,"y":738,"color":[246,217,175]},{"x":1414,"y":1284,"color":[214,214,214]},{"x":904,"y":2008,"color":[250,140,0]},{"x":1028,"y":162,"color":[64,32,239]},{"x":875,"y":955,"color":[243,209,16]},{"x":1221,"y":2041,"color":[0,144,118]},{"x":223,"y":2034,"color":[0,220,166]}],"pickedCategories":[0,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,2,2,2]},{"id":1771130638599.195,"name":"Recolor 7","timestamp":"2026-02-15T04:43:58.599Z","savedForExport":true,"originCount":16,"targetCount":3,"originalPalette":[[255,255,255],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142]],"targetPalette":[[70,179,237],[71,165,230],[228,135,62]],"colorPercentages":[75.83719016764373,0.9349609174123212,0.8095495217525456,4.4956546333436185,2.097796461997326,2.152113545202098,3.4038491206417767,2.151277897768179,1.7511313380643834,1.5580325002571223,0.8700375398539545,0.968708217628304,0.6571402859199835,0.15568754499640028,1.8221613699475472,0.33470893757070863],"originToColumn":[0,1,1,1,1,1,2,2,2,"bank","bank","bank","bank","bank","bank","bank"],"columnBypass":{"0":true},"algorithm":"simple","luminosity":0,"originOpacity":{},"targetOpacity":{},"pickedColors":[[255,255,255],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166]],"pickedPositions":[{"x":1664,"y":881,"color":[255,255,255]},{"x":836,"y":350,"color":[0,0,0]},{"x":968,"y":898,"color":[219,200,183]},{"x":947,"y":1003,"color":[212,191,164]},{"x":1059,"y":1084,"color":[137,111,78]},{"x":1228,"y":1045,"color":[130,95,63]},{"x":1311,"y":1048,"color":[151,122,92]},{"x":1128,"y":991,"color":[199,172,142]},{"x":933,"y":764,"color":[31,58,95]},{"x":1561,"y":738,"color":[246,217,175]},{"x":1414,"y":1284,"color":[214,214,214]},{"x":904,"y":2008,"color":[250,140,0]},{"x":1028,"y":162,"color":[64,32,239]},{"x":875,"y":955,"color":[243,209,16]},{"x":1221,"y":2041,"color":[0,144,118]},{"x":223,"y":2034,"color":[0,220,166]}],"pickedCategories":[0,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,2,2,2]}]};
+
 function setAppMode(mode) {
     appMode = mode;
     const isAdvanced = mode === 'advanced';
@@ -1334,6 +1340,9 @@ function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Check if uploaded file is the demo image (by unique filename)
+    _isDemoImage = (file.name === _DEMO_IMAGE_FILE);
+
     // Extract filename without extension for download naming
     const name = file.name || 'image';
     const dotIdx = name.lastIndexOf('.');
@@ -1350,8 +1359,81 @@ function handleFileSelect(event) {
     reader.readAsDataURL(file);
 }
 
+// ============================================
+// Demo Mode — load bundled demo image & config
+// ============================================
+
+function loadDemoImage() {
+    // Load demo image via relative URL. Works on any HTTP server (localhost,
+    // GitHub Pages, etc.) where same-origin policy allows canvas getImageData.
+    var img = new Image();
+    img.onload = function() {
+        originalFileName = 'demo';
+        _isDemoImage = true;
+        loadImage(img);
+        updateDemoConfigVisibility();
+        debugLog('[demo] Loaded demo image from ' + _DEMO_IMAGE_FILE);
+    };
+    img.onerror = function() {
+        setStatus('Demo image not found — ensure ' + _DEMO_IMAGE_FILE + ' is in the app directory');
+        debugLog('[demo] ERROR: could not load ' + _DEMO_IMAGE_FILE, 'error');
+    };
+    img.src = _DEMO_IMAGE_FILE;
+}
+
+function loadDemoConfig() {
+    // Config is embedded in _DEMO_CONFIG_DATA — no network request needed.
+    // Deep-clone so repeated loads don't mutate the original.
+    var data = JSON.parse(JSON.stringify(_DEMO_CONFIG_DATA));
+
+    if (!data.configs || !Array.isArray(data.configs)) {
+        setStatus('Invalid demo config data');
+        return;
+    }
+
+    var existingIds = new Set(recolorHistory.map(function(c) { return c.id; }));
+    var importedCount = 0;
+    var firstNewIndex = recolorHistory.length;
+    var repairedCount = 0;
+
+    data.configs.forEach(function(config) {
+        if (existingIds.has(config.id)) {
+            config.id = Date.now() + Math.random();
+        }
+        config.savedForExport = true;
+        var repairWarnings = validateAndRepairConfig(config);
+        if (repairWarnings.length > 0) {
+            console.warn('Repaired demo config "' + (config.name || 'unnamed') + '":', repairWarnings);
+            repairedCount++;
+        }
+        recolorHistory.push(config);
+        importedCount++;
+    });
+
+    renderConfigList();
+
+    // Auto-load the first imported config (same behavior as importConfigFileEarly)
+    if (importedCount > 0) {
+        loadConfig(recolorHistory[firstNewIndex].id);
+    }
+
+    debugLog('[demo-config] ' + importedCount + ' demo configs loaded' +
+        (repairedCount > 0 ? ' (' + repairedCount + ' repaired)' : ''));
+    var repairNote = repairedCount > 0 ? ' (' + repairedCount + ' repaired from older format)' : '';
+    setStatus('Loaded ' + importedCount + ' demo configuration(s)' + repairNote + '. First config auto-loaded.');
+}
+
+function updateDemoConfigVisibility() {
+    // Show/hide demo import section (step 2, both modes) based on demo image state
+    const demoSection = document.getElementById('demoImportSection');
+    if (demoSection) demoSection.classList.toggle('hidden', !_isDemoImage);
+}
+
 function loadImage(img) {
     document.getElementById('uploadZone').classList.add('hidden');
+    // Hide the Demo Image button (positioned outside canvas-wrapper)
+    const demoBtn = document.getElementById('demoImageBtn');
+    if (demoBtn) demoBtn.classList.add('hidden');
     canvas.style.display = 'block';
     document.getElementById('zoomControls').classList.remove('hidden');
     document.getElementById('zoomSliderContainer').classList.remove('hidden');
@@ -1378,6 +1460,9 @@ function loadImage(img) {
     document.querySelectorAll('.resize-handle').forEach(h => h.classList.remove('hidden'));
     uiStage = 'image-loaded';
     updateProgressiveInstructions('image-loaded');
+
+    // Show/hide demo config button now that sidebar is visible
+    updateDemoConfigVisibility();
 
     // Reset Panzoom to zoom=1, pan=0,0
     zoomLevel = 1;
@@ -1434,6 +1519,10 @@ function loadImage(img) {
     requestAnimationFrame(updateStickyOverlays);
 
     extractPalette();
+
+    // If this is the demo image, ensure demo config button is visible now that sidebar is shown
+    updateDemoConfigVisibility();
+
     setStatus('Image loaded. Palette extracted.');
 }
 
@@ -6671,11 +6760,16 @@ function removeImage() {
     if (pickerInstructions) pickerInstructions.classList.remove('hidden');
     const earlyImport = document.getElementById('earlyImportSection');
     if (earlyImport) earlyImport.classList.remove('hidden');
+    // Clear demo mode so demo config buttons hide
+    _isDemoImage = false;
+    updateDemoConfigVisibility();
     uiStage = 'initial';
     updateProgressiveInstructions('initial');
 
-    // Show upload zone again
+    // Show upload zone and Demo Image button again
     document.getElementById('uploadZone').classList.remove('hidden');
+    const demoBtnRm = document.getElementById('demoImageBtn');
+    if (demoBtnRm) demoBtnRm.classList.remove('hidden');
     canvas.style.display = 'none';
     // Hide display canvases too
     if (displayCanvas) {
@@ -6734,10 +6828,16 @@ function downloadImage() {
 let _debugLog = [];
 let _debugRenderStart = null;
 let _debugRecording = false; // Default: recording off
+let _debugSessionStart = null; // Set when recording starts — gives all logs a meaningful timestamp
 
 function debugLog(message, level = 'info') {
     if (!_debugRecording) return;
-    const elapsed = _debugRenderStart ? ((performance.now() - _debugRenderStart) / 1000).toFixed(3) : '—';
+    // Use render-relative time if inside a render, otherwise session-relative time
+    const elapsed = _debugRenderStart
+        ? ((performance.now() - _debugRenderStart) / 1000).toFixed(3)
+        : _debugSessionStart
+            ? ((performance.now() - _debugSessionStart) / 1000).toFixed(1)
+            : '—';
     _debugLog.push({ time: elapsed, message, level });
     renderDebugConsole();
 }
@@ -6775,6 +6875,7 @@ function toggleDebugRecording() {
         btn.title = _debugRecording ? 'Recording' : 'Paused';
     }
     if (_debugRecording) {
+        _debugSessionStart = performance.now();
         debugLog('Recording started', 'info');
         // Log current state snapshot so user sees something useful immediately
         debugLog(`State: algo=${selectedAlgorithm}, webgl=${webglInitialized}, renderType=${_lastWebGLRenderType}, image=${canvas ? canvas.width + 'x' + canvas.height : 'none'}`);

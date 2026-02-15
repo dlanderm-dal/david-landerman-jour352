@@ -3916,6 +3916,62 @@ textarea {
     display: none;
 }
 
+/* ===== Demo Mode — yellow striped buttons ===== */
+.btn-demo-striped {
+    background: repeating-linear-gradient(
+        45deg,
+        #ffd700,
+        #ffd700 8px,
+        #ffec80 8px,
+        #ffec80 16px
+    );
+    color: #333;
+    font-weight: 700;
+    border: 2px solid #daa520;
+    border-radius: 6px;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    transition: filter 0.15s, box-shadow 0.15s;
+}
+.btn-demo-striped:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 2px 8px rgba(218, 165, 32, 0.35);
+}
+/* Semi-transparent backdrop behind button text for readability over stripes */
+.demo-label {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.15em 0.5em;
+    border-radius: 3px;
+    display: inline-block;
+}
+/* Demo Image button — positioned outside the upload zone box, bottom-aligned,
+   40px gap between button left edge and upload-zone right edge.
+   Parent .canvas-area has position:relative and padding:1rem. */
+.btn-demo-image {
+    position: absolute;
+    bottom: 1rem;                           /* colinear with canvas-wrapper bottom edge */
+    left: calc(100% - 1rem + 40px);         /* 40px right of canvas-wrapper right edge */
+    white-space: nowrap;
+    z-index: 5;
+}
+/* Hide Demo Image button when image is loaded (toggled via JS .hidden class) */
+.btn-demo-image.hidden {
+    display: none;
+}
+/* Smaller variant for config rows */
+.btn-demo-config {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+}
+/* Demo import section in sidebar (beginner mode) */
+.demo-import-section {
+    margin-top: 0.75rem;
+    text-align: center;
+}
+.demo-import-section.hidden {
+    display: none;
+}
+
 .btn-subtle {
     background: transparent;
     border: 1px solid var(--border);

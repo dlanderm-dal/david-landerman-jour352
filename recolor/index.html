@@ -284,6 +284,8 @@
                     </div>
                     <div class="pan-hint" id="panHint">Alt+Drag to pan • Alt+Scroll to zoom</div>
                 </div>
+                <!-- Demo Image button — positioned outside canvas-wrapper so it's not clipped by overflow:hidden -->
+                <button class="btn btn-demo-striped btn-demo-image" id="demoImageBtn" onclick="loadDemoImage()"><span class="demo-label">🎨 Demo Image</span></button>
                 <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
 
                 <!-- Tool Legend (shown when target choice appears) -->
@@ -367,6 +369,10 @@
                             📁 Import Saved Configuration
                         </button>
                         <input type="file" id="earlyConfigFileInput" accept=".json" style="display:none" onchange="importConfigFileEarly(event)">
+                    </div>
+                    <!-- Demo config import (visible only when demo image is loaded) -->
+                    <div class="demo-import-section hidden" id="demoImportSection">
+                        <button class="btn btn-demo-striped btn-demo-config" onclick="loadDemoConfig()"><span class="demo-label">🎨 Import Demo Configuration</span></button>
                     </div>
                 </div>
 
