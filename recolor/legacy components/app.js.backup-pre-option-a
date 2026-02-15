@@ -117,16 +117,8 @@ let webglCanvas = null;
 let simpleRecolorProgram = null;
 let rbfRecolorProgram = null;
 let webglInitialized = false;
-let _webglImageTexture = null; // Persistent source image texture (avoids re-upload per frame)
-let _webglDirty = true;        // True when CPU-side imageData is stale and needs sync
-let _lastWebGLRenderType = null; // 'simple' or 'rbf' — tracks what's currently on the WebGL canvas
-let _lastSimpleUniforms = null;  // Cache last simple recolor uniforms for re-render on zoom
-let _lastRBFUniforms = null;     // Cache last RBF recolor uniforms for re-render on zoom
-let _simpleUniformLocs = null;   // Cached uniform locations for simple shader
-let _rbfUniformLocs = null;      // Cached uniform locations for RBF shader
 
 // Vertex shader (shared by both programs) - simple fullscreen quad
-// Tex coords in setupWebGLBuffers already handle Y orientation, so pass through directly.
 const vertexShaderSource = `
     attribute vec2 a_position;
     attribute vec2 a_texCoord;
@@ -264,12 +256,6 @@ const rbfRecolorFragmentSource = `
     uniform float u_lutSize;
     uniform float u_luminosity;
 
-    // Bypass correction: palette colors whose columns are locked/bypassed.
-    // After the LUT lookup, pixels close to a bypassed color are blended back
-    // toward their original value so the global RBF transform cannot bleed into them.
-    uniform vec3 u_bypassedRGB[20];  // up to 20 bypassed palette entries (RGB 0-1)
-    uniform int  u_bypassedCount;
-
     void main() {
         vec4 texColor = texture2D(u_image, v_texCoord);
 
@@ -306,26 +292,6 @@ const rbfRecolorFragmentSource = `
         vec3 c1 = mix(c10, c11, frac.y);
         vec3 newRgb = mix(c0, c1, frac.x);
 
-        // Bypass correction: blend back toward original for pixels near bypassed colors.
-        // Uses a Gaussian weight in RGB space — the closer the pixel is to a bypassed
-        // palette color, the more it keeps its original value.
-        if (u_bypassedCount > 0) {
-            float maxKeep = 0.0;  // max "keep original" weight across all bypassed colors
-            for (int j = 0; j < 20; j++) {
-                if (j >= u_bypassedCount) break;
-                vec3 diff = texColor.rgb - u_bypassedRGB[j];
-                float d2 = dot(diff, diff);
-                // Gaussian falloff: sigma ~0.12 in 0-1 space (~30 in 0-255 space)
-                // At distance 0:    keep = 1.0  (fully original)
-                // At distance 0.12: keep ≈ 0.6
-                // At distance 0.24: keep ≈ 0.14
-                // At distance 0.35: keep ≈ 0.01
-                float keep = exp(-d2 / (2.0 * 0.12 * 0.12));
-                maxKeep = max(maxKeep, keep);
-            }
-            newRgb = mix(newRgb, texColor.rgb, maxKeep);
-        }
-
         // Apply luminosity
         if (u_luminosity != 0.0) {
             float factor = 1.0 + (u_luminosity / 100.0);
@@ -340,11 +306,9 @@ function initWebGL() {
     if (webglInitialized) return webglInitialized;
 
     try {
-        // Create a dedicated WebGL canvas (separate from 2D displayCanvas)
-        webglCanvas = document.getElementById('webglDisplayCanvas') || document.createElement('canvas');
-        webglCanvas.id = 'webglDisplayCanvas';
-        gl = webglCanvas.getContext('webgl', { preserveDrawingBuffer: true, alpha: false }) ||
-             webglCanvas.getContext('experimental-webgl', { preserveDrawingBuffer: true, alpha: false });
+        webglCanvas = document.createElement('canvas');
+        gl = webglCanvas.getContext('webgl', { preserveDrawingBuffer: true }) ||
+             webglCanvas.getContext('experimental-webgl', { preserveDrawingBuffer: true });
 
         if (!gl) {
             console.warn('WebGL not available, falling back to CPU');
@@ -360,26 +324,8 @@ function initWebGL() {
             return false;
         }
 
-        // Cache uniform locations (avoids repeated lookups on every render)
-        _simpleUniformLocs = {
-            u_image: gl.getUniformLocation(simpleRecolorProgram, 'u_image'),
-            u_oldLab: gl.getUniformLocation(simpleRecolorProgram, 'u_oldLab'),
-            u_diffLab: gl.getUniformLocation(simpleRecolorProgram, 'u_diffLab'),
-            u_paletteSize: gl.getUniformLocation(simpleRecolorProgram, 'u_paletteSize'),
-            u_blendSharpness: gl.getUniformLocation(simpleRecolorProgram, 'u_blendSharpness'),
-            u_luminosity: gl.getUniformLocation(simpleRecolorProgram, 'u_luminosity')
-        };
-        _rbfUniformLocs = {
-            u_image: gl.getUniformLocation(rbfRecolorProgram, 'u_image'),
-            u_lut: gl.getUniformLocation(rbfRecolorProgram, 'u_lut'),
-            u_lutSize: gl.getUniformLocation(rbfRecolorProgram, 'u_lutSize'),
-            u_luminosity: gl.getUniformLocation(rbfRecolorProgram, 'u_luminosity'),
-            u_bypassedRGB: gl.getUniformLocation(rbfRecolorProgram, 'u_bypassedRGB[0]'),
-            u_bypassedCount: gl.getUniformLocation(rbfRecolorProgram, 'u_bypassedCount')
-        };
-
         webglInitialized = true;
-        console.log('WebGL initialized successfully (direct display mode)');
+        console.log('WebGL initialized successfully');
         return true;
     } catch (e) {
         console.warn('WebGL initialization failed:', e);
@@ -420,174 +366,43 @@ function compileShader(gl, type, source) {
     return shader;
 }
 
-let _webglPositionBuffer = null;
-let _webglTexCoordBuffer = null;
-
 function setupWebGLBuffers(gl, program) {
-    // Create fullscreen quad buffers once, reuse on subsequent calls
-    if (!_webglPositionBuffer) {
-        const positions = new Float32Array([
-            -1, -1,  1, -1,  -1, 1,
-            -1,  1,  1, -1,   1, 1
-        ]);
-        _webglPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, _webglPositionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-    }
-    if (!_webglTexCoordBuffer) {
-        const texCoords = new Float32Array([
-            0, 1,  1, 1,  0, 0,
-            0, 0,  1, 1,  1, 0
-        ]);
-        _webglTexCoordBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, _webglTexCoordBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
-    }
+    // Create fullscreen quad
+    const positions = new Float32Array([
+        -1, -1,  1, -1,  -1, 1,
+        -1,  1,  1, -1,   1, 1
+    ]);
+    const texCoords = new Float32Array([
+        0, 1,  1, 1,  0, 0,
+        0, 0,  1, 1,  1, 0
+    ]);
 
-    // Bind position buffer and set attribute pointer
-    gl.bindBuffer(gl.ARRAY_BUFFER, _webglPositionBuffer);
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
     const positionLoc = gl.getAttribLocation(program, 'a_position');
     gl.enableVertexAttribArray(positionLoc);
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
 
-    // Bind texcoord buffer and set attribute pointer
-    gl.bindBuffer(gl.ARRAY_BUFFER, _webglTexCoordBuffer);
+    const texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+
     const texCoordLoc = gl.getAttribLocation(program, 'a_texCoord');
     gl.enableVertexAttribArray(texCoordLoc);
     gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
 }
 
-function createTexture(gl, imageData, useLinear) {
+function createTexture(gl, imageData) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    // Source image uses LINEAR for smooth display at various resolutions.
-    // LUT textures use NEAREST to avoid interpolation artifacts in lookup tables.
-    const filter = useLinear ? gl.LINEAR : gl.NEAREST;
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, imageData.width, imageData.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, imageData.data);
     return texture;
-}
-
-// Ensure the persistent source image texture is uploaded (reuse across frames)
-function ensureImageTexture() {
-    if (!_webglImageTexture && originalImageData && gl) {
-        _webglImageTexture = createTexture(gl, originalImageData, true);
-    }
-    return _webglImageTexture;
-}
-
-// Invalidate persistent image texture (call when image changes)
-function invalidateImageTexture() {
-    if (_webglImageTexture && gl) {
-        gl.deleteTexture(_webglImageTexture);
-    }
-    _webglImageTexture = null;
-}
-
-// Lazy sync: read WebGL pixels back to CPU-side imageData and 2D canvas.
-// Only called when something needs CPU pixel access (export, strip, luminosity).
-function syncWebGLToCPU() {
-    if (!_webglDirty || !gl || !webglCanvas) return;
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Temporarily resize WebGL canvas to image dimensions for readback
-    const savedCSSWidth = webglCanvas.style.width;
-    const savedCSSHeight = webglCanvas.style.height;
-    const savedWidth = webglCanvas.width;
-    const savedHeight = webglCanvas.height;
-
-    // We need to re-render at image resolution for the readback
-    webglCanvas.width = width;
-    webglCanvas.height = height;
-    gl.viewport(0, 0, width, height);
-
-    // Re-render the last recolor at image resolution using cached uniform locations
-    if (_lastWebGLRenderType === 'simple' && _lastSimpleUniforms && _simpleUniformLocs) {
-        const u = _lastSimpleUniforms;
-        const loc = _simpleUniformLocs;
-        gl.useProgram(simpleRecolorProgram);
-        setupWebGLBuffers(gl, simpleRecolorProgram);
-        const tex = ensureImageTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(loc.u_image, 0);
-        gl.uniform3fv(loc.u_oldLab, u.oldLabFlat);
-        gl.uniform3fv(loc.u_diffLab, u.diffLabFlat);
-        gl.uniform1i(loc.u_paletteSize, u.k);
-        gl.uniform1f(loc.u_blendSharpness, 2.0);
-        gl.uniform1f(loc.u_luminosity, u.luminosity);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-    } else if (_lastWebGLRenderType === 'rbf' && _lastRBFUniforms && _rbfUniformLocs) {
-        const u = _lastRBFUniforms;
-        const loc = _rbfUniformLocs;
-        gl.useProgram(rbfRecolorProgram);
-        setupWebGLBuffers(gl, rbfRecolorProgram);
-        const tex = ensureImageTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(loc.u_image, 0);
-        // Re-create LUT texture
-        const lutTexture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
-        gl.uniform1i(loc.u_lut, 1);
-        gl.uniform1f(loc.u_lutSize, u.lutSize);
-        gl.uniform1f(loc.u_luminosity, u.luminosity);
-        // Bypass correction uniforms
-        gl.uniform3fv(loc.u_bypassedRGB, u.bypassedFlat || new Float32Array(60));
-        gl.uniform1i(loc.u_bypassedCount, u.bypassedCount || 0);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-        gl.deleteTexture(lutTexture);
-    }
-
-    // Read pixels back — readPixels always returns bottom-to-top row order,
-    // so we must flip Y rows to get correct top-to-bottom orientation for the 2D canvas.
-    const pixels = new Uint8Array(width * height * 4);
-    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-    // Flip rows: swap row i with row (height-1-i)
-    const rowSize = width * 4;
-    const tempRow = new Uint8Array(rowSize);
-    for (let y = 0; y < Math.floor(height / 2); y++) {
-        const topOffset = y * rowSize;
-        const bottomOffset = (height - 1 - y) * rowSize;
-        tempRow.set(pixels.subarray(topOffset, topOffset + rowSize));
-        pixels.copyWithin(topOffset, bottomOffset, bottomOffset + rowSize);
-        pixels.set(tempRow, bottomOffset);
-    }
-
-    const newData = ctx.createImageData(width, height);
-    newData.data.set(pixels);
-    ctx.putImageData(newData, 0, 0);
-    imageData = newData;
-
-    _webglDirty = false;
-
-    // Re-render the WebGL canvas at display resolution (resizing cleared the framebuffer).
-    // Only needed if the webglCanvas is currently visible (i.e., we're in WebGL display mode).
-    if (webglCanvas.style.display !== 'none' && webglCanvas.parentNode && _lastWebGLRenderType) {
-        renderWebGLToDisplay(_lastWebGLRenderType);
-    } else {
-        // Not currently displaying WebGL — just restore buffer dimensions
-        webglCanvas.width = savedWidth;
-        webglCanvas.height = savedHeight;
-        webglCanvas.style.width = savedCSSWidth;
-        webglCanvas.style.height = savedCSSHeight;
-        if (savedWidth > 0 && savedHeight > 0) {
-            gl.viewport(0, 0, savedWidth, savedHeight);
-        }
-    }
-
-    console.log('syncWebGLToCPU: pixels synced to CPU');
 }
 
 // ============================================
@@ -600,7 +415,6 @@ let originalPalette = [];
 let targetPalette = [];
 let selectedSlotIndex = 0;
 let harmonyMode = 'harmony'; // 'harmony' or 'color'
-let _currentHarmonyType = 'complementary'; // cached harmony type, survives DOM hidden/show resets
 let lockColorSelectedIdx = 0; // Which target is selected in Lock a Color mode
 let canvas, ctx;
 let displayCanvas, displayCtx; // For high-quality scaled display
@@ -668,129 +482,6 @@ let uiStage = 'initial';
 
 let instructionsCollapsed = false;
 
-// Beginner/Advanced mode state
-let appMode = 'beginner'; // 'beginner' or 'advanced'
-
-function setAppMode(mode) {
-    appMode = mode;
-    const isAdvanced = mode === 'advanced';
-
-    // Update toggle UI
-    document.getElementById('modeSwitch').classList.toggle('advanced', isAdvanced);
-    document.getElementById('modeLabelBeginner').classList.toggle('active', !isAdvanced);
-    document.getElementById('modeLabelAdvanced').classList.toggle('active', isAdvanced);
-
-    // Set body class for CSS-driven feature hiding
-    document.body.classList.toggle('mode-beginner', !isAdvanced);
-    document.body.classList.toggle('mode-advanced', isAdvanced);
-
-    // Advanced mode: default instructions collapsed at every stage
-    if (isAdvanced) {
-        const container = document.getElementById('progressiveInstructions');
-        const arrow = document.getElementById('instructionsToggleArrow');
-        if (container && !container.classList.contains('collapsed')) {
-            container.classList.add('collapsed');
-            instructionsCollapsed = true;
-            if (arrow) arrow.textContent = '▸';
-        }
-        // Collapse tutorial by default in advanced mode
-        if (typeof tutorialHasBeenShown !== 'undefined' && tutorialHasBeenShown && !tutorialCollapsed) {
-            const tutorialOverlay = document.getElementById('tutorialOverlay');
-            if (tutorialOverlay && !tutorialOverlay.classList.contains('hidden')) {
-                collapseTutorial();
-            }
-        }
-    } else {
-        // Beginner mode: re-expand instructions
-        const container = document.getElementById('progressiveInstructions');
-        const arrow = document.getElementById('instructionsToggleArrow');
-        if (container && container.classList.contains('collapsed')) {
-            container.classList.remove('collapsed');
-            instructionsCollapsed = false;
-            if (arrow) arrow.textContent = '▾';
-        }
-    }
-
-
-
-    // Update instruction text for target-selection step based on mode
-    updateInstructionTextForMode();
-
-    // Update palette icon visibility based on Direct Picker state
-    updatePaletteIconVisibility();
-}
-
-function toggleAppMode() {
-    setAppMode(appMode === 'advanced' ? 'beginner' : 'advanced');
-}
-
-// Update instruction step text based on mode
-function updateInstructionTextForMode() {
-    const stepText = document.getElementById('targetStepText');
-    const stepNum = document.getElementById('targetStepNum');
-    if (!stepText) return;
-
-    if (appMode === 'beginner') {
-        stepText.innerHTML = 'Time to choose your new colors — there\'s LOTS of ways to do this! The preview updates live as you make changes.';
-    } else {
-        stepText.innerHTML = 'Time to choose your new colors — there\'s LOTS of ways to do this! Hit <span class="btn-highlight">Apply this recolor</span> when you\'re done, or just turn on <span class="btn-highlight">Recolor Live</span> to have the preview update whenever you make a change.';
-    }
-}
-
-// Handle Direct Color Picker section toggle (beginner mode)
-function handleDirectPickerToggle(detailsEl) {
-    if (!detailsEl) return;
-    updatePaletteIconVisibility();
-}
-
-// Update palette icon visibility based on Direct Picker state
-function updatePaletteIconVisibility() {
-    const directPicker = document.getElementById('directPickerSection');
-    const isOpen = directPicker && directPicker.open;
-    const isBeginner = appMode === 'beginner';
-
-    // Get all palette (color picker) buttons under target swatches
-    document.querySelectorAll('.swatch-buttons').forEach(btnRow => {
-        const pickerBtn = btnRow.querySelector('button:first-child');
-        if (!pickerBtn) return;
-
-        if (isBeginner) {
-            if (isOpen) {
-                pickerBtn.classList.remove('palette-icon-hidden');
-                pickerBtn.classList.add('palette-icon-active');
-            } else {
-                pickerBtn.classList.add('palette-icon-hidden');
-                pickerBtn.classList.remove('palette-icon-active');
-            }
-        } else {
-            // Advanced mode: always visible, normal style
-            pickerBtn.classList.remove('palette-icon-hidden');
-            pickerBtn.classList.remove('palette-icon-active');
-        }
-    });
-}
-
-// Activate harmony mini-tool (show quick harmony overlay on the image)
-function activateHarmonyMiniTool() {
-    const quickHarmonyBar = document.getElementById('quickHarmonyBar');
-    const qhPanel = document.getElementById('quickHarmonyPanel');
-    const qhTab = document.getElementById('quickHarmonyTab');
-    if (!quickHarmonyBar) return;
-
-    quickHarmonyBar.classList.remove('hidden');
-    if (qhPanel) qhPanel.classList.remove('hidden');
-    if (qhTab) qhTab.classList.add('hidden');
-
-    // Scroll so the canvas-wrapper is vertically centered in the viewport
-    const canvasWrapper = document.getElementById('canvasWrapper');
-    if (canvasWrapper) {
-        const rect = canvasWrapper.getBoundingClientRect();
-        const wrapperMidY = rect.top + rect.height / 2;
-        const viewportMidY = window.innerHeight / 2;
-        window.scrollBy({ top: wrapperMidY - viewportMidY, behavior: 'smooth' });
-    }
-}
-
 function toggleInstructions() {
     instructionsCollapsed = !instructionsCollapsed;
     const container = document.getElementById('progressiveInstructions');
@@ -811,15 +502,7 @@ function updateProgressiveInstructions(step) {
             el.classList.toggle('active', elStep === step);
         }
     });
-    // Advanced mode: auto-collapse instructions at every stage change
-    if (appMode === 'advanced') {
-        const arrow = document.getElementById('instructionsToggleArrow');
-        if (!container.classList.contains('collapsed')) {
-            container.classList.add('collapsed');
-            instructionsCollapsed = true;
-            if (arrow) arrow.textContent = '▸';
-        }
-    }
+    // Preserve collapsed state — don't auto-expand when step changes
 }
 
 // Palette counts
@@ -938,23 +621,15 @@ function updateStickyOverlays() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Scroll to top on page load/reload
-    window.scrollTo(0, 0);
-
-    // Initialize mode toggle UI
-    setAppMode('beginner');
-
     canvas = document.getElementById('imageCanvas');
     ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    // Create display canvas for 2D fallback rendering (used when WebGL is inactive)
+    // Create display canvas for high-quality scaled rendering
     displayCanvas = document.createElement('canvas');
     displayCanvas.id = 'displayCanvas';
     displayCtx = displayCanvas.getContext('2d', { alpha: false });
     displayCtx.imageSmoothingEnabled = true;
     displayCtx.imageSmoothingQuality = 'high';
-
-    // WebGL display canvas is created by initWebGL() on first recolor
 
     // Set initial workspace state - centered with no sidebar
     const workspace = document.getElementById('workspace');
@@ -1061,14 +736,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     quickHarmony.style.opacity = '0';
                     quickHarmony.style.pointerEvents = 'none';
                 }
-                // Temporarily hide tutorial panel (not collapse — no traditional picker shown)
-                // Tutorial is in normal flow now, so use display:none to reclaim space
+                // Temporarily hide tutorial overlay (not collapse — no traditional picker shown)
                 if (tutorialOverlayEl && !tutorialOverlayEl.classList.contains('hidden')) {
-                    tutorialOverlayEl.style.display = 'none';
+                    tutorialOverlayEl.style.opacity = '0';
+                    tutorialOverlayEl.style.pointerEvents = 'none';
                     tutorialCtrlHidden = true;
                 }
                 if (tutorialTabEl && !tutorialTabEl.classList.contains('hidden')) {
-                    tutorialTabEl.style.display = 'none';
+                    tutorialTabEl.style.opacity = '0';
+                    tutorialTabEl.style.pointerEvents = 'none';
                 }
             } else {
                 if (pickerOverlay && !pickerOverlay.dataset.tutorialHidden) {
@@ -1078,30 +754,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (zoomControls) { zoomControls.style.opacity = ''; zoomControls.style.pointerEvents = ''; }
                 if (zoomSlider) { zoomSlider.style.opacity = ''; zoomSlider.style.pointerEvents = ''; }
                 if (quickHarmony) { quickHarmony.style.opacity = ''; quickHarmony.style.pointerEvents = ''; }
-                // Restore tutorial panel
+                // Restore tutorial overlay
                 if (tutorialOverlayEl) {
-                    tutorialOverlayEl.style.display = '';
+                    tutorialOverlayEl.style.opacity = '';
+                    tutorialOverlayEl.style.pointerEvents = '';
                     tutorialCtrlHidden = false;
                 }
                 if (tutorialTabEl) {
-                    tutorialTabEl.style.display = '';
+                    tutorialTabEl.style.opacity = '';
+                    tutorialTabEl.style.pointerEvents = '';
                 }
-            }
-        }
-    });
-
-    // Double-tap Shift to advance to the next color category (during color picking)
-    let _lastShiftUpTime = 0;
-    const DOUBLE_TAP_THRESHOLD = 400; // ms
-
-    document.addEventListener('keyup', function(e) {
-        if (e.key === 'Shift' && !e.repeat && pickerMode) {
-            const now = Date.now();
-            if (now - _lastShiftUpTime < DOUBLE_TAP_THRESHOLD) {
-                _lastShiftUpTime = 0; // Reset so triple-tap doesn't fire again
-                advancePickerCategory();
-            } else {
-                _lastShiftUpTime = now;
             }
         }
     });
@@ -1342,12 +1004,6 @@ function loadImage(img) {
     document.getElementById('colorStripContainer').classList.remove('hidden');
     document.getElementById('toleranceContainer').classList.remove('hidden');
 
-    // Swap to short logo
-    const logoTall = document.getElementById('logoTall');
-    const logoShort = document.getElementById('logoShort');
-    if (logoTall) logoTall.style.display = 'none';
-    if (logoShort) logoShort.style.display = '';
-
     // Progressive UI: transition from centered to image-loaded layout
     const workspace = document.getElementById('workspace');
     workspace.classList.remove('centered-initial');
@@ -1393,13 +1049,6 @@ function loadImage(img) {
 
     imageData = ctx.getImageData(0, 0, width, height);
     originalImageData = ctx.getImageData(0, 0, width, height);
-
-    // Invalidate WebGL image texture and render state for new image
-    invalidateImageTexture();
-    _lastWebGLRenderType = null;
-    _lastSimpleUniforms = null;
-    _lastRBFUniforms = null;
-    _webglDirty = false;
 
     // Auto-size the canvas area to fit the image
     autoSizeCanvasArea();
@@ -1613,12 +1262,12 @@ function mergeColorsWithTolerance(colors, tolerance) {
     return merged;
 }
 
-// Reset tolerance to default and apply
+// Reset tolerance to default
 function resetTolerance() {
     colorTolerance = DEFAULT_COLOR_TOLERANCE;
     document.getElementById('toleranceSlider').value = colorTolerance;
     document.getElementById('toleranceValue').textContent = colorTolerance;
-    reExtractWithTolerance();
+    setStatus('Tolerance reset to default');
 }
 
 // Re-extract palette with current tolerance setting
@@ -1646,11 +1295,35 @@ function reExtractWithTolerance() {
             colorTolerance
         );
 
-        // Update fullColorDistribution for the analysis strips only.
-        // Origins/targets/column mapping are owned by the picker — don't touch them.
+        // Update fullColorDistribution with the merged result
         fullColorDistribution = mergedColors;
 
+        // Update origin palette with top colors (up to originCount)
+        originalPalette = mergedColors.slice(0, originCount).map(c => [...c.color]);
+        colorPercentages = mergedColors.slice(0, originCount).map(c => c.pct);
+
+        // Also update target palette to match if targets > origins
+        while (targetPalette.length < originCount) {
+            targetPalette.push([128, 128, 128]);
+        }
+        // Set targets to match origins initially (user can change them)
+        for (let i = 0; i < originCount && i < originalPalette.length; i++) {
+            targetPalette[i] = [...originalPalette[i]];
+        }
+
+        // Reset column mapping for the new palette
+        originToColumn = [];
+        for (let i = 0; i < originCount; i++) {
+            if (i < targetCount) {
+                originToColumn[i] = i;
+            } else {
+                originToColumn[i] = 'bank';
+            }
+        }
+
         renderColorStrip();
+        renderColumnMapping();
+        updateHarmonyWheel();
         renderThemesSortedByMatch();
         hideLoading();
 
@@ -2085,7 +1758,7 @@ function renderColumnMapping() {
 
         const hexLabel = document.createElement('div');
         hexLabel.className = 'swatch-hex';
-        hexLabel.textContent = isBlank ? '—' : rgbToHex(...targetPalette[colIdx]);
+        hexLabel.textContent = isBlank ? '—' : (columnBypass[colIdx] ? '🔒 Locked' : rgbToHex(...targetPalette[colIdx]));
 
         // Calculate percentage sum for this column
         let pctSum = 0;
@@ -2124,23 +1797,8 @@ function renderColumnMapping() {
         btnRow.appendChild(pickerBtn);
         btnRow.appendChild(bypassBtn);
 
-        // Category label at top of target column
-        const categoryLabel = document.createElement('div');
-        categoryLabel.className = 'target-category-label';
-        categoryLabel.textContent = getTargetCategoryLabel(colIdx);
-        targetDiv.appendChild(categoryLabel);
-
         targetDiv.appendChild(slot);
-
-        // Always reserve space for bypass origins row so buttons align across columns
-        if (bypassOriginsRow) {
-            targetDiv.appendChild(bypassOriginsRow);
-        } else {
-            const spacer = document.createElement('div');
-            spacer.className = 'bypass-origins-spacer';
-            targetDiv.appendChild(spacer);
-        }
-
+        if (bypassOriginsRow) targetDiv.appendChild(bypassOriginsRow);
         targetDiv.appendChild(colorInput);
         targetDiv.appendChild(hexLabel);
         targetDiv.appendChild(pctLabel);
@@ -2149,6 +1807,12 @@ function renderColumnMapping() {
         // Create per-swatch color picker (hidden by default)
         const swatchPicker = createSwatchColorPicker(colIdx);
         targetDiv.appendChild(swatchPicker);
+
+        // Add category label below everything
+        const categoryLabel = document.createElement('div');
+        categoryLabel.className = 'target-category-label';
+        categoryLabel.textContent = getTargetCategoryLabel(colIdx);
+        targetDiv.appendChild(categoryLabel);
 
         targetColumn.appendChild(targetDiv);
         targetsRow.appendChild(targetColumn);
@@ -2165,8 +1829,6 @@ function renderColumnMapping() {
     if (typeof populateLockColorDropdowns === 'function') populateLockColorDropdowns();
     // Update harmony nudge swatch to reflect current selected target
     updateHarmonyNudgeSwatch();
-    // Update palette icon visibility for beginner mode Direct Picker
-    if (typeof updatePaletteIconVisibility === 'function') updatePaletteIconVisibility();
 }
 
 function toggleColumnBypass(colIdx) {
@@ -2426,6 +2088,7 @@ function getUnusedExtractedColors() {
 function createAddSwatchButton(unusedColors, targetColumn) {
     const wrapper = document.createElement('div');
     wrapper.className = 'add-swatch-wrapper';
+
     const btn = document.createElement('button');
     btn.className = 'add-swatch-btn';
     btn.innerHTML = '+';
@@ -2518,7 +2181,6 @@ function openColorPicker(index) {
 // Per-swatch color picker state
 let activeSwatchPicker = null;
 let swatchPickerState = {};
-let _isSwatchGradientDragging = false; // Global flag to prevent picker close during gradient drag
 
 function createSwatchColorPicker(colIdx) {
     const picker = document.createElement('div');
@@ -2561,25 +2223,18 @@ function createSwatchColorPicker(colIdx) {
     let isDraggingSwatchGradient = false;
 
     gradient.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevent text selection while dragging
         isDraggingSwatchGradient = true;
-        _isSwatchGradientDragging = true;
         updateSwatchGradientFromMouse(e, colIdx);
     });
 
     document.addEventListener('mousemove', (e) => {
         if (isDraggingSwatchGradient && activeSwatchPicker === colIdx) {
-            e.preventDefault(); // Prevent text selection while dragging
             updateSwatchGradientFromMouse(e, colIdx);
         }
     });
 
     document.addEventListener('mouseup', () => {
-        if (isDraggingSwatchGradient) {
-            isDraggingSwatchGradient = false;
-            // Delay clearing the global flag so the click handler sees it
-            setTimeout(() => { _isSwatchGradientDragging = false; }, 50);
-        }
+        isDraggingSwatchGradient = false;
     });
 
     // Hue slider
@@ -2631,6 +2286,7 @@ function createSwatchColorPicker(colIdx) {
     // Opacity slider row
     const opacityRow = document.createElement('div');
     opacityRow.className = 'swatch-picker-opacity-row';
+
     const opacityLabel = document.createElement('span');
     opacityLabel.className = 'swatch-picker-opacity-label';
     opacityLabel.textContent = 'Opacity:';
@@ -2784,9 +2440,8 @@ function closeAllSwatchPickers() {
     activeSwatchPicker = null;
 }
 
-// Close pickers when clicking outside (but not during gradient drag)
+// Close pickers when clicking outside
 document.addEventListener('click', (e) => {
-    if (_isSwatchGradientDragging) return; // Don't close during gradient drag
     if (!e.target.closest('.swatch-color-picker') && !e.target.closest('.swatch-buttons')) {
         closeAllSwatchPickers();
     }
@@ -3314,153 +2969,76 @@ function doRecolorSimple() {
     doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity);
 }
 
-// WebGL implementation of simple recolor — renders directly to visible display canvas
+// WebGL implementation of simple recolor
 function doRecolorSimpleWebGL(width, height, k, oldLab, diffLab, luminosity) {
     try {
         const startTime = performance.now();
 
+        webglCanvas.width = width;
+        webglCanvas.height = height;
+        gl.viewport(0, 0, width, height);
+
+        gl.useProgram(simpleRecolorProgram);
+        setupWebGLBuffers(gl, simpleRecolorProgram);
+
+        // Upload source image as texture
+        const texture = createTexture(gl, originalImageData);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(gl.getUniformLocation(simpleRecolorProgram, 'u_image'), 0);
+
         // Upload palette data as uniform arrays
-        const oldLabFlat = new Float32Array(60); // 20 * 3
-        const diffLabFlat = new Float32Array(60);
+        const oldLabFlat = [];
+        const diffLabFlat = [];
         for (let i = 0; i < 20; i++) {
             if (i < k) {
-                oldLabFlat[i*3] = oldLab[i][0]; oldLabFlat[i*3+1] = oldLab[i][1]; oldLabFlat[i*3+2] = oldLab[i][2];
-                diffLabFlat[i*3] = diffLab[i][0]; diffLabFlat[i*3+1] = diffLab[i][1]; diffLabFlat[i*3+2] = diffLab[i][2];
+                oldLabFlat.push(oldLab[i][0], oldLab[i][1], oldLab[i][2]);
+                diffLabFlat.push(diffLab[i][0], diffLab[i][1], diffLab[i][2]);
+            } else {
+                oldLabFlat.push(0, 0, 0);
+                diffLabFlat.push(0, 0, 0);
             }
         }
 
-        // Cache uniforms for re-render on zoom and for deferred CPU sync
-        _lastSimpleUniforms = { oldLabFlat, diffLabFlat, k, luminosity };
-        _lastWebGLRenderType = 'simple';
-        _lastRBFUniforms = null;
+        gl.uniform3fv(gl.getUniformLocation(simpleRecolorProgram, 'u_oldLab'), new Float32Array(oldLabFlat));
+        gl.uniform3fv(gl.getUniformLocation(simpleRecolorProgram, 'u_diffLab'), new Float32Array(diffLabFlat));
+        gl.uniform1i(gl.getUniformLocation(simpleRecolorProgram, 'u_paletteSize'), k);
+        gl.uniform1f(gl.getUniformLocation(simpleRecolorProgram, 'u_blendSharpness'), 2.0);
+        gl.uniform1f(gl.getUniformLocation(simpleRecolorProgram, 'u_luminosity'), luminosity);
 
-        // Render to display canvas at current display size
-        renderWebGLToDisplay('simple');
+        // Render
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-        // Mark CPU-side imageData as stale
-        _webglDirty = true;
+        // Read back result
+        const pixels = new Uint8Array(width * height * 4);
+        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+        // WebGL has Y flipped, need to flip it back
+        const newData = ctx.createImageData(width, height);
+        for (let y = 0; y < height; y++) {
+            const srcRow = (height - 1 - y) * width * 4;
+            const dstRow = y * width * 4;
+            for (let x = 0; x < width * 4; x++) {
+                newData.data[dstRow + x] = pixels[srcRow + x];
+            }
+        }
+
+        ctx.putImageData(newData, 0, 0);
+        imageData = newData;
+
+        // Cleanup
+        gl.deleteTexture(texture);
 
         const elapsed = performance.now() - startTime;
         console.log(`WebGL simple recolor: ${elapsed.toFixed(1)}ms`);
 
-        renderRecoloredStripDeferred();
+        updateDisplayCanvas();
+        renderRecoloredStrip();
         return true;
     } catch (e) {
         console.warn('WebGL simple recolor failed:', e);
         return false;
     }
-}
-
-// Core WebGL-to-display renderer — sets up the display canvas at zoom-appropriate
-// resolution, renders the recolor shader, and updates CSS sizing for zoom/pan.
-// Called after every recolor AND after every zoom change.
-function renderWebGLToDisplay(type) {
-    if (!gl || !webglCanvas) return;
-
-    const wrapper = document.getElementById('canvasWrapper');
-    if (!wrapper) return;
-    const wrapperRect = wrapper.getBoundingClientRect();
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    if (imgWidth === 0 || imgHeight === 0) return;
-    const aspectRatio = imgWidth / imgHeight;
-
-    const baseWidth = wrapperRect.width;
-    const baseHeight = baseWidth / aspectRatio;
-
-    // Guard: mid-layout-transition
-    if (baseWidth < 1 || baseHeight < 1) return;
-
-    // Display size on screen = base * zoom
-    const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
-    const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
-
-    // Render at device pixel density, capped at original image size.
-    // Use devicePixelRatio so retina/HiDPI displays get native-resolution rendering.
-    const dpr = window.devicePixelRatio || 1;
-    const scaleFactor = Math.min(dpr, imgWidth / displayWidth, imgHeight / displayHeight);
-    const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
-    const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
-
-    // Set WebGL canvas pixel buffer
-    webglCanvas.width = renderWidth;
-    webglCanvas.height = renderHeight;
-    gl.viewport(0, 0, renderWidth, renderHeight);
-
-    // Render the appropriate shader using cached uniform locations
-    const renderType = type || _lastWebGLRenderType;
-    if (renderType === 'simple' && _lastSimpleUniforms && _simpleUniformLocs) {
-        const u = _lastSimpleUniforms;
-        const loc = _simpleUniformLocs;
-        gl.useProgram(simpleRecolorProgram);
-        setupWebGLBuffers(gl, simpleRecolorProgram);
-        const tex = ensureImageTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(loc.u_image, 0);
-        gl.uniform3fv(loc.u_oldLab, u.oldLabFlat);
-        gl.uniform3fv(loc.u_diffLab, u.diffLabFlat);
-        gl.uniform1i(loc.u_paletteSize, u.k);
-        gl.uniform1f(loc.u_blendSharpness, 2.0);
-        gl.uniform1f(loc.u_luminosity, u.luminosity);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-    } else if (renderType === 'rbf' && _lastRBFUniforms && _rbfUniformLocs) {
-        const u = _lastRBFUniforms;
-        const loc = _rbfUniformLocs;
-        gl.useProgram(rbfRecolorProgram);
-        setupWebGLBuffers(gl, rbfRecolorProgram);
-        const tex = ensureImageTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(loc.u_image, 0);
-        const lutTexture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
-        gl.uniform1i(loc.u_lut, 1);
-        gl.uniform1f(loc.u_lutSize, u.lutSize);
-        gl.uniform1f(loc.u_luminosity, u.luminosity);
-        // Bypass correction uniforms
-        gl.uniform3fv(loc.u_bypassedRGB, u.bypassedFlat || new Float32Array(60));
-        gl.uniform1i(loc.u_bypassedCount, u.bypassedCount || 0);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-        gl.deleteTexture(lutTexture);
-    }
-
-    // CSS size = actual zoomed display size
-    webglCanvas.style.width = displayWidth + 'px';
-    webglCanvas.style.height = displayHeight + 'px';
-    webglCanvas.style.transform = 'scale(1)';
-    webglCanvas.style.transformOrigin = '0 0';
-
-    baseDisplayWidth = displayWidth;
-    baseDisplayHeight = displayHeight;
-    lastRenderedZoom = zoomLevel;
-
-    // Show WebGL canvas, hide both CPU canvases
-    const canvasInner = document.getElementById('canvasInner');
-    if (canvasInner && !webglCanvas.parentNode) {
-        canvasInner.insertBefore(webglCanvas, canvas);
-    }
-    webglCanvas.style.display = 'block';
-    if (displayCanvas) displayCanvas.style.display = 'none';
-    canvas.style.display = 'none';
-}
-
-// Deferred strip rebuild — syncs CPU pixels then rebuilds the strip.
-// Uses a short debounce to avoid repeated syncs during rapid updates.
-let _stripRebuildTimeout = null;
-function renderRecoloredStripDeferred() {
-    if (_stripRebuildTimeout) clearTimeout(_stripRebuildTimeout);
-    _stripRebuildTimeout = setTimeout(() => {
-        syncWebGLToCPU();
-        renderRecoloredStrip();
-        _stripRebuildTimeout = null;
-    }, 200);
 }
 
 // CPU fallback for simple recolor
@@ -3532,8 +3110,6 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
 
     ctx.putImageData(newData, 0, 0);
     imageData = newData;
-    _lastWebGLRenderType = null; // Using CPU path, not WebGL
-    _webglDirty = false;
     updateDisplayCanvas();
     renderRecoloredStrip();
 }
@@ -3542,7 +3118,7 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
 // Better for smooth gradients in photos
 function doRecolorRBF() {
     const RBF_param_coff = 5;
-    const ngrid = 16;
+    const ngrid = 10;
     const width = canvas.width;
     const height = canvas.height;
     const k = originalPalette.length;
@@ -3683,41 +3259,38 @@ function doRecolorRBF() {
     // Luminosity is now a separate post-processing step (applyLuminosityPostProcess)
     const luminosity = 0;
 
-    // Collect bypassed palette colors for per-pixel correction.
-    // RBF is a global color space transform — the LUT can bleed changes into
-    // bypassed regions.  After the LUT lookup, pixels close to a bypassed
-    // palette color are blended back toward their original value.
-    const bypassedRGB = [];
-    for (let i = 0; i < k; i++) {
-        const col = originToColumn[i];
-        // Collect all origin colors whose diffLab is [0,0,0] — they should stay put.
-        // This includes: bypassed columns, locked/bank entries, unassigned entries,
-        // and entries mapped to null target slots.
-        if (col === 'locked' || col === 'bank' || typeof col !== 'number' || col >= targetPalette.length) {
-            bypassedRGB.push(originalPalette[i]);
-        } else if (columnBypass[col]) {
-            bypassedRGB.push(originalPalette[i]);
-        } else if (targetPalette[col] === null) {
-            bypassedRGB.push(originalPalette[i]);
-        }
-    }
-
     // Try WebGL for the per-pixel trilinear interpolation (the slow part)
-    if (initWebGL() && doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRGB)) {
+    if (initWebGL() && doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity)) {
         return;
     }
 
     // CPU fallback
     console.log('Using CPU fallback for RBF recolor');
-    doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB);
+    doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity);
 }
 
 // WebGL implementation of RBF recolor (trilinear interpolation on GPU)
-// Renders directly to visible display canvas — no readPixels
-function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRGB) {
+function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity) {
     try {
         const startTime = performance.now();
         const lutSize = ngrid + 1;
+
+        webglCanvas.width = width;
+        webglCanvas.height = height;
+        gl.viewport(0, 0, width, height);
+
+        gl.useProgram(rbfRecolorProgram);
+        setupWebGLBuffers(gl, rbfRecolorProgram);
+
+        // Upload source image as texture
+        const imageTexture = createTexture(gl, originalImageData);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, imageTexture);
+        gl.uniform1i(gl.getUniformLocation(rbfRecolorProgram, 'u_image'), 0);
+
+        // Create 3D LUT as 2D texture
+        // Layout: lutSize^2 width x lutSize height
+        // Position (r,g,b) -> pixel at (r + g*lutSize, b)
         const lutWidth = lutSize * lutSize;
         const lutHeight = lutSize;
         const lutData = new Uint8Array(lutWidth * lutHeight * 4);
@@ -3738,30 +3311,48 @@ function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRG
             }
         }
 
-        // Pack bypassed palette colors as flat Float32Array (RGB 0-1 range)
-        const bypassedFlat = new Float32Array(60); // 20 * 3 max
-        const bypassedCount = Math.min(bypassedRGB ? bypassedRGB.length : 0, 20);
-        for (let i = 0; i < bypassedCount; i++) {
-            bypassedFlat[i * 3]     = bypassedRGB[i][0] / 255;
-            bypassedFlat[i * 3 + 1] = bypassedRGB[i][1] / 255;
-            bypassedFlat[i * 3 + 2] = bypassedRGB[i][2] / 255;
+        const lutTexture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, lutWidth, lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, lutData);
+
+        gl.uniform1i(gl.getUniformLocation(rbfRecolorProgram, 'u_lut'), 1);
+        gl.uniform1f(gl.getUniformLocation(rbfRecolorProgram, 'u_lutSize'), lutSize);
+        gl.uniform1f(gl.getUniformLocation(rbfRecolorProgram, 'u_luminosity'), luminosity);
+
+        // Render
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        // Read back result
+        const pixels = new Uint8Array(width * height * 4);
+        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+        // WebGL has Y flipped, need to flip it back
+        const newData = ctx.createImageData(width, height);
+        for (let y = 0; y < height; y++) {
+            const srcRow = (height - 1 - y) * width * 4;
+            const dstRow = y * width * 4;
+            for (let x = 0; x < width * 4; x++) {
+                newData.data[dstRow + x] = pixels[srcRow + x];
+            }
         }
 
-        // Cache uniforms for re-render on zoom and deferred CPU sync
-        _lastRBFUniforms = { lutData, lutWidth, lutHeight, lutSize, luminosity, bypassedFlat, bypassedCount };
-        _lastWebGLRenderType = 'rbf';
-        _lastSimpleUniforms = null;
+        ctx.putImageData(newData, 0, 0);
+        imageData = newData;
 
-        // Render to display canvas at current display size
-        renderWebGLToDisplay('rbf');
-
-        // Mark CPU-side imageData as stale
-        _webglDirty = true;
+        // Cleanup
+        gl.deleteTexture(imageTexture);
+        gl.deleteTexture(lutTexture);
 
         const elapsed = performance.now() - startTime;
         console.log(`WebGL RBF recolor: ${elapsed.toFixed(1)}ms`);
 
-        renderRecoloredStripDeferred();
+        updateDisplayCanvas();
+        renderRecoloredStrip();
         return true;
     } catch (e) {
         console.warn('WebGL RBF recolor failed:', e);
@@ -3770,15 +3361,11 @@ function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRG
 }
 
 // CPU fallback for RBF recolor
-function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB) {
+function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity) {
     const startTime = performance.now();
     const newData = ctx.createImageData(width, height);
     const ntmp = ngrid + 1;
     const ntmpsqr = ntmp * ntmp;
-
-    // Pre-normalize bypassed colors to 0-1 range for distance calculation
-    const bypassedNorm = (bypassedRGB || []).map(c => [c[0] / 255, c[1] / 255, c[2] / 255]);
-    const sigma2x2 = 2.0 * 0.12 * 0.12; // Gaussian sigma matching WebGL shader
 
     for (let i = 0; i < originalImageData.data.length; i += 4) {
         const r = originalImageData.data[i];
@@ -3824,25 +3411,6 @@ function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB)
             newB += gridRGB[indices[idx]][2] * weights[idx];
         }
 
-        // Bypass correction: blend back toward original for pixels near bypassed colors
-        if (bypassedNorm.length > 0) {
-            const rn = r / 255, gn = g / 255, bn = b / 255;
-            let maxKeep = 0;
-            for (let j = 0; j < bypassedNorm.length; j++) {
-                const dr = rn - bypassedNorm[j][0];
-                const dg = gn - bypassedNorm[j][1];
-                const db = bn - bypassedNorm[j][2];
-                const d2 = dr * dr + dg * dg + db * db;
-                const keep = Math.exp(-d2 / sigma2x2);
-                if (keep > maxKeep) maxKeep = keep;
-            }
-            if (maxKeep > 0.001) {
-                newR = newR + (r - newR) * maxKeep;
-                newG = newG + (g - newG) * maxKeep;
-                newB = newB + (b - newB) * maxKeep;
-            }
-        }
-
         if (luminosity !== 0) {
             const factor = 1 + (luminosity / 100);
             newR = Math.max(0, Math.min(255, newR * factor));
@@ -3861,8 +3429,6 @@ function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB)
 
     ctx.putImageData(newData, 0, 0);
     imageData = newData;
-    _lastWebGLRenderType = null; // Using CPU path, not WebGL
-    _webglDirty = false;
     updateDisplayCanvas();
     renderRecoloredStrip();
 }
@@ -3878,12 +3444,12 @@ function updatePickColorsButtonState(colorsPicked) {
 
     if (colorsPicked) {
         if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Origin Colors';
+            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (add or subtract)';
             sidebarBtn.classList.add('colors-picked');
         }
         if (overlayBtn) {
             const textSpan = overlayBtn.querySelector('.picker-toggle-text');
-            if (textSpan) textSpan.innerHTML = 'Edit Origin<br><span class="picker-toggle-subtitle">Colors</span>';
+            if (textSpan) textSpan.innerHTML = 'Pick Colors<br><span class="picker-toggle-subtitle">(add or subtract)</span>';
             overlayBtn.classList.add('colors-picked');
         }
     } else {
@@ -3933,15 +3499,23 @@ function togglePickerMode() {
         categorySelector.classList.remove('hidden');
         updatePickerCategoryOptions();
 
-        // Tutorial logic: always default to expanded when picker activates
+        // Tutorial logic: show full tutorial on first activation, collapsed tab on subsequent
         if (!tutorialHasBeenShown) {
             tutorialHasBeenShown = true;
             tutorialStep = 0;
+            showTutorialOverlay();
+            // Hide picker hints since tutorial shows them
+            if (pickerPanHint) pickerPanHint.classList.add('hidden');
+            if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
+        } else {
+            // Subsequent activations: show collapsed tab, traditional picker visible
+            const tutorialTab = document.getElementById('tutorialTab');
+            if (tutorialTab) tutorialTab.classList.remove('hidden');
+            tutorialCollapsed = true;
+            // Show picker hints for traditional mode
+            if (pickerPanHint) pickerPanHint.classList.remove('hidden');
+            if (pickerCtrlHint) pickerCtrlHint.classList.remove('hidden');
         }
-        showTutorialOverlay();
-        // Hide picker hints since tutorial shows them
-        if (pickerPanHint) pickerPanHint.classList.add('hidden');
-        if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
 
         if (pickedColors.length > 0) {
             setStatus('Picker mode: ' + pickedColors.length + ' colors already selected. Click to add more.');
@@ -3954,7 +3528,7 @@ function togglePickerMode() {
             sidebarPickBtn.classList.remove('active');
             // Text will be restored by updatePickColorsButtonState below or by caller
             if (pickedColors.length > 0) {
-                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Origin Colors';
+                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (add or subtract)';
             } else {
                 sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors';
             }
@@ -4058,12 +3632,9 @@ function updatePickerOverlay() {
     clearBtn.classList.remove('hidden');
     applyBtn.disabled = pickedColors.length < 1;
 
-    // Render newest colors first (reverse order) so most recent appears at top
-    for (let i = pickedColors.length - 1; i >= 0; i--) {
-        const color = pickedColors[i];
+    pickedColors.forEach((color, i) => {
         const item = document.createElement('div');
         item.className = 'picker-swatch-item';
-        item.dataset.colorIndex = i; // Store real index for cloning in tutorial
 
         // Category label on the left (B, L, A1, A2, etc.) - CLICKABLE to cycle
         const categoryLabel = document.createElement('div');
@@ -4071,10 +3642,10 @@ function updatePickerOverlay() {
         const cat = pickedCategories[i] !== undefined ? pickedCategories[i] : CATEGORY_BACKGROUND;
         categoryLabel.textContent = getTargetCategoryLabel(cat, true);
         categoryLabel.title = 'Click to change category';
-        categoryLabel.onclick = ((idx) => (e) => {
+        categoryLabel.onclick = (e) => {
             e.stopPropagation();
-            cyclePickedColorCategory(idx);
-        })(i);
+            cyclePickedColorCategory(i);
+        };
 
         const colorDiv = document.createElement('div');
         colorDiv.className = 'picker-swatch-color';
@@ -4087,17 +3658,17 @@ function updatePickerOverlay() {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'picker-swatch-delete';
         deleteBtn.innerHTML = '×';
-        deleteBtn.onclick = ((idx) => (e) => {
+        deleteBtn.onclick = (e) => {
             e.stopPropagation();
-            removePickedColor(idx);
-        })(i);
+            removePickedColor(i);
+        };
 
         item.appendChild(categoryLabel);
         item.appendChild(colorDiv);
         item.appendChild(infoDiv);
         item.appendChild(deleteBtn);
         list.appendChild(item);
-    }
+    });
 }
 
 function cyclePickedColorCategory(index) {
@@ -4119,16 +3690,9 @@ function cyclePickedColorCategory(index) {
     setStatus('Changed color ' + (index + 1) + ' to ' + getTargetCategoryLabel(nextCat));
 }
 
-// Returns whichever canvas is currently visible to the user
-function getVisibleCanvas() {
-    if (webglCanvas && webglCanvas.style.display !== 'none' && webglCanvas.parentNode) return webglCanvas;
-    if (displayCanvas && displayCanvas.style.display !== 'none') return displayCanvas;
-    return canvas;
-}
-
 function getCanvasCoords(e) {
     // Use whichever canvas is currently visible for positioning
-    const visibleCanvas = getVisibleCanvas();
+    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
     const rect = visibleCanvas.getBoundingClientRect();
     // Always map to original canvas coordinates
     const scaleX = canvas.width / rect.width;
@@ -4146,12 +3710,12 @@ function createMarker(index) {
     // Markers are children of canvasInner (which Panzoom transforms).
     // Position them in canvasInner's LOCAL coordinate space using the
     // display canvas CSS size (not screen/getBoundingClientRect size).
-    const vc = getVisibleCanvas();
-    const localWidth = parseFloat(vc.style.width) || vc.offsetWidth;
-    const localHeight = parseFloat(vc.style.height) || vc.offsetHeight;
+    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
+    const localWidth = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
+    const localHeight = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
     const displayX = (pos.x / canvas.width) * localWidth;
     const displayY = (pos.y / canvas.height) * localHeight;
-
+    
     const marker = document.createElement('div');
     marker.className = 'picker-marker';
     marker.dataset.index = index;
@@ -4188,9 +3752,9 @@ function createMarker(index) {
 function updateMarkers() {
     // Position markers in canvasInner's LOCAL coordinate space.
     // Use the display canvas CSS size (not screen rect) since Panzoom transforms canvasInner.
-    const vc = getVisibleCanvas();
-    const localWidth = parseFloat(vc.style.width) || vc.offsetWidth;
-    const localHeight = parseFloat(vc.style.height) || vc.offsetHeight;
+    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
+    const localWidth = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
+    const localHeight = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
     pickedPositions.forEach((pos, i) => {
         const marker = document.querySelector(`.picker-marker[data-index="${i}"]`);
         if (marker) {
@@ -4309,37 +3873,20 @@ function applyPickedAsOriginal() {
     document.getElementById('originCountDisplay').value = originCount;
     document.getElementById('targetCountDisplay').value = targetCount;
 
-    // Determine if we're re-picking after already having advanced past "Look's Good!"
-    const alreadyAdvanced = (uiStage === 'target-selection' || uiStage === 'complete');
-    const oldTargetCount = alreadyAdvanced ? targetPalette.length : 0;
-    const oldTargetPalette = alreadyAdvanced ? [...targetPalette] : [];
-
     originalPalette = newOriginalPalette;
     colorPercentages = pcts;
     originToColumn = newOriginToColumn;
     columnBypass = []; // Reset bypass states
 
-    if (alreadyAdvanced) {
-        // Preserve existing targets — grow or shrink to match new target count
-        const newTargetPalette = [];
-        for (let catIdx = 0; catIdx < targetCount; catIdx++) {
-            if (catIdx < oldTargetCount && oldTargetPalette[catIdx] !== null) {
-                newTargetPalette.push([...oldTargetPalette[catIdx]]);
-            } else {
-                newTargetPalette.push(null);
-            }
-        }
-        targetPalette = newTargetPalette;
-    } else {
-        // First time — start blank
-        targetPalette = [];
-        for (let catIdx = 0; catIdx < targetCount; catIdx++) {
-            targetPalette.push(null);
-        }
+    // Build target palette - start BLANK (null placeholders) until Target Selection
+    targetPalette = [];
+    for (let catIdx = 0; catIdx < targetCount; catIdx++) {
+        // Blank target: store null to indicate "not yet chosen"
+        targetPalette.push(null);
     }
 
-    // Default selectedSlotIndex to first slot (clamp if target count shrank)
-    if (selectedSlotIndex >= targetCount) selectedSlotIndex = 0;
+    // Default selectedSlotIndex to first slot
+    selectedSlotIndex = 0;
 
     // Update data attribute for responsive styling
     document.getElementById('columnMappingContainer').setAttribute('data-target-count', targetCount);
@@ -4378,50 +3925,17 @@ function applyPickedAsOriginal() {
     // Update Pick Colors button to reflect that colors have been picked
     updatePickColorsButtonState(true);
 
-    if (alreadyAdvanced) {
-        // Already past "Look's Good!" — stay at current stage, just update the mapping
-        // Expand the origin collapsible so user can see what changed
-        const originCollapsible = document.getElementById('originCollapsible');
-        if (originCollapsible) originCollapsible.setAttribute('open', '');
+    // Progressive UI: show Palette Mapping panel and Target Selector button
+    document.getElementById('paletteMappingPanel').classList.remove('hidden');
+    document.getElementById('targetSelectorBtn').classList.remove('hidden');
+    uiStage = 'colors-picked';
+    updateProgressiveInstructions('colors-picked');
+    renderColumnMapping();
+    // Don't auto-recolor — targets are blank, no recolor possible yet
 
-        renderColumnMapping();
-
-        // Fill any new blank targets with origin colors (same logic as activateTargetSelection)
-        for (let colIdx = 0; colIdx < targetCount; colIdx++) {
-            if (targetPalette[colIdx] === null) {
-                let foundColor = null;
-                for (let i = 0; i < originCount; i++) {
-                    if (originToColumn[i] === colIdx) {
-                        foundColor = [...originalPalette[i]];
-                        break;
-                    }
-                }
-                targetPalette[colIdx] = foundColor || [128, 128, 128];
-            }
-        }
-        renderColumnMapping();
-
-        // Auto-recolor if live preview is on
-        const liveToggle = document.getElementById('livePreviewToggle');
-        if (liveToggle && liveToggle.checked) {
-            recolorImage();
-        }
-
-        const lockedCount = lockedColors.length;
-        const lockedMsg = lockedCount > 0 ? ` (${lockedCount} locked)` : '';
-        setStatus('Updated origin colors' + lockedMsg + '. Targets preserved.');
-    } else {
-        // First time through — show Palette Mapping panel and "Look's Good!" button
-        document.getElementById('paletteMappingPanel').classList.remove('hidden');
-        document.getElementById('targetSelectorBtn').classList.remove('hidden');
-        uiStage = 'colors-picked';
-        updateProgressiveInstructions('colors-picked');
-        renderColumnMapping();
-
-        const lockedCount = lockedColors.length;
-        const lockedMsg = lockedCount > 0 ? ` (${lockedCount} locked)` : '';
-        setStatus('Applied ' + originCount + ' picked colors grouped by category' + lockedMsg + '. Now choose your targets.');
-    }
+    const lockedCount = lockedColors.length;
+    const lockedMsg = lockedCount > 0 ? ` (${lockedCount} locked)` : '';
+    setStatus('Applied ' + originCount + ' picked colors grouped by category' + lockedMsg + '. Now choose your targets.');
 }
 
 // ============================================
@@ -4429,16 +3943,6 @@ function applyPickedAsOriginal() {
 // ============================================
 
 function activateTargetSelection() {
-    // If picker/tutorial is still active, deactivate it cleanly first
-    if (pickerMode) {
-        togglePickerMode(); // This hides tutorial, markers, picker sub-elements
-    } else {
-        // Even if picker isn't active, ensure tutorial is fully hidden
-        hideTutorialOverlay();
-        const tutorialTab = document.getElementById('tutorialTab');
-        if (tutorialTab) tutorialTab.classList.add('hidden');
-    }
-
     uiStage = 'target-selection';
     updateProgressiveInstructions('target-selection');
 
@@ -4468,31 +3972,16 @@ function activateTargetSelection() {
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.remove('hidden');
 
-    // Show quick harmony overlay on image — default to COLLAPSED (tab visible)
+    // Show quick harmony overlay on image
     const quickHarmonyBar = document.getElementById('quickHarmonyBar');
     if (quickHarmonyBar) {
         quickHarmonyBar.classList.remove('hidden');
+        // Ensure panel is visible, tab is hidden (default expanded state)
         const qhPanel = document.getElementById('quickHarmonyPanel');
         const qhTab = document.getElementById('quickHarmonyTab');
-        // Default collapsed: panel hidden, tab visible
-        if (qhPanel) qhPanel.classList.add('hidden');
-        if (qhTab) qhTab.classList.remove('hidden');
+        if (qhPanel) qhPanel.classList.remove('hidden');
+        if (qhTab) qhTab.classList.add('hidden');
     }
-
-
-    // Advanced mode: collapse instructions
-    if (appMode === 'advanced') {
-        const container = document.getElementById('progressiveInstructions');
-        const arrow = document.getElementById('instructionsToggleArrow');
-        if (container && !container.classList.contains('collapsed')) {
-            container.classList.add('collapsed');
-            instructionsCollapsed = true;
-            if (arrow) arrow.textContent = '▸';
-        }
-    }
-
-    // Update palette icon visibility for the mode
-    updatePaletteIconVisibility();
 
     // Fill blank targets with origin colors as starting point (so user has something to work with)
     for (let colIdx = 0; colIdx < targetCount; colIdx++) {
@@ -4556,29 +4045,9 @@ function revealFullUI() {
     const toolLegend = document.getElementById('toolLegendPanel');
     if (toolLegend) toolLegend.classList.remove('hidden');
 
-    // Show quick harmony overlay on image — default collapsed
+    // Show quick harmony overlay on image
     const quickHarmonyBar = document.getElementById('quickHarmonyBar');
-    if (quickHarmonyBar) {
-        quickHarmonyBar.classList.remove('hidden');
-        const qhPanel = document.getElementById('quickHarmonyPanel');
-        const qhTab = document.getElementById('quickHarmonyTab');
-        if (qhPanel) qhPanel.classList.add('hidden');
-        if (qhTab) qhTab.classList.remove('hidden');
-    }
-
-    // Advanced mode: collapse instructions
-    if (appMode === 'advanced') {
-        const instrContainer = document.getElementById('progressiveInstructions');
-        const instrArrow = document.getElementById('instructionsToggleArrow');
-        if (instrContainer && !instrContainer.classList.contains('collapsed')) {
-            instrContainer.classList.add('collapsed');
-            instructionsCollapsed = true;
-            if (instrArrow) instrArrow.textContent = '▸';
-        }
-    }
-
-    // Update palette icon visibility
-    updatePaletteIconVisibility();
+    if (quickHarmonyBar) quickHarmonyBar.classList.remove('hidden');
 
     // Un-gray the recolored strip
     document.getElementById('recoloredStrip').classList.remove('grayed-out');
@@ -4717,9 +4186,9 @@ function constrainPan() {
     const wH = wrapperRect.height;
 
     // Current canvas display size
-    const vc = getVisibleCanvas();
-    const cW = parseFloat(vc.style.width) || vc.offsetWidth;
-    const cH = parseFloat(vc.style.height) || vc.offsetHeight;
+    const visibleCanvas = (displayCanvas && displayCanvas.style.display !== 'none') ? displayCanvas : canvas;
+    const cW = parseFloat(visibleCanvas.style.width) || visibleCanvas.offsetWidth;
+    const cH = parseFloat(visibleCanvas.style.height) || visibleCanvas.offsetHeight;
 
     // During temporary CSS scale, actual visual size may differ from style.width
     // Use the zoomed size directly
@@ -4786,7 +4255,8 @@ function updateCanvasTransform(zoomChanged = false) {
     updateMarkers();
 }
 
-// Display canvas rendering — WebGL direct or 2D fallback
+// High-quality display canvas rendering
+// Renders at base resolution, uses CSS transform for instant zoom, then re-renders at high quality after delay
 // Track base dimensions for zoom calculations
 let baseDisplayWidth = 0;
 let baseDisplayHeight = 0;
@@ -4794,9 +4264,7 @@ let lastRenderedZoom = 1;
 let zoomRenderTimeout = null;
 
 function updateDisplayCanvas() {
-    if (!canvas || !useHighQualityDisplay) return;
-    // Need either imageData (CPU path) or WebGL uniforms (GPU path)
-    if (!imageData && !_lastWebGLRenderType) return;
+    if (!canvas || !imageData || !useHighQualityDisplay) return;
 
     const canvasInner = document.getElementById('canvasInner');
     const wrapper = document.getElementById('canvasWrapper');
@@ -4805,9 +4273,9 @@ function updateDisplayCanvas() {
     const wrapperRect = wrapper.getBoundingClientRect();
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
-    if (imgWidth === 0 || imgHeight === 0) return;
     const aspectRatio = imgWidth / imgHeight;
 
+    // Base display size to fit wrapper (at zoom=1)
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
@@ -4821,60 +4289,32 @@ function updateDisplayCanvas() {
         }
     }
 
-    // If WebGL is active with cached uniforms, re-render directly on GPU
-    if (webglInitialized && _lastWebGLRenderType) {
-        // Use CSS scale on webglCanvas for instant feedback, then re-render at proper resolution
-        const cssScale = zoomLevel / lastRenderedZoom;
-        webglCanvas.style.transform = `scale(${cssScale})`;
-        webglCanvas.style.transformOrigin = '0 0';
+    // Use CSS scale for INSTANT zoom feedback while waiting for hi-res render.
+    // This is temporary — renderAtCurrentZoom() replaces it with a pixel-perfect buffer.
+    const cssScale = zoomLevel / lastRenderedZoom;
+    displayCanvas.style.transform = `scale(${cssScale})`;
+    displayCanvas.style.transformOrigin = '0 0';
 
-        if (zoomRenderTimeout) clearTimeout(zoomRenderTimeout);
-        zoomRenderTimeout = setTimeout(() => {
-            renderAtCurrentZoom();
-        }, 100);
-
-        // Show WebGL canvas, hide CPU canvases
-        if (canvasInner && !webglCanvas.parentNode) {
-            canvasInner.insertBefore(webglCanvas, canvas);
-        }
-        webglCanvas.style.display = 'block';
-        displayCanvas.style.display = 'none';
-        canvas.style.display = 'none';
-    } else {
-        // CPU fallback path — use 2D context
-        const cssScale = zoomLevel / lastRenderedZoom;
-        displayCanvas.style.transform = `scale(${cssScale})`;
-        displayCanvas.style.transformOrigin = '0 0';
-
-        if (zoomRenderTimeout) clearTimeout(zoomRenderTimeout);
-        zoomRenderTimeout = setTimeout(() => {
-            renderAtCurrentZoom();
-        }, 150);
-
-        // Show 2D display canvas, hide WebGL + original
-        if (canvasInner && !displayCanvas.parentNode) {
-            canvasInner.insertBefore(displayCanvas, canvas);
-        }
-        displayCanvas.style.display = 'block';
-        if (webglCanvas) webglCanvas.style.display = 'none';
-        canvas.style.display = 'none';
+    // Debounce the high-quality re-render
+    if (zoomRenderTimeout) {
+        clearTimeout(zoomRenderTimeout);
     }
+    zoomRenderTimeout = setTimeout(() => {
+        renderAtCurrentZoom();
+    }, 150);
+
+    // Show display canvas, hide original
+    if (!displayCanvas.parentNode) {
+        canvasInner.insertBefore(displayCanvas, canvas);
+    }
+    displayCanvas.style.display = 'block';
+    canvas.style.display = 'none';
 }
 
 // Render displayCanvas at the actual zoomed pixel size for crisp, pixel-perfect display.
-// WebGL path: re-renders the shader at zoom-appropriate resolution.
-// CPU fallback: draws the 2D canvas at zoom-appropriate resolution.
+// Panzoom handles ONLY panning (translate) — we handle zoom via canvas size + CSS size.
 function renderAtCurrentZoom() {
-    if (!canvas) return;
-
-    // WebGL path: re-render the shader directly at display resolution
-    if (webglInitialized && _lastWebGLRenderType) {
-        renderWebGLToDisplay(_lastWebGLRenderType);
-        return;
-    }
-
-    // CPU fallback path: use 2D context to scale the hidden canvas
-    if (!imageData) return;
+    if (!canvas || !imageData) return;
 
     const wrapper = document.getElementById('canvasWrapper');
     if (!wrapper) return;
@@ -4887,46 +4327,38 @@ function renderAtCurrentZoom() {
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
 
+    // Guard: if wrapper has no width (e.g. mid-layout-transition), skip render
     if (baseWidth < 1 || baseHeight < 1) return;
 
+    // The display size on screen = base * zoom
     const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
     const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
 
-    // Match device pixel density for crisp display (same as WebGL path)
-    const dpr = window.devicePixelRatio || 1;
-    const scaleFactor = Math.min(dpr, imgWidth / displayWidth, imgHeight / displayHeight);
+    // Render at 2x pixel density for retina sharpness, capped at original image size
+    const scaleFactor = Math.min(2, imgWidth / displayWidth, imgHeight / displayHeight);
     const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
     const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
 
-    // For CPU fallback, ensure we have a 2D context
-    if (!displayCtx) {
-        displayCtx = displayCanvas.getContext('2d', { alpha: false });
-    }
-
+    // Set canvas pixel buffer to high resolution
     displayCanvas.width = renderWidth;
     displayCanvas.height = renderHeight;
 
+    // Use high-quality smoothing
     displayCtx.imageSmoothingEnabled = true;
     displayCtx.imageSmoothingQuality = 'high';
     displayCtx.drawImage(canvas, 0, 0, renderWidth, renderHeight);
 
+    // CSS size = actual zoomed display size (1:1 with screen pixels, no CSS stretching)
     displayCanvas.style.width = displayWidth + 'px';
     displayCanvas.style.height = displayHeight + 'px';
+
+    // Clear the temporary CSS scale — the canvas is now pixel-perfect at this zoom
     displayCanvas.style.transform = 'scale(1)';
     displayCanvas.style.transformOrigin = '0 0';
 
     baseDisplayWidth = displayWidth;
     baseDisplayHeight = displayHeight;
     lastRenderedZoom = zoomLevel;
-
-    // Show 2D display canvas, hide WebGL + original
-    const canvasInner = document.getElementById('canvasInner');
-    if (canvasInner && !displayCanvas.parentNode) {
-        canvasInner.insertBefore(displayCanvas, canvas);
-    }
-    displayCanvas.style.display = 'block';
-    if (webglCanvas) webglCanvas.style.display = 'none';
-    canvas.style.display = 'none';
 }
 
 function updateZoomDisplay() {
@@ -5328,11 +4760,11 @@ function harmonizePalette() {
         return;
     }
     const [h, s, l] = rgbToHsl(...baseColor);
-    const harmonyType = _currentHarmonyType;
-
+    const harmonyType = document.getElementById('harmonyType').value;
+    
     let newHues = [];
     const n = targetPalette.length;
-
+    
     switch (harmonyType) {
         case 'complementary':
             newHues = Array(n).fill(0).map((_, i) => {
@@ -5363,7 +4795,7 @@ function harmonizePalette() {
             });
             break;
     }
-
+    
     targetPalette.forEach((color, i) => {
         if (columnBypass[i]) return;  // Respect locked/bypassed columns
         // If target is blank, use default saturation/lightness
@@ -5401,7 +4833,7 @@ function generateHarmonyFromControls() {
         return;
     }
 
-    const harmonyType = _currentHarmonyType;
+    const harmonyType = document.getElementById('harmonyType').value;
     const n = targetPalette.length;
 
     const baseHue = parseInt(document.getElementById('harmonyBaseHue').value);
@@ -5456,7 +4888,7 @@ function randomizeHarmony() {
         return;
     }
 
-    const harmonyType = _currentHarmonyType;
+    const harmonyType = document.getElementById('harmonyType').value;
     const n = targetPalette.length;
 
     // Random base hue - also sync the slider
@@ -5549,17 +4981,6 @@ function setHarmonyMode(mode) {
     const quickResult = document.getElementById('quickHarmonyResult');
     if (quickResult) quickResult.classList.add('hidden');
 
-    // Restore harmony type dropdowns from cached value (CSS hidden/show can reset selects in some browsers)
-    const sidebar = document.getElementById('harmonyType');
-    const quick = document.getElementById('quickHarmonyType');
-    if (sidebar) sidebar.value = _currentHarmonyType;
-    if (quick) quick.value = _currentHarmonyType;
-    updateHarmonyRandomizeLabel();
-
-    // Show nudge hint only in Harmony mode
-    const nudgeHint = document.getElementById('harmonyNudgeHint');
-    if (nudgeHint) nudgeHint.classList.toggle('hidden', isColor);
-
     // Populate the lock-a-color dropdowns when switching to color mode
     if (isColor) populateLockColorDropdowns();
 }
@@ -5570,7 +4991,6 @@ function toggleHarmonyMode() {
 
 // Sync all harmony type selects (sidebar + quick bar)
 function syncHarmonySelects(value) {
-    _currentHarmonyType = value;
     const sidebar = document.getElementById('harmonyType');
     const quick = document.getElementById('quickHarmonyType');
     if (sidebar) sidebar.value = value;
@@ -5582,27 +5002,23 @@ function syncHarmonySelects(value) {
 function updateHarmonyRandomizeLabel() {
     const label = document.getElementById('harmonyRandomizeLabel');
     if (!label) return;
-    // Use cached harmony type to build the label text
-    const names = { complementary: 'Complementary', analogous: 'Analogous', triadic: 'Triadic', split: 'Split-Complementary', tetradic: 'Tetradic (Square)' };
-    label.textContent = names[_currentHarmonyType] || _currentHarmonyType;
+    const select = document.getElementById('harmonyType');
+    if (!select) return;
+    const selectedOption = select.options[select.selectedIndex];
+    label.textContent = selectedOption ? selectedOption.text : select.value;
 }
 
 function updateHarmonyNudgeSwatch() {
-    const swatches = [
-        document.getElementById('harmonyNudgeSwatch'),
-        document.getElementById('quickNudgeSwatch')
-    ];
+    const swatch = document.getElementById('harmonyNudgeSwatch');
+    if (!swatch) return;
     const color = targetPalette[selectedSlotIndex];
-    swatches.forEach(swatch => {
-        if (!swatch) return;
-        if (color) {
-            swatch.style.background = rgbToHex(...color);
-            swatch.style.display = 'inline-block';
-            swatch.title = 'Based on selected target: ' + rgbToHex(...color);
-        } else {
-            swatch.style.display = 'none';
-        }
-    });
+    if (color) {
+        swatch.style.background = rgbToHex(...color);
+        swatch.style.display = 'inline-block';
+        swatch.title = 'Based on selected target: ' + rgbToHex(...color);
+    } else {
+        swatch.style.display = 'none';
+    }
 }
 
 // Toggle quick harmony overlay collapse/expand
@@ -5622,17 +5038,9 @@ function toggleQuickHarmonyCollapse() {
 
 // Quick bar randomize (Lock a Harmony mode)
 function quickRandomizeHarmony() {
-    // Sync quick bar dropdown to sidebar before running
     const quickSelect = document.getElementById('quickHarmonyType');
     if (quickSelect) syncHarmonySelects(quickSelect.value);
     randomizeHarmony();
-}
-
-function quickGenerateHarmony() {
-    // Sync quick bar dropdown to sidebar before running
-    const quickSelect = document.getElementById('quickHarmonyType');
-    if (quickSelect) syncHarmonySelects(quickSelect.value);
-    generateHarmonyFromControls();
 }
 
 // Populate the "Lock a Color" swatch pickers with current target colors
@@ -5709,9 +5117,9 @@ function populateLockColorDropdowns() {
         if (!addBtn) return;
 
         if (isLockedItem(selIdx)) {
-            // A locked item is selected — show its color swatch with L indicator
+            // A locked item is selected — show its color swatch
             const color = getSelectableColor(selIdx);
-            addBtn.innerHTML = '<span class="quick-locked-L">L</span>';
+            addBtn.innerHTML = '';
             addBtn.style.background = color;
             addBtn.style.borderStyle = 'solid';
             addBtn.style.borderColor = 'var(--accent)';
@@ -5915,7 +5323,7 @@ function populateLockColorDropdowns() {
             // If a locked item is currently selected, show its swatch on the button
             if (isLockedItem(lockColorSelectedIdx)) {
                 const color = getSelectableColor(lockColorSelectedIdx);
-                addBtn.innerHTML = '<span class="quick-locked-L">L</span>';
+                addBtn.innerHTML = '';
                 addBtn.style.background = color;
                 addBtn.style.borderStyle = 'solid';
                 addBtn.style.borderColor = 'var(--accent)';
@@ -6193,12 +5601,7 @@ function updateHarmonyDots() {
             e.preventDefault();
             harmonyDragging = i;
             dot.classList.add('dragging');
-            // Don't call selectSlot() here — it re-renders and destroys this dot mid-drag.
-            // Instead, update selectedSlotIndex directly and update dot highlights in-place.
-            selectedSlotIndex = i;
-            container.querySelectorAll('.harmony-dot').forEach(d => {
-                d.classList.toggle('selected', parseInt(d.dataset.index) === i);
-            });
+            selectSlot(i);
         });
         
         container.appendChild(dot);
@@ -6223,14 +5626,10 @@ document.addEventListener('mousemove', (e) => {
     let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
     if (angle < 0) angle += 360;
     
-    // Update target color with new hue, preserving saturation and lightness.
-    // If saturation is very low (grey/near-grey), bump it up so the hue change
-    // is actually visible — otherwise dragging a grey dot does nothing.
+    // Update target color with new hue, preserving saturation and lightness
     const color = targetPalette[harmonyDragging];
     const [_, s, l] = rgbToHsl(...color);
-    const effectiveS = Math.max(s, 40);
-    const effectiveL = (l < 10 || l > 90) ? Math.min(Math.max(l, 30), 70) : l;
-    const newRgb = hslToRgb(angle, effectiveS, effectiveL);
+    const newRgb = hslToRgb(angle, s, l);
     targetPalette[harmonyDragging] = newRgb;
     
     // Update UI
@@ -6241,10 +5640,7 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseup', () => {
     if (harmonyDragging !== null) {
         document.querySelectorAll('.harmony-dot').forEach(d => d.classList.remove('dragging'));
-        const draggedIdx = harmonyDragging;
         harmonyDragging = null;
-        // Now that dragging is done, do the full re-render to sync everything
-        selectSlot(draggedIdx);
         autoRecolorImage();
     }
 });
@@ -6259,13 +5655,6 @@ function resetImage() {
     // Reset the canvas to the original image
     ctx.putImageData(originalImageData, 0, 0);
     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // Clear WebGL render state so display falls back to showing original
-    _lastWebGLRenderType = null;
-    _lastSimpleUniforms = null;
-    _lastRBFUniforms = null;
-    _webglDirty = false;
-
     updateDisplayCanvas();
 
     // Clear all target swatch selections back to null (blank)
@@ -6339,12 +5728,6 @@ function removeImage() {
     shouldKeepPickedMarkers = false;
     document.querySelectorAll('.picker-marker').forEach(m => m.remove());
 
-    // Dismiss tutorial overlay and tab (they float over the canvas area)
-    hideTutorialOverlay();
-
-    // Reset Pick Colors button back to its initial "Pick Colors" text
-    updatePickColorsButtonState(false);
-
     // Reset counts
     originCount = 5;
     targetCount = 5;
@@ -6373,12 +5756,6 @@ function removeImage() {
     document.getElementById('mappingColumns').innerHTML = '';
     document.getElementById('mappingTargetsRow').innerHTML = '';
     document.getElementById('colorStrip').innerHTML = '';
-
-    // Restore tall logo
-    const logoTall = document.getElementById('logoTall');
-    const logoShort = document.getElementById('logoShort');
-    if (logoTall) logoTall.style.display = '';
-    if (logoShort) logoShort.style.display = 'none';
 
     // Progressive UI: reset back to initial centered state
     const workspace = document.getElementById('workspace');
@@ -6418,12 +5795,9 @@ function removeImage() {
     // Show upload zone again
     document.getElementById('uploadZone').classList.remove('hidden');
     canvas.style.display = 'none';
-    // Hide display canvases too
+    // Hide display canvas too
     if (displayCanvas) {
         displayCanvas.style.display = 'none';
-    }
-    if (webglCanvas) {
-        webglCanvas.style.display = 'none';
     }
 
     // Reset canvas area inline styles
@@ -6445,13 +5819,10 @@ function removeImage() {
 }
 
 function downloadImage() {
-    if (!imageData && !_lastWebGLRenderType) {
+    if (!imageData) {
         setStatus('No image to download');
         return;
     }
-
-    // Sync WebGL pixels to CPU canvas if needed
-    syncWebGLToCPU();
 
     // Use the current recolor history count as the suffix number
     const recolorNum = recolorHistory.length || 1;
@@ -6544,9 +5915,6 @@ function applyLuminosityPostProcess() {
         return;
     }
 
-    // Sync WebGL pixels to CPU before manipulating them
-    syncWebGLToCPU();
-
     showLoading();
     setStatus('Applying luminosity post-processing...');
 
@@ -6616,9 +5984,6 @@ function applyLuminosityPostProcess() {
 
         ctx.putImageData(currentData, 0, 0);
         imageData = ctx.getImageData(0, 0, width, height);
-        // Luminosity is a CPU post-process — display must use 2D canvas now
-        _lastWebGLRenderType = null;
-        _webglDirty = false;
         updateDisplayCanvas();
         hideLoading();
         setStatus('Luminosity applied (locked colors preserved)');
@@ -7124,15 +6489,13 @@ function renderTutorialRight() {
         swatchClone.id = 'tutorialSwatchesList';
         swatchClone.classList.remove('hidden');
         // Re-attach category cycling and delete handlers (cloneNode doesn't copy JS handlers)
-        // Use data-color-index to get the real data index (list is rendered newest-first)
         const clonedItems = swatchClone.querySelectorAll('.picker-swatch-item');
-        clonedItems.forEach((item) => {
-            const realIdx = parseInt(item.dataset.colorIndex);
+        clonedItems.forEach((item, i) => {
             const catLabel = item.querySelector('.picker-swatch-category');
             if (catLabel) {
                 catLabel.onclick = (e) => {
                     e.stopPropagation();
-                    cyclePickedColorCategory(realIdx);
+                    cyclePickedColorCategory(i);
                     renderTutorialRight();
                 };
             }
@@ -7140,7 +6503,7 @@ function renderTutorialRight() {
             if (delBtn) {
                 delBtn.onclick = (e) => {
                     e.stopPropagation();
-                    removePickedColor(realIdx);
+                    removePickedColor(i);
                     renderTutorialRight();
                 };
             }
@@ -7163,12 +6526,6 @@ function renderTutorialRight() {
         };
         rightEl.appendChild(clearClone);
     }
-
-    // Orange-label hint below clear button
-    const orangeHint = document.createElement('span');
-    orangeHint.className = 'tutorial-hint-item tutorial-orange-hint';
-    orangeHint.innerHTML = 'Change a color\'s category by clicking its <span style="color:#e08530;font-weight:600;">orange label</span>';
-    rightEl.appendChild(orangeHint);
 }
 
 function syncTutorialCategory() {
@@ -7199,34 +6556,6 @@ function tutorialNextStep() {
     renderTutorialText();
     renderTutorialRight();
     updatePickerCategoryOptions();
-}
-
-// Single entry point for advancing the picker category (double-shift, etc.)
-// Handles both tutorial mode and traditional picker mode without redundancy.
-function advancePickerCategory() {
-    const tutorialOverlay = document.getElementById('tutorialOverlay');
-    const tutorialIsVisible = tutorialOverlay && !tutorialOverlay.classList.contains('hidden');
-
-    if (tutorialIsVisible) {
-        // Tutorial is open — advance the tutorial step (which syncs category + dropdown)
-        tutorialNextStep();
-    } else {
-        // Traditional picker or collapsed tutorial — just cycle the dropdown category
-        const nextCat = getNextCategory(pickerTargetCategory);
-        pickerTargetCategory = nextCat;
-        const select = document.getElementById('pickerCategorySelect');
-        if (select) select.value = nextCat;
-        updatePickerCategoryOptions();
-    }
-
-    // Visual feedback: briefly flash the category selector
-    const catSelector = document.getElementById('pickerCategorySelector');
-    const tutCatSelector = document.getElementById('tutorialCategorySelector');
-    const flashEl = tutorialIsVisible ? tutCatSelector : catSelector;
-    if (flashEl) {
-        flashEl.classList.add('category-flash');
-        setTimeout(() => flashEl.classList.remove('category-flash'), 300);
-    }
 }
 
 function showTutorialOverlay() {

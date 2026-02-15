@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logo Attempt 3 — Animated Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #f4f7f9; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .header {
+    text-align: center;
+    padding: 36px 50px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 18px;
+  }
+  .swatch-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .swatch-pair {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .s {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);
+  }
+  .arrow-line {
+    position: relative;
+    width: 40px;
+    height: 2px;
+    background: #7a94a8;
+    margin: 0 2px;
+  }
+  .arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid #7a94a8;
+  }
+  /* Animated traveling dot */
+  .arrow-line::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2b9eb3;
+    animation: travel 1.8s ease-in-out infinite;
+  }
+  @keyframes travel {
+    0% { left: -4px; opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { left: calc(100% - 4px); opacity: 0; }
+  }
+  .swatch-pair:nth-child(2) .arrow-line::before { animation-delay: 0.3s; }
+  .swatch-pair:nth-child(3) .arrow-line::before { animation-delay: 0.6s; }
+  .swatch-pair:nth-child(4) .arrow-line::before { animation-delay: 0.9s; }
+  h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1e3a4f;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  h1 span { color: #2b9eb3; font-weight: 300; }
+  .subtitle { font-size: 12px; color: #7a94a8; margin-top: 6px; }
+  .byline { font-size: 11px; color: #a0b4c4; margin-top: 3px; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="flow-diagram">
+    <div class="swatch-stack">
+      <div class="swatch-pair">
+        <div class="s" style="background:#c0392b;"></div>
+        <div class="arrow-line"></div>
+        <div class="s" style="background:#2980b9;"></div>
+      </div>
+      <div class="swatch-pair">
+        <div class="s" style="background:#e67e22;"></div>
+        <div class="arrow-line"></div>
+        <div class="s" style="background:#8e44ad;"></div>
+      </div>
+      <div class="swatch-pair">
+        <div class="s" style="background:#f1c40f;"></div>
+        <div class="arrow-line"></div>
+        <div class="s" style="background:#1abc9c;"></div>
+      </div>
+      <div class="swatch-pair">
+        <div class="s" style="background:#27ae60;"></div>
+        <div class="arrow-line"></div>
+        <div class="s" style="background:#e74c3c;"></div>
+      </div>
+    </div>
+  </div>
+  <h1>Recolor <span>Preview Tool</span></h1>
+  <div class="subtitle">Not for photographs</div>
+  <div class="byline">Ineptly vibe-coded by David Landerman</div>
+</div>
+</body>
+</html>

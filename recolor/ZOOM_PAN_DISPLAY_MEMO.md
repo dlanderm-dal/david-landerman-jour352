@@ -107,26 +107,100 @@ This was the major restructuring session. Almost everything about how the image 
 - **Overlay scroll clamping refined:** `updateStickyOverlays()` clamps overlay `top` so overlays stop at wrapper edges instead of getting cut off
 - The cached fast recolor path (`_opacityCache`, `recolorImageOpacityFast()`) was added here — it goes through the full display pipeline (`updateDisplayCanvas` → `renderAtCurrentZoom`) which is part of what makes it slow
 
+### v30 (February 14, 2026) — WebGL Direct Display (Option A)
+This was a major overhaul of the display pipeline. Recoloring now runs as WebGL fragment shaders, rendering directly to a visible canvas at display resolution.
+
+#### Three-Canvas Architecture
+- **Hidden `canvas` (#imageCanvas):** 2D context, holds original-resolution pixel data. Still used for coordinate mapping, export, and as the source texture for WebGL.
+- **`displayCanvas` (#displayCanvas):** 2D context, CPU fallback. Used when WebGL is unavailable or for initial image display before recoloring.
+- **`webglCanvas` (#webglDisplayCanvas):** WebGL context, primary GPU-rendered display. Created in HTML, styled with `image-rendering: high-quality`.
+
+#### No readPixels in Hot Path
+- WebGL shaders render directly to the visible `webglCanvas` at display resolution — the user sees the GPU output immediately.
+- CPU pixel data (needed for export, strip rebuild, luminosity post-processing) obtained lazily via `syncWebGLToCPU()`.
+
+#### `renderWebGLToDisplay(type)`
+- Core renderer. Sets `webglCanvas` dimensions to zoom-appropriate retina resolution using `devicePixelRatio` (not hardcoded `2`).
+- Renders using cached shader uniforms (`_lastSimpleUniforms` or `_lastRBFUniforms`).
+- Manages CSS sizing to match display dimensions.
+- Called by `doRecolorSimpleWebGL()` and `doRecolorRBFWebGL()`.
+
+#### `syncWebGLToCPU()`
+- Lazy readback: re-renders at full image resolution (not display resolution), reads pixels via `readPixels`, flips Y rows (readPixels returns bottom-to-top), writes to hidden `canvas`.
+- Re-renders display afterward to restore display-resolution output.
+
+#### Cached WebGL State
+- Uniform locations: `_simpleUniformLocs`, `_rbfUniformLocs` — avoids `gl.getUniformLocation()` every render.
+- Buffers: `_webglPositionBuffer`, `_webglTexCoordBuffer` — fullscreen quad created once.
+- Image texture: `_webglImageTexture` — uploaded once per image load.
+
+#### Y-Flip
+- Vertex shader flips texture Y: `1.0 - a_texCoord.y` (WebGL texture origin is bottom-left, image data is top-left).
+- `syncWebGLToCPU` does row-swap after `readPixels` to match 2D canvas top-to-bottom convention.
+
+#### Canvas Visibility Rules
+- WebGL active (`_lastWebGLRenderType` = 'simple'/'rbf') → show `webglCanvas`, hide `displayCanvas` + `canvas`.
+- CPU active (`_lastWebGLRenderType` = null) → show `displayCanvas`, hide `webglCanvas` + `canvas`.
+- Initial/reset → show `displayCanvas` (original image via `drawImage()`).
+
+#### `getVisibleCanvas()` Helper
+- Returns whichever canvas is currently visible (webgl > display > canvas).
+- Used for coordinate mapping (`getCanvasCoords`), bounding rect calculations, etc.
+
+#### Opacity Fast Path (Updated)
+- `recolorImageOpacityFast()` recalculates `diffLab` → `doRecolorSimpleWebGL()` → renders directly to `webglCanvas`. No readPixels.
+- Strip rebuild debounced 200ms (requires CPU sync).
+
+#### Texture Filtering
+- Image textures use LINEAR filtering (smooth interpolation).
+- LUT textures (RBF 3D grid) use NEAREST filtering (exact lookup).
+
+#### CPU Fallback
+- When WebGL context creation fails, all rendering falls back to `displayCanvas` with `drawImage()`.
+- `_lastWebGLRenderType = null` signals CPU mode.
+
+### v31 (February 15, 2026) — Logo Swap & Scroll Reset
+- **Scroll to top on reload:** `window.scrollTo(0, 0)` in DOMContentLoaded.
+- **Dual logo swap:** Tall logo shown initially, short logo replaces it at `image-loaded` stage. Reset restores tall logo. (Header-only change, no display pipeline impact.)
+
 ---
 
-## Part 2: Current Architecture (As of v29)
+## Part 2: Current Architecture (As of v31)
 
 ### DOM Structure
 ```
 canvasWrapper (overflow: hidden, position: relative)
   canvasInner (Panzoom-transformed via CSS translate)
-    canvas#imageCanvas (HIDDEN — holds original-res pixel data)
-    canvas#displayCanvas (VISIBLE — rendered at zoomed pixel size)
+    canvas#imageCanvas (HIDDEN — holds original-res pixel data, 2D context)
+    canvas#displayCanvas (CPU FALLBACK — rendered at zoomed pixel size, 2D context)
+    canvas#webglDisplayCanvas (PRIMARY — GPU-rendered recolor output, WebGL context)
     div.picker-marker (children positioned in canvasInner's local coordinate space)
 ```
 
 ### Canvas Roles
 | Canvas | Purpose | Visible? | Size |
 |--------|---------|----------|------|
-| `canvas` (#imageCanvas) | Working pixel buffer — recolor results written here | No (display:none) | Original image dimensions (e.g. 2000x1500) |
-| `displayCanvas` (#displayCanvas) | What the user sees — rendered at zoom-appropriate resolution | Yes | `displayWidth * retina` pixel buffer, `displayWidth` CSS size |
+| `canvas` (#imageCanvas) | Working pixel buffer — original pixel data, source for WebGL texture | No (display:none) | Original image dimensions (e.g. 2000x1500) |
+| `displayCanvas` (#displayCanvas) | CPU fallback — used when WebGL unavailable or before first recolor | When WebGL inactive | `displayWidth * retina` pixel buffer, `displayWidth` CSS size |
+| `webglCanvas` (#webglDisplayCanvas) | Primary display — GPU-rendered recolor shader output | When WebGL active | `displayWidth * devicePixelRatio` pixel buffer, `displayWidth` CSS size |
 
 ### The Full Render Pipeline (per recolor or zoom change)
+
+#### WebGL Path (primary, v30+):
+1. Recolor algorithm runs as WebGL fragment shader via `doRecolorSimpleWebGL()` or `doRecolorRBFWebGL()`
+2. `renderWebGLToDisplay(type)` called:
+   - Calculates display size from wrapper width + image aspect ratio + zoom
+   - Sets `webglCanvas` dimensions to `displaySize * devicePixelRatio`
+   - Binds cached shader program, sets cached uniform values
+   - Draws fullscreen quad — shader output goes directly to screen
+   - Sets CSS `width/height` to `displaySize`
+   - Shows `webglCanvas`, hides `displayCanvas`
+3. CPU sync (only when needed for export/strips/luminosity):
+   - `syncWebGLToCPU()` re-renders at full image resolution
+   - `readPixels()` → Y-flip → write to hidden `canvas`
+   - Re-renders display at display resolution
+
+#### CPU Fallback Path (when WebGL unavailable):
 1. Recolor algorithm writes pixels to hidden `canvas` via `ctx.putImageData()`
 2. `updateDisplayCanvas()` called:
    - Calculates base display size from wrapper width + image aspect ratio
@@ -134,7 +208,7 @@ canvasWrapper (overflow: hidden, position: relative)
    - Debounces `renderAtCurrentZoom()` at 150ms
 3. `renderAtCurrentZoom()`:
    - Calculates display size: `baseWidth * zoomLevel`
-   - Calculates retina scale: `min(2, imageWidth/displayWidth)`
+   - Calculates retina scale: `min(devicePixelRatio, imageWidth/displayWidth)`
    - Sets `displayCanvas.width/height` to `displaySize * retinaScale`
    - `displayCtx.drawImage(canvas, 0, 0, renderWidth, renderHeight)`
    - Sets CSS `width/height` to `displaySize`
@@ -177,13 +251,14 @@ User releases → checkVerticallyCropped()
 ### Coordinate Mapping (screen click → image pixel)
 ```
 getCanvasCoords(event):
-  visibleCanvas = displayCanvas if shown, else canvas
+  visibleCanvas = getVisibleCanvas()  // webglCanvas > displayCanvas > canvas
   rect = visibleCanvas.getBoundingClientRect()  // includes pan transform
   scaleX = canvas.width / rect.width            // image pixels per display pixel
   scaleY = canvas.height / rect.height
   imageX = floor((clientX - rect.left) * scaleX)
   imageY = floor((clientY - rect.top) * scaleY)
 ```
+- `getVisibleCanvas()` returns whichever canvas is currently displayed (webgl > display > canvas)
 - This works because `getBoundingClientRect()` accounts for Panzoom's CSS translate
 - Markers placed in canvasInner's local space use `style.width` instead of `getBoundingClientRect()`
 
@@ -251,6 +326,27 @@ getCanvasCoords(event):
 - **What:** If zoomed image is smaller than wrapper in one axis, center it instead of allowing pan
 - **How:** `minX = maxX = (wrapperWidth - canvasWidth) / 2`
 - **Where:** constrainPan boundary math (lines ~4213-4225)
+
+### 13. WebGL Canvas Visibility Sync (v30)
+- **What:** Only one canvas visible at a time — `webglCanvas` when WebGL active, `displayCanvas` when CPU fallback
+- **Why:** Two visible canvases would z-fight or double-render
+- **Guard:** `renderWebGLToDisplay()` shows webglCanvas and hides displayCanvas; CPU path does the reverse
+- **Where:** `renderWebGLToDisplay()`, `updateDisplayCanvas()`, `renderAtCurrentZoom()`
+
+### 14. WebGL Y-Flip (v30)
+- **What:** WebGL texture coordinates are bottom-to-top; image data is top-to-bottom
+- **How:** Vertex shader flips Y: `1.0 - a_texCoord.y`. `syncWebGLToCPU()` does row-swap after `readPixels`.
+- **Why:** Without both flips, image appears upside down on screen or in CPU readback
+
+### 15. WebGL Lazy CPU Sync (v30)
+- **What:** `syncWebGLToCPU()` only called when CPU pixel data is actually needed
+- **Why:** `readPixels` is expensive and would negate the GPU performance benefit
+- **When triggered:** Export, strip rebuild (debounced 200ms), luminosity post-processing
+- **Guard:** Re-renders display at display resolution after sync (sync renders at image resolution)
+
+### 16. WebGL Context Loss Fallback (v30)
+- **What:** If WebGL context creation fails, entire pipeline falls back to CPU 2D canvas rendering
+- **Guard:** `_lastWebGLRenderType = null` signals CPU mode; all render paths check this
 
 ---
 
@@ -328,6 +424,21 @@ Use this list to manually verify correct behavior after any display pipeline cha
 - [ ] Overlays reposition correctly on window resize
 - [ ] Zoom level preserved across window resize
 
+### WebGL Display Tests (v30)
+- [ ] Recolor renders via WebGL (webglCanvas visible, displayCanvas hidden)
+- [ ] Image appears correct orientation (not flipped/mirrored)
+- [ ] Display is crisp at retina resolution (uses devicePixelRatio)
+- [ ] Opacity slider updates display without readPixels lag
+- [ ] Export produces correct image (syncWebGLToCPU readback works)
+- [ ] Color strips rebuild correctly after debounced CPU sync
+- [ ] Luminosity post-processing works (triggers CPU sync)
+- [ ] Switching between Simple and RBF algorithms — both render via WebGL
+- [ ] Loading a new image — webglCanvas resets, texture re-uploaded
+- [ ] Reset/remove image — falls back to displayCanvas for initial state
+- [ ] CPU fallback works if WebGL context unavailable (displayCanvas takes over)
+- [ ] Coordinate mapping (`getCanvasCoords`) works against webglCanvas
+- [ ] Picker markers position correctly over webglCanvas
+
 ### Edge Case Combinations
 - [ ] Zoom to 3x → resize wrapper smaller → pan → reset view (everything clean?)
 - [ ] Vertically crop → zoom in → pan → zoom out to 1x (pan still works because cropped?)
@@ -336,8 +447,11 @@ Use this list to manually verify correct behavior after any display pipeline cha
 - [ ] Opacity slider while zoomed — display updates correctly?
 - [ ] Load new image while zoomed — resets to 1x with correct sizing?
 - [ ] Export image while zoomed — exports at original resolution, not display resolution?
+- [ ] WebGL recolor → zoom → pan → export (full pipeline end-to-end)
+- [ ] Rapid opacity slider drag while zoomed — no flicker or canvas visibility glitch
 
 ---
 
 *Created: February 14, 2026*
+*Updated: February 15, 2026*
 *For use as regression reference during display pipeline refactoring*

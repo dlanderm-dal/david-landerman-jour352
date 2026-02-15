@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logo Attempt 2 — Morphing Palette</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #f4f7f9; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .header {
+    text-align: center;
+    padding: 40px 60px;
+    background: linear-gradient(135deg, #1e3a4f 0%, #2b4a5f 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    color: white;
+  }
+  .diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .palette-card {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .palette-row {
+    display: flex;
+    gap: 3px;
+  }
+  .dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+  .morph-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0 6px;
+  }
+  .morph-arrow svg { opacity: 0.7; }
+  .morph-line {
+    width: 1px;
+    height: 8px;
+    background: rgba(255,255,255,0.3);
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -1px;
+  }
+  h1 .re { color: #e74c3c; }
+  h1 .color { color: #2ecc71; }
+  .subtitle { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px; }
+  .byline { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="diagram">
+    <div class="palette-card">
+      <div class="palette-row">
+        <div class="dot" style="background:#e74c3c;"></div>
+        <div class="dot" style="background:#e67e22;"></div>
+      </div>
+      <div class="palette-row">
+        <div class="dot" style="background:#f1c40f;"></div>
+        <div class="dot" style="background:#2ecc71;"></div>
+      </div>
+    </div>
+
+    <div class="morph-arrow">
+      <svg width="60" height="20" viewBox="0 0 60 20" fill="none">
+        <path d="M0 10C10 4 20 4 30 10C40 16 50 16 60 10" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </svg>
+      <svg width="36" height="16" viewBox="0 0 36 16" fill="none">
+        <path d="M2 8H28" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <path d="M26 3L33 8L26 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <svg width="60" height="20" viewBox="0 0 60 20" fill="none">
+        <path d="M0 10C10 16 20 16 30 10C40 4 50 4 60 10" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </svg>
+    </div>
+
+    <div class="palette-card">
+      <div class="palette-row">
+        <div class="dot" style="background:#9b59b6;"></div>
+        <div class="dot" style="background:#3498db;"></div>
+      </div>
+      <div class="palette-row">
+        <div class="dot" style="background:#1abc9c;"></div>
+        <div class="dot" style="background:#e91e63;"></div>
+      </div>
+    </div>
+  </div>
+  <h1><span class="re">Re</span><span class="color">color</span> Preview Tool</h1>
+  <div class="subtitle">Not for photographs</div>
+  <div class="byline">Ineptly vibe-coded by David Landerman</div>
+</div>
+</body>
+</html>

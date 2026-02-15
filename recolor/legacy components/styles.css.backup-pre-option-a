@@ -32,30 +32,11 @@ body {
 }
 
 header {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 0.5rem;
+    padding-bottom: 1rem;
 }
 
-/* Header top row: logo left, mode toggle right */
-.header-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-}
-
-/* Header logo SVG */
-.header-logo {
-    display: flex;
-}
-
-.logo-svg {
-    width: 300px;
-    height: auto;
-}
-
-/* Legacy h1 rule kept for any other h1 usage */
 h1 {
     font-size: 1.5rem;
     font-weight: 700;
@@ -110,202 +91,6 @@ h1 {
 }
 .instructions-toggle-label {
     font-size: 0.72rem;
-}
-
-/* Header controls row: Instructions left, Mode toggle right */
-.header-controls-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-}
-
-/* Beginner / Advanced mode toggle */
-.mode-toggle-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-
-.mode-toggle-label {
-    color: var(--text-muted);
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.15s;
-    font-size: 0.85rem;
-    user-select: none;
-}
-
-.mode-toggle-label.active {
-    color: var(--accent);
-    font-weight: 600;
-}
-
-.mode-toggle-switch {
-    width: 44px;
-    height: 22px;
-    background: var(--border);
-    border-radius: 11px;
-    cursor: pointer;
-    position: relative;
-    transition: background 0.2s;
-    border: none;
-    padding: 0;
-    flex-shrink: 0;
-}
-
-.mode-toggle-knob {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    background: var(--accent);
-    border-radius: 50%;
-    transition: left 0.2s;
-}
-
-.mode-toggle-switch.advanced .mode-toggle-knob {
-    left: 24px;
-}
-
-/* Feature number badges — REMOVED (mode configuration complete) */
-.feature-num {
-    display: none !important;
-}
-.feature-num-abs {
-    display: none !important;
-}
-
-/* ============================================ */
-/* BEGINNER MODE — hide/deactivate features     */
-/* ============================================ */
-
-/* Hide Import Saved Configuration */
-body.mode-beginner #earlyImportSection { display: none !important; }
-
-/* Hide entire Color Analysis collapsible (feature 12, includes 13 & 14) */
-body.mode-beginner #colorAnalysisOptionalPanel { display: none !important; }
-
-/* Hide origin swatch opacity buttons (feature 18) */
-body.mode-beginner .origin-opacity-btn { display: none !important; }
-body.mode-beginner .origin-opacity-popup { display: none !important; }
-
-/* Hide shuffle button */
-body.mode-beginner #shuffleBtn { display: none !important; }
-
-/* Hide the picker OVERLAY (feature 7) — but keep sidebar button (feature 10) */
-body.mode-beginner #pickerOverlay { display: none !important; }
-
-/* In Color Harmony: hide base hue, min/max sliders */
-body.mode-beginner .harmony-control-row { display: none !important; }
-
-/* Hide "Generate Palette based on selections" button (sidebar + quick overlay) */
-body.mode-beginner .harmony-btn-half:last-child { display: none !important; }
-body.mode-beginner .quick-harmony-btn[onclick="quickGenerateHarmony()"] { display: none !important; }
-/* With generate button gone, make randomize full width and hide "Or" divider */
-body.mode-beginner .harmony-btn-row { display: flex; }
-body.mode-beginner .harmony-btn-half { flex: 1 1 100% !important; }
-body.mode-beginner .harmony-or-divider { display: none !important; }
-
-/* Hide Apply Recolor button in beginner mode (Recolor Live takes over) */
-body.mode-beginner #applyRecolorBtn { display: none !important; }
-
-/* Hide the Color Adjust box */
-body.mode-beginner .color-adjust-box { display: none !important; }
-
-/* Hide Tool Reference panel (feature 9) */
-body.mode-beginner #toolLegendPanel { display: none !important; }
-
-/* Hide "Fancy Stuff" section in instructions */
-body.mode-beginner .instruction-hint-fancy { display: none !important; }
-
-/* Hide target swatch opacity row in the color picker popup */
-body.mode-beginner .swatch-picker-opacity-row { display: none !important; }
-
-/* Direct Color Picker collapsible section for Beginner mode */
-.direct-picker-section {
-    display: none; /* Only shown in beginner mode */
-}
-body.mode-beginner .direct-picker-section {
-    display: block !important;
-}
-
-.direct-picker-section summary {
-    cursor: pointer;
-    user-select: none;
-}
-
-.direct-picker-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-}
-
-.direct-picker-icon {
-    font-size: 2rem;
-    flex-shrink: 0;
-    line-height: 1;
-}
-
-.direct-picker-text {
-    font-size: 0.78rem;
-    color: var(--text);
-    line-height: 1.5;
-}
-
-/* Palette icon highlight state when Direct Picker section is open */
-body.mode-beginner .swatch-buttons button:first-child {
-    /* Default: hidden in beginner when Direct Picker is collapsed (JS manages this) */
-}
-
-/* Palette icon orange highlight (active state via JS class) */
-.swatch-buttons button.palette-icon-active {
-    background: #e08530 !important;
-    border-color: #e08530 !important;
-    color: #ffffff !important;
-    opacity: 1 !important;
-}
-
-/* Smooth show/hide for palette icons — no layout shift */
-.swatch-buttons button.palette-icon-hidden {
-    visibility: hidden !important;
-    pointer-events: none !important;
-}
-
-/* ============================================ */
-/* ADVANCED MODE — specific overrides           */
-/* ============================================ */
-
-/* Advanced mode hints that are hidden in beginner */
-body.mode-beginner .instruction-hint-advanced { display: none !important; }
-
-/* ============================================ */
-/* GLOBAL: prevent text selection (except instructions) */
-/* ============================================ */
-body {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-.progressive-instructions,
-.progressive-instructions * {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
-/* Allow text selection in input fields and textareas */
-input[type="text"],
-input[type="number"],
-textarea {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
 }
 
 .progressive-instructions {
@@ -722,13 +507,6 @@ textarea {
 #displayCanvas {
     display: none;
     /* High-quality rendering for the downscaled display */
-    image-rendering: auto;
-    image-rendering: high-quality;
-    -ms-interpolation-mode: bicubic;
-}
-
-#webglDisplayCanvas {
-    /* High-quality scaling when CSS size differs from pixel buffer */
     image-rendering: auto;
     image-rendering: high-quality;
     -ms-interpolation-mode: bicubic;
@@ -1229,7 +1007,7 @@ textarea {
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: 6px;
-    padding: 8px 9px;
+    padding: 8px 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     z-index: 50;
     flex-direction: column;
@@ -1241,14 +1019,14 @@ textarea {
     display: flex;
 }
 
-/* Vertical slider — 30% taller for easier control */
+/* Vertical slider — 40% longer than the 48px swatch = 67px */
 .origin-opacity-slider {
     -webkit-appearance: slider-vertical;
     appearance: slider-vertical;
     writing-mode: vertical-lr;
     direction: rtl;
     width: 4px;
-    height: 87px;
+    height: 67px;
     background: linear-gradient(to top, var(--border), var(--accent));
     border-radius: 2px;
     outline: none;
@@ -1285,8 +1063,8 @@ textarea {
 }
 
 .origin-opacity-input {
-    width: 36px;
-    padding: 2px 3px;
+    width: 30px;
+    padding: 2px 2px;
     border: 1px solid var(--border);
     border-radius: 4px;
     background: var(--bg);
@@ -1459,7 +1237,7 @@ textarea {
     color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
     text-align: center;
-    margin-top: 6px;
+    margin-top: 2px;
 }
 
 .swatch-buttons {
@@ -1470,13 +1248,13 @@ textarea {
 }
 
 .swatch-buttons button {
-    width: 32px;
-    height: 32px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1520,7 +1298,6 @@ textarea {
     flex-wrap: wrap;
     margin-top: 4px;
     padding: 2px;
-    min-height: 18px;
 }
 
 .bypass-origin-mini {
@@ -1529,13 +1306,6 @@ textarea {
     border-radius: 3px;
     border: 1px solid var(--border);
     cursor: default;
-}
-
-/* Spacer to match bypass-origins-preview height when lock is off */
-.bypass-origins-spacer {
-    min-height: 18px;
-    margin-top: 4px;
-    padding: 2px;
 }
 
 .hidden-color-input {
@@ -1556,7 +1326,7 @@ textarea {
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px;
-    z-index: 600;
+    z-index: 300;
     min-width: 180px;
     display: none;
     box-shadow: 0 4px 16px rgba(120, 150, 175, 0.2);
@@ -2458,8 +2228,7 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    /* Cap at ~3 swatch items (each ~32px + 4px gap + 12px container padding), then scroll */
-    max-height: 116px;
+    max-height: 300px;
     overflow-y: auto;
 }
 
@@ -2560,16 +2329,6 @@ textarea {
     white-space: nowrap;
 }
 
-.picker-category-selector.category-flash {
-    animation: categoryFlash 0.3s ease;
-}
-
-@keyframes categoryFlash {
-    0% { box-shadow: 0 0 0 0 rgba(224, 133, 48, 0.6); }
-    50% { box-shadow: 0 0 8px 3px rgba(224, 133, 48, 0.4); }
-    100% { box-shadow: 0 0 0 0 rgba(224, 133, 48, 0); }
-}
-
 .picker-category-selector select {
     flex: 1;
     padding: 4px 6px;
@@ -2586,8 +2345,8 @@ textarea {
 .target-category-label {
     font-size: 9px;
     color: var(--text-muted);
-    text-align: left;
-    margin-bottom: 2px;
+    text-align: center;
+    margin-top: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2820,7 +2579,7 @@ textarea {
 
 .pan-hint {
     position: absolute;
-    bottom: 48px;
+    bottom: 8px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--surface);
@@ -3118,19 +2877,6 @@ textarea {
     transition: all 0.15s;
     padding: 0;
     line-height: 1;
-    position: relative;
-}
-/* "L" indicator on the left of a selected locked swatch */
-.quick-locked-L {
-    position: absolute;
-    left: -9px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.5rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    line-height: 1;
-    pointer-events: none;
 }
 
 .quick-locked-add-btn:hover {
@@ -3362,26 +3108,12 @@ textarea {
     align-items: center;
 }
 
-/* Nudge selection hint (shown in Harmony mode only) */
-.harmony-nudge-hint {
-    font-size: 0.55rem;
-    color: var(--text-muted);
-    font-style: italic;
-    text-align: center;
-    margin: 0.3rem 0 0;
-    line-height: 1.3;
-}
-.harmony-nudge-hint.hidden {
-    display: none;
-}
-
 /* Harmony wheel */
 .harmony-wheel-container {
     display: flex;
     justify-content: center;
     margin: 0.5rem 0;
     position: relative;
-    overflow: visible;
 }
 
 #harmonyWheelCanvas {
@@ -3458,22 +3190,19 @@ textarea {
 }
 
 .harmony-dot:hover {
-    transform: translate(-50%, -50%) scale(1.3);
+    transform: translate(-50%, -50%) scale(1.2);
     box-shadow: 0 0 8px rgba(43, 158, 179, 0.4);
-    z-index: 20;
 }
 
 .harmony-dot.dragging {
     cursor: grabbing;
-    transform: translate(-50%, -50%) scale(1.4);
+    transform: translate(-50%, -50%) scale(1.3);
     box-shadow: 0 0 12px rgba(43, 158, 179, 0.5);
-    z-index: 30;
 }
 
 .harmony-dot.selected {
     border-width: 3px;
     box-shadow: 0 0 6px rgba(43, 158, 179, 0.6);
-    z-index: 15;
 }
 
 /* Config export/load section */
@@ -4229,25 +3958,12 @@ textarea {
     left: 15px;
 }
 
-/* Wrapper uses CSS grid so both control sets overlap in the same cell.
-   The grid cell sizes to the taller child (Harmony), keeping panel height stable. */
-.quick-harmony-overlay .quick-harmony-controls-wrapper {
-    display: grid;
-}
-.quick-harmony-overlay .quick-harmony-controls-wrapper > * {
-    grid-row: 1;
-    grid-column: 1;
-}
-
 /* Overlay controls — stacked vertically */
 .quick-harmony-overlay .quick-harmony-controls {
     display: flex;
     flex-direction: column;
     gap: 4px;
-}
-.quick-harmony-overlay .quick-harmony-controls.hidden {
-    visibility: hidden;
-    pointer-events: none;
+    flex: none;
 }
 
 .quick-harmony-overlay .quick-harmony-select {
@@ -4286,11 +4002,6 @@ textarea {
     flex-wrap: wrap;
     gap: 3px;
     justify-content: center;
-}
-.quick-harmony-overlay .quick-locked-btn-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-left: 0;
 }
 
 .tool-legend-panel {
@@ -4336,18 +4047,6 @@ textarea {
 
 .tool-legend-desc strong {
     color: var(--text);
-}
-
-.tool-legend-divider {
-    border-top: 1px solid var(--border);
-    margin: 0.3rem 0;
-}
-
-.tool-legend-subtitle {
-    font-size: 0.6rem;
-    font-weight: 600;
-    color: var(--accent);
-    margin-bottom: 0.1rem;
 }
 
 /* ============================================ */
@@ -4479,25 +4178,24 @@ textarea {
 /* Tutorial Overlay for Color Picker            */
 /* ============================================ */
 
-/* Tutorial panel — sits above canvas-wrapper in normal document flow */
-.tutorial-panel {
-    background: rgba(20, 30, 40, 0.95);
+.tutorial-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20%;
+    min-height: 100px;
+    background: rgba(20, 30, 40, 0.88);
+    z-index: 250;
     display: flex;
     flex-direction: column;
-    padding: 14px 16px 10px;
+    padding: 12px 16px 8px;
     border-radius: 8px 8px 0 0;
-    border: 2px solid rgba(120, 150, 175, 0.35);
-    border-bottom: 1px solid rgba(120, 150, 175, 0.2);
-    overflow: hidden;
+    backdrop-filter: blur(4px);
 }
 
-.tutorial-panel.hidden {
+.tutorial-overlay.hidden {
     display: none;
-}
-
-/* When tutorial panel is visible, remove top border-radius from canvas-wrapper below it */
-.tutorial-panel:not(.hidden) + .canvas-wrapper {
-    border-radius: 0 0 8px 8px;
 }
 
 .tutorial-content {
@@ -4505,17 +4203,14 @@ textarea {
     flex: 1;
     gap: 16px;
     min-height: 0;
-    overflow: hidden;
 }
 
 .tutorial-left {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow-y: auto;
-    min-height: 0;
+    justify-content: center;
+    gap: 8px;
 }
 
 .tutorial-text {
@@ -4559,9 +4254,8 @@ textarea {
 
 .tutorial-hints {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     flex-wrap: wrap;
-    flex-shrink: 0;
 }
 
 .tutorial-hint-item {
@@ -4583,6 +4277,7 @@ textarea {
     flex-direction: column;
     gap: 6px;
     overflow-y: auto;
+    max-height: 100%;
 }
 
 .tutorial-right .picker-category-selector {
@@ -4603,8 +4298,8 @@ textarea {
 .tutorial-right .picker-swatches-list {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.15);
-    /* Cap at ~3 swatch items (each ~32px + 4px gap + 12px container padding), then scroll */
-    max-height: 116px;
+    max-height: none;
+    flex: 1;
     overflow-y: auto;
 }
 
@@ -4632,20 +4327,6 @@ textarea {
     color: #ffffff;
 }
 
-.tutorial-hint-item.tutorial-shift-hint {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.55);
-}
-
-.tutorial-right .tutorial-orange-hint {
-    font-size: 0.55rem;
-    color: rgba(255, 255, 255, 0.35);
-    font-style: italic;
-    text-align: center;
-    padding: 2px 0 0;
-}
-
 .tutorial-bottom-row {
     display: flex;
     align-items: center;
@@ -4653,19 +4334,6 @@ textarea {
     margin-top: 6px;
     padding-top: 6px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.tutorial-bottom-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.tutorial-bottom-left .tutorial-ctrl-hint {
-    font-size: 0.6rem;
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.35);
-    font-style: italic;
 }
 
 .tutorial-hide-btn {
@@ -4741,13 +4409,12 @@ textarea {
     display: none;
 }
 
-/* Tutorial collapsed tab — overlaps into top of canvas-wrapper, hanging down */
+/* Tutorial collapsed tab */
 .tutorial-tab {
     position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 250;
     background: rgba(20, 30, 40, 0.85);
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.65rem;
@@ -4755,9 +4422,9 @@ textarea {
     padding: 2px 16px 5px;
     border-radius: 0 0 8px 8px;
     cursor: pointer;
+    z-index: 250;
     transition: all 0.15s;
     letter-spacing: 0.03em;
-    border: none;
 }
 
 .tutorial-tab:hover {
@@ -4780,57 +4447,4 @@ textarea {
 .btn-export-active:hover {
     background: var(--accent-dim) !important;
     border-color: var(--accent-dim) !important;
-}
-
-/* Activate Mini-tool button in Color Harmony sidebar */
-.btn-activate-minitool {
-    margin-top: 0.5rem;
-    background: var(--surface-2);
-    border: 1px dashed var(--accent);
-    color: var(--accent);
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 6px 10px;
-    transition: all 0.15s;
-}
-.btn-activate-minitool:hover {
-    background: rgba(43, 158, 179, 0.1);
-    border-style: solid;
-}
-
-/* Beginner mode: Recolor Live standalone button (replaces Apply) */
-body.mode-beginner .live-preview-toggle-below {
-    margin-top: 0;
-}
-body.mode-beginner .apply-recolor-group {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-}
-
-/* Live preview toggle as primary button in beginner mode */
-body.mode-beginner .live-preview-toggle-below {
-    padding: 10px 14px;
-    border-radius: 8px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-}
-body.mode-beginner .live-preview-toggle-below:has(input:checked) {
-    background: rgba(43, 158, 179, 0.08);
-    border-color: var(--accent);
-}
-body.mode-beginner .live-preview-toggle-below .live-preview-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-/* Show step number in beginner mode */
-body.mode-beginner .live-step-num {
-    display: inline-flex !important;
-    width: 22px;
-    height: 22px;
-    font-size: 0.7rem;
-    margin-right: 6px;
-    vertical-align: middle;
-    background: var(--accent);
-    color: white;
 }

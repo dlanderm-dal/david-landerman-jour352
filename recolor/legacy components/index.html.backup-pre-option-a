@@ -5,88 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recolor Preview Tool</title>
 
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://cdn-icons-png.flaticon.com; connect-src 'none';">
-    <script src="numeric.min.js"></script>
-    <script src="panzoom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.6.1/dist/panzoom.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="header-top-row">
-                <div class="header-logo">
-                    <!-- Tall logo: visible on initial page load, hidden once image uploaded -->
-                    <svg id="logoTall" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 185" class="logo-svg logo-tall">
-                        <defs>
-                            <style>
-                                .logo-c0{fill:#48d1cc}.logo-c1{fill:#f5427b}.logo-c3{fill:#1b8aad}.logo-c4{fill:#3dc8ff}.logo-c5{fill:none;stroke:#c8d6df;stroke-linecap:round;stroke-width:1.5px}.logo-c6{fill:#2b9eb3;font-family:Helvetica-Light,Helvetica;font-weight:300;font-size:36.31px;letter-spacing:-.02em}.logo-c7{isolation:isolate}.logo-c8{fill:#a0b4c4;font-family:Helvetica,Helvetica;font-size:15.36px;isolation:isolate}.logo-c9{fill:#1e3a4f;font-family:Helvetica-Bold,Helvetica;font-weight:700;font-size:36.31px;letter-spacing:-.02em;isolation:isolate}.logo-c10{fill:#0f4c81}.logo-c11{fill:#ff6b35}.logo-c12{fill:#ff8a4c}.logo-c13{fill:#ffe44d}.logo-c14{fill:#e23d6e}.logo-c15{fill:#c8d6df}.logo-c16{fill:#a855f7}.logo-c17{fill:#34d399}
-                            </style>
-                        </defs>
-                        <g class="logo-c7"><text class="logo-c9" transform="translate(0 32.84)"><tspan x="0" y="0">Recolor</tspan></text></g>
-                        <rect class="logo-c11" x="138.02" y="2.23" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c1" x="16.53" y="46.91" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c14" x="57.03" y="46.91" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c13" x="97.52" y="46.91" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c4" x="138.02" y="46.91" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c12" x="57.03" y="91.6" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c16" x="97.52" y="91.6" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c17" x="138.02" y="91.6" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <line class="logo-c5" x1="178.51" y1="18.98" x2="222.89" y2="18.98"/>
-                        <line class="logo-c5" x1="178.51" y1="63.67" x2="222.89" y2="63.67"/>
-                        <polygon class="logo-c15" points="211.76 55.43 226.17 63.84 211.76 72.25 211.76 55.43"/>
-                        <line class="logo-c5" x1="178.51" y1="108.35" x2="222.89" y2="108.35"/>
-                        <rect class="logo-c10" x="228.78" y="2.23" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c3" x="228.78" y="46.91" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <rect class="logo-c0" x="228.78" y="91.6" width="33.51" height="33.51" rx="5" ry="5"/>
-                        <g class="logo-c7"><text class="logo-c6" transform="translate(60.26 158.62)"><tspan x="0" y="0">Preview Tool</tspan></text></g>
-                        <g class="logo-c7"><text class="logo-c8" transform="translate(23.51 179.47)"><tspan x="0" y="0">Ineptly vibe-coded by David Landerman</tspan></text></g>
-                        <polygon class="logo-c15" points="211.76 10.58 226.17 18.98 211.76 27.39 211.76 10.58"/>
-                        <polygon class="logo-c15" points="211.76 99.95 226.17 108.35 211.76 116.76 211.76 99.95"/>
-                    </svg>
-                    <!-- Short logo: shown after image is uploaded -->
-                    <svg id="logoShort" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 95" class="logo-svg logo-short" style="display:none;">
-                        <defs>
-                            <style>
-                                .logo-s0{fill:#f5427b}.logo-s1{fill:#1b8aad}.logo-s2{fill:#3dc8ff}.logo-s3{fill:none;stroke:#c8d6df;stroke-linecap:round;stroke-width:1.5px}.logo-s4{letter-spacing:-.02em}.logo-s4,.logo-s5{fill:#2b9eb3;font-family:Helvetica-Light,Helvetica;font-weight:300}.logo-s4,.logo-s5,.logo-s6{font-size:26.84px;isolation:isolate}.logo-s5,.logo-s6{letter-spacing:-.02em}.logo-s6{fill:#1e3a4f;font-family:Helvetica-Bold,Helvetica;font-weight:700}.logo-s7{isolation:isolate}.logo-s8{fill:#a0b4c4;font-family:Helvetica,Helvetica;font-size:11.35px;isolation:isolate}.logo-s9{fill:#0f4c81}.logo-s10{fill:#ff6b35}.logo-s11{fill:#ffe44d}.logo-s12{fill:#e23d6e}.logo-s13{fill:#c8d6df}
-                            </style>
-                        </defs>
-                        <g class="logo-s7"><g class="logo-s7"><text class="logo-s6" transform="translate(7.8 36.37)"><tspan x="0" y="0">Recolor</tspan></text></g></g>
-                        <rect class="logo-s10" x="109.82" y="13.74" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <rect class="logo-s0" x="20.02" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <rect class="logo-s12" x="49.96" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <rect class="logo-s11" x="79.89" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <rect class="logo-s2" x="109.82" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <line class="logo-s3" x1="139.75" y1="26.12" x2="172.56" y2="26.12"/>
-                        <line class="logo-s3" x1="139.75" y1="59.16" x2="172.56" y2="59.16"/>
-                        <polygon class="logo-s13" points="164.33 53.07 174.98 59.28 164.33 65.5 164.33 53.07"/>
-                        <rect class="logo-s9" x="176.91" y="13.74" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <rect class="logo-s1" x="176.91" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
-                        <g class="logo-s7"><g class="logo-s7"><text class="logo-s5" transform="translate(204.58 36.37)"><tspan x="0" y="0">Preview</tspan></text></g></g>
-                        <g class="logo-s7"><g class="logo-s7"><text class="logo-s4" transform="translate(206.67 68.86)"><tspan x="0" y="0">Tool</tspan></text></g></g>
-                        <g class="logo-s7"><g class="logo-s7"><text class="logo-s8" transform="translate(20.02 86.01)"><tspan x="0" y="0">Ineptly vibe-coded by David Landerman</tspan></text></g></g>
-                        <polygon class="logo-s13" points="164.33 19.91 174.98 26.12 164.33 32.34 164.33 19.91"/>
-                    </svg>
-                </div>
-                <div class="mode-toggle-wrapper" id="modeToggleWrapper">
-                    <span class="mode-toggle-label active" id="modeLabelBeginner" onclick="setAppMode('beginner')">Beginner</span>
-                    <button class="mode-toggle-switch" id="modeSwitch" onclick="toggleAppMode()" title="Toggle Beginner/Advanced mode">
-                        <span class="mode-toggle-knob"></span>
-                    </button>
-                    <span class="mode-toggle-label active" id="modeLabelAdvanced" onclick="setAppMode('advanced')">Advanced</span>
-                </div>
-            </div>
+            <h1>Recolor Preview Tool</h1>
+            <p class="subtitle-warning">Not for photographs</p>
+            <p class="byline">Ineptly vibe-coded by David Landerman</p>
             <!-- Progressive instructions: collapsible wrapper -->
             <div class="instructions-wrapper" id="instructionsWrapper">
-                <div class="header-controls-row">
-                    <button class="instructions-toggle" id="instructionsToggle" onclick="toggleInstructions()">
-                        <span class="instructions-toggle-arrow" id="instructionsToggleArrow">▾</span>
-                        <span class="instructions-toggle-label">Instructions</span>
-                    </button>
-                </div>
+                <button class="instructions-toggle" id="instructionsToggle" onclick="toggleInstructions()">
+                    <span class="instructions-toggle-arrow" id="instructionsToggleArrow">▾</span>
+                    <span class="instructions-toggle-label">Instructions</span>
+                </button>
                 <div class="progressive-instructions" id="progressiveInstructions">
                     <div class="instruction-step active" data-step="initial">
                         <span class="instruction-step-num">1</span>
-                        <span class="instruction-step-text">Upload an image to get started. (Won't work for photographs)</span>
+                        <span class="instruction-step-text">Upload an image to get started.</span>
                     </div>
                     <div class="instruction-step" data-step="image-loaded">
                     <span class="instruction-step-num">2</span>
@@ -109,16 +47,20 @@
                     <div class="instruction-reassurance">Don't worry about using all the features displayed — pick colors, choose new ones, and recolor. The rest is optional polish.</div>
                 </div>
                 <div class="instruction-step" data-step="target-selection">
-                    <span class="instruction-step-num" id="targetStepNum">4</span>
-                    <span class="instruction-step-text" id="targetStepText">Time to choose your new colors — there's LOTS of ways to do this! Hit <span class="btn-highlight">Apply this recolor</span> when you're done, or just turn on <span class="btn-highlight">Recolor Live</span> to have the preview update whenever you make a change.</span>
+                    <span class="instruction-step-num">4</span>
+                    <span class="instruction-step-text">Time to choose your new colors — there's LOTS of ways to do this! Hit <span class="btn-highlight">Apply this recolor</span> when you're done, or just turn on <span class="btn-highlight">Recolor Live</span> to have the preview update whenever you make a change.</span>
                     <div class="instruction-hints">
+                        <span class="instruction-hint instruction-hint-heading">Options</span>
+                        <span class="instruction-hint"><strong>🎨 Color Picker</strong> — this is the most direct control. Click the palette button under each target swatch.</span>
+                        <span class="instruction-hint"><strong><svg class="hint-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="2.2" fill="#e74c3c" stroke="none"/><circle cx="17.6" cy="9.5" r="2.2" fill="#f39c12" stroke="none"/><circle cx="16" cy="16" r="2.2" fill="#2ecc71" stroke="none"/><circle cx="8" cy="16" r="2.2" fill="#3498db" stroke="none"/><circle cx="6.4" cy="9.5" r="2.2" fill="#9b59b6" stroke="none"/></svg> Color Harmony</strong> — generate harmonious palettes. Also available as a quick overlay on the image.</span>
+                        <span class="instruction-hint"><strong><img class="hint-icon-img" src="https://cdn-icons-png.flaticon.com/128/5436/5436922.png" width="14" height="14" alt="Adobe"> Adobe Color</strong> — paste a CSS export from color.adobe.com.</span>
                         <span class="instruction-hint instruction-hint-heading">You're gonna need this</span>
-                        <span class="instruction-hint"><strong>🔒 Lock/Bypass</strong> — keep a column's origin colors unchanged. Click the lock icon under each target swatch. <strong>I recommend locking out your background for good measure.</strong></span>
-                        <span class="instruction-hint instruction-hint-heading instruction-hint-fancy">Fancy Stuff</span>
-                        <span class="instruction-hint instruction-hint-fancy"><strong><svg class="hint-icon-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> Opacity</strong> — differentiate how origins of the same category apply their target color. Click the droplet icon under a target swatch, or on individual origin swatches in the bucket panel.</span>
-                        <span class="instruction-hint instruction-hint-fancy"><strong>☀️ Luminosity</strong> — post-processing brightness adjustment (respects locks).</span>
-                        <span class="instruction-hint instruction-hint-fancy"><strong>🔀 Shuffle</strong> — randomize your target swatches to experiment.</span>
-                        <span class="instruction-hint instruction-hint-fancy"><strong>Simple / Advanced</strong> — switch between nearest-neighbor and RBF interpolation.</span>
+                        <span class="instruction-hint"><strong>🔒 Lock/Bypass</strong> — keep a column's origin colors unchanged. Click the lock icon under each target swatch.</span>
+                        <span class="instruction-hint instruction-hint-heading">Fancy Stuff</span>
+                        <span class="instruction-hint"><strong><svg class="hint-icon-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> Opacity</strong> — differentiate how origins of the same category apply their target color. Click the droplet icon under a target swatch, or on individual origin swatches in the bucket panel.</span>
+                        <span class="instruction-hint"><strong>☀️ Luminosity</strong> — post-processing brightness adjustment (respects locks).</span>
+                        <span class="instruction-hint"><strong>🔀 Shuffle</strong> — randomize your target swatches to experiment.</span>
+                        <span class="instruction-hint"><strong>Simple / Advanced</strong> — switch between nearest-neighbor and RBF interpolation.</span>
                     </div>
                     <div class="instruction-reassurance">Don't worry about using all the features displayed — pick colors, choose new ones, and recolor. The rest is optional polish.</div>
                 </div>
@@ -158,34 +100,7 @@
 
                 <!-- Color tolerance and color strips MOVED to Color Analysis box -->
 
-                <!-- Tutorial panel for color picker (sits above canvas, pushes image down) -->
-                <div class="tutorial-panel hidden" id="tutorialOverlay">
-                    <div class="tutorial-content">
-                        <div class="tutorial-left">
-                            <div class="tutorial-text" id="tutorialText"></div>
-                            <div class="tutorial-hints">
-                                <span class="tutorial-hint-item tutorial-shift-hint">Double-tap Shift to advance to the next color category</span>
-                                <span class="tutorial-hint-item">When zoomed: Hold ⌥ + drag to explore</span>
-                            </div>
-                        </div>
-                        <div class="tutorial-right" id="tutorialRight">
-                            <!-- Populated by JS: shift hint, picking-for, swatches, clear, orange-label hint -->
-                        </div>
-                    </div>
-                    <div class="tutorial-bottom-row">
-                        <div class="tutorial-bottom-left">
-                            <button class="tutorial-hide-btn" id="tutorialHideBtn" onclick="collapseTutorial()">Hide Tutorial</button>
-                            <span class="tutorial-hint-item tutorial-ctrl-hint">Hit Ctrl to temporarily hide</span>
-                        </div>
-                        <div class="tutorial-buttons-right">
-                            <button class="tutorial-finish-btn hidden" id="tutorialFinishBtn" onclick="applyPickedAsOriginal()">That's all my colors, let's move on!</button>
-                            <button class="tutorial-next-btn" id="tutorialNextBtn" onclick="tutorialNextStep()">Next Color</button>
-                        </div>
-                    </div>
-                </div>
                 <div class="canvas-wrapper" id="canvasWrapper">
-                    <!-- Tutorial collapsed tab — absolutely positioned, hangs down from top edge -->
-                    <div class="tutorial-tab hidden" id="tutorialTab" onclick="expandTutorial()">Tutorial</div>
                     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
                         <div class="step-circle">1</div>
                         <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
@@ -219,25 +134,22 @@
                                     <div class="quick-harmony-mode-switch" id="quickModeSwitch" onclick="toggleHarmonyMode()"></div>
                                     <span class="quick-harmony-mode-label" id="quickModeColorLabel" onclick="setHarmonyMode('color')">Color</span>
                                 </div>
-                                <div class="quick-harmony-controls-wrapper">
-                                    <!-- Lock a Harmony controls -->
-                                    <div class="quick-harmony-controls" id="quickHarmonyControls">
-                                        <select class="quick-harmony-select" id="quickHarmonyType" onchange="syncHarmonySelects(this.value)">
-                                            <option value="complementary">Complementary</option>
-                                            <option value="analogous">Analogous</option>
-                                            <option value="triadic">Triadic</option>
-                                            <option value="split">Split-Comp</option>
-                                            <option value="tetradic">Tetradic</option>
-                                        </select>
-                                        <button class="btn btn-small quick-harmony-btn" onclick="quickRandomizeHarmony()" title="Random base hue + selected harmony">🎲 Randomize</button>
-                                        <button class="btn btn-small quick-harmony-btn" onclick="quickGenerateHarmony()" title="Generate from slider settings">🎨 Generate</button>
-                                        <button class="btn btn-small quick-harmony-btn" onclick="harmonizePalette()" title="Nudge existing target colors toward this harmony">↗ Nudge <span class="harmony-nudge-swatch" id="quickNudgeSwatch" title="Based on selected target"></span></button>
-                                    </div>
-                                    <!-- Lock a Color controls -->
-                                    <div class="quick-harmony-controls hidden" id="quickColorControls">
-                                        <div class="quick-lock-color-select-wrapper" id="quickLockColorSelectWrapper"></div>
-                                        <button class="btn btn-small quick-harmony-btn" onclick="randomizeLockColor()" title="Randomize around locked color">🎲 Randomize</button>
-                                    </div>
+                                <!-- Lock a Harmony controls -->
+                                <div class="quick-harmony-controls" id="quickHarmonyControls">
+                                    <select class="quick-harmony-select" id="quickHarmonyType" onchange="syncHarmonySelects(this.value)">
+                                        <option value="complementary">Complementary</option>
+                                        <option value="analogous">Analogous</option>
+                                        <option value="triadic">Triadic</option>
+                                        <option value="split">Split-Comp</option>
+                                        <option value="tetradic">Tetradic</option>
+                                    </select>
+                                    <button class="btn btn-small quick-harmony-btn" onclick="quickRandomizeHarmony()" title="Generate Random Palette">🎲 Generate</button>
+                                    <button class="btn btn-small quick-harmony-btn" onclick="harmonizePalette()" title="Nudge existing target colors toward this harmony">↗ Nudge</button>
+                                </div>
+                                <!-- Lock a Color controls -->
+                                <div class="quick-harmony-controls hidden" id="quickColorControls">
+                                    <div class="quick-lock-color-select-wrapper" id="quickLockColorSelectWrapper"></div>
+                                    <button class="btn btn-small quick-harmony-btn" onclick="randomizeLockColor()" title="Randomize around locked color">🎲 Randomize</button>
                                 </div>
                                 <div class="quick-harmony-result hidden" id="quickHarmonyResult"></div>
                             </div>
@@ -254,6 +166,31 @@
                             </button>
                         </div>
                     </div>
+                    <!-- Tutorial overlay for color picker -->
+                    <div class="tutorial-overlay hidden" id="tutorialOverlay">
+                        <div class="tutorial-content">
+                            <div class="tutorial-left">
+                                <div class="tutorial-text" id="tutorialText"></div>
+                                <div class="tutorial-hints">
+                                    <span class="tutorial-hint-item tutorial-ctrl-hint">Hit Ctrl to temporarily hide this menu</span>
+                                    <span class="tutorial-hint-item">Change a color's category by clicking its <span style="color:#e08530;font-weight:600;">orange label</span></span>
+                                    <span class="tutorial-hint-item">When zoomed: Hold ⌥ + drag to explore</span>
+                                </div>
+                            </div>
+                            <div class="tutorial-right" id="tutorialRight">
+                                <!-- Picking For box, selected colors list, and clear will be mirrored here -->
+                            </div>
+                        </div>
+                        <div class="tutorial-bottom-row">
+                            <button class="tutorial-hide-btn" id="tutorialHideBtn" onclick="collapseTutorial()">Hide Tutorial</button>
+                            <div class="tutorial-buttons-right">
+                                <button class="tutorial-finish-btn hidden" id="tutorialFinishBtn" onclick="applyPickedAsOriginal()">That's all my colors, let's move on!</button>
+                                <button class="tutorial-next-btn" id="tutorialNextBtn" onclick="tutorialNextStep()">Next Color</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tutorial collapsed tab -->
+                    <div class="tutorial-tab hidden" id="tutorialTab" onclick="expandTutorial()">Tutorial</div>
 
                     <!-- Picker overlay -->
                     <div class="picker-overlay hidden" id="pickerOverlay">
@@ -305,20 +242,6 @@
                         <div class="tool-legend-item">
                             <span class="tool-legend-emoji">⟲</span>
                             <span class="tool-legend-desc"><strong>Reset View</strong> — Resets zoom, pan, and image viewing area height</span>
-                        </div>
-                        <div class="tool-legend-divider"></div>
-                        <div class="tool-legend-subtitle">Fancy Stuff</div>
-                        <div class="tool-legend-item">
-                            <span class="tool-legend-emoji"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
-                            <span class="tool-legend-desc"><strong>Opacity</strong> — Differentiate how origins of the same category apply their target color. Click the droplet icon under a target swatch, or on individual origin swatches.</span>
-                        </div>
-                        <div class="tool-legend-item">
-                            <span class="tool-legend-emoji">☀️</span>
-                            <span class="tool-legend-desc"><strong>Luminosity</strong> — Post-processing brightness adjustment (respects locks)</span>
-                        </div>
-                        <div class="tool-legend-item">
-                            <span class="tool-legend-emoji">⚙️</span>
-                            <span class="tool-legend-desc"><strong>Simple / Advanced</strong> — Switch between nearest-neighbor and RBF interpolation algorithms</span>
                         </div>
                     </div>
                 </div>
@@ -487,28 +410,17 @@
                         Choose your target colors manually above or use the tools below.
                     </div>
 
-                    <!-- Direct Color Picker section (Beginner mode only) -->
-                    <details class="target-tool-section direct-picker-section" id="directPickerSection" ontoggle="handleDirectPickerToggle(this)">
-                        <summary class="target-tool-summary">🎨 Direct Color Picker (Most control)</summary>
-                        <div class="target-tool-content">
-                            <div class="direct-picker-content">
-                                <span class="direct-picker-icon">🎨</span>
-                                <span class="direct-picker-text">Click each Target swatch's palette icon to directly determine its color.</span>
-                            </div>
-                        </div>
-                    </details>
-
                     <!-- I. Import Theme From Adobe Color (collapsible) -->
                     <details class="target-tool-section">
                         <summary class="target-tool-summary"><img class="tool-summary-icon" src="https://cdn-icons-png.flaticon.com/128/5436/5436922.png" width="16" height="16" alt="Adobe"> Import Theme From Adobe Color</summary>
                         <div class="target-tool-content">
                             <div class="adobe-section">
-                                <a class="adobe-color-link-top" href="https://color.adobe.com/create/color-wheel" target="_blank" rel="noopener noreferrer">Open Adobe Color →</a>
+                                <a class="adobe-color-link-top" href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a>
                                 <details class="adobe-instructions">
                                     <summary>How to get CSS from Adobe Color</summary>
                                     <div class="adobe-instructions-content">
                                         <ol>
-                                            <li><a href="https://color.adobe.com/create/color-wheel" target="_blank" rel="noopener noreferrer">Open Adobe Color →</a></li>
+                                            <li><a href="https://color.adobe.com/create/color-wheel" target="_blank">Open Adobe Color →</a></li>
                                             <li>Create or choose a theme</li>
                                             <li>Save it to your library</li>
                                             <li>Open the <strong>Libraries</strong> tab at the top</li>
@@ -677,11 +589,9 @@
                                     </div>
                                 </div>
 
-                                <div class="harmony-nudge-hint" id="harmonyNudgeHint">Select a target for Nudge: click a dot on the wheel or a target swatch above</div>
                                 <div class="harmony-wheel-container">
                                     <canvas id="harmonyWheelCanvas" width="100" height="100"></canvas>
                                 </div>
-                                <button class="btn btn-full btn-activate-minitool" id="activateMiniToolBtn" onclick="activateHarmonyMiniTool()">🎨 Activate Mini-tool!</button>
                             </div>
                         </div>
                     </details>
@@ -704,7 +614,7 @@
                         </button>
                         <label class="live-preview-toggle-below hidden" id="livePreviewToggleWrapper" title="Enable live preview updates">
                             <input type="checkbox" id="livePreviewToggle" onchange="toggleLivePreview(this.checked)">
-                            <span class="live-preview-label"><span class="step-circle step-circle-btn live-step-num" style="display:none;">4</span> Recolor Live</span>
+                            <span class="live-preview-label">Recolor Live</span>
                         </label>
                     </div>
 
@@ -775,16 +685,16 @@
         <footer class="site-footer">
             <h3>Credits</h3>
             <p>With thanks to original code referenced from the
-                <a href="https://recolor.cs.princeton.edu/demo/index.html" target="_blank" rel="noopener noreferrer">Princeton Recoloring Demo</a></p>
+                <a href="https://recolor.cs.princeton.edu/demo/index.html" target="_blank">Princeton Recoloring Demo</a></p>
             <p>Inspiration &amp; reference:</p>
             <ul class="credits-links">
-                <li><a href="https://github.com/ziap/repalette" target="_blank" rel="noopener noreferrer">github.com/ziap/repalette</a></li>
-                <li><a href="https://github.com/ashish0kumar/tint" target="_blank" rel="noopener noreferrer">github.com/ashish0kumar/tint</a></li>
-                <li><a href="https://github.com/rupareddy5/Palette-based-photo-recoloring" target="_blank" rel="noopener noreferrer">github.com/rupareddy5/Palette-based-photo-recoloring</a></li>
-                <li><a href="https://github.com/pipi3838/DIP_Final" target="_blank" rel="noopener noreferrer">github.com/pipi3838/DIP_Final</a></li>
-                <li><a href="https://github.com/danielgafni/repalette" target="_blank" rel="noopener noreferrer">github.com/danielgafni/repalette</a></li>
-                <li><a href="https://github.com/b-z/photo_recoloring" target="_blank" rel="noopener noreferrer">github.com/b-z/photo_recoloring</a></li>
-                <li><a href="https://www.realtimecolors.com/" target="_blank" rel="noopener noreferrer">realtimecolors.com</a></li>
+                <li><a href="https://github.com/ziap/repalette" target="_blank">github.com/ziap/repalette</a></li>
+                <li><a href="https://github.com/ashish0kumar/tint" target="_blank">github.com/ashish0kumar/tint</a></li>
+                <li><a href="https://github.com/rupareddy5/Palette-based-photo-recoloring" target="_blank">github.com/rupareddy5/Palette-based-photo-recoloring</a></li>
+                <li><a href="https://github.com/pipi3838/DIP_Final" target="_blank">github.com/pipi3838/DIP_Final</a></li>
+                <li><a href="https://github.com/danielgafni/repalette" target="_blank">github.com/danielgafni/repalette</a></li>
+                <li><a href="https://github.com/b-z/photo_recoloring" target="_blank">github.com/b-z/photo_recoloring</a></li>
+                <li><a href="https://www.realtimecolors.com/" target="_blank">realtimecolors.com</a></li>
             </ul>
         </footer>
     </div>

@@ -28,6 +28,57 @@ This document compiles all feature requests, bug fixes, and changes from past co
 | v27 | Feb 10 | Tutorial overlay system, panel renames, button renames, slider fix |
 | v28 | Feb 13 | Per-origin/target opacity, harmony controls rewrite, luminosity reset, revert removal |
 | v29 | Feb 13 | Synthetic background opacity layering, vertical opacity slider, cached fast recolor |
+| v30 | Feb 14 | WebGL direct display (Option A), GPU-accelerated rendering, 3-canvas architecture |
+| v31 | Feb 15 | Dual logo system, UI polish, tolerance default fix, header restructure |
+
+---
+
+## v31 Changes (February 15, 2026)
+
+### Header & Logo
+1. **Dual logo system** - Tall logo (3 rows of swatches, `logo_attempt8.svg`) shown on initial page load; compact short logo (2 rows, `logo_attempt9.svg`) replaces it once an image is uploaded. Reset restores tall logo. Both SVGs inlined with prefixed class names (`logo-c*` for tall, `logo-s*` for short).
+2. **Header restructure** - Logo and Beginner/Advanced toggle now share a top row (`.header-top-row` flex container). Logo left-justified, toggle right-aligned.
+3. **Larger mode toggle** - Switch increased from 32x16 to 44x22px, knob from 12 to 18px, label font from 0.72rem to 0.85rem.
+4. **Removed "(Not for photographs)" from logo** - Moved to instruction step 1 as "(Won't work for photographs)".
+5. **Reduced header vertical space** - Header margin-bottom 1.5rem to 1rem, padding-bottom 1rem to 0.5rem, top-row margin 0.5rem to 0.25rem.
+
+### Bug Fixes
+6. **Color consolidation Default button now applies** - `resetTolerance()` now calls `reExtractWithTolerance()` instead of just resetting the slider value, so hitting Default immediately re-extracts colors at tolerance 0.
+7. **Color consolidation slider infinite spinner** - Fixed `reExtractWithTolerance()` crashing after colors were already picked. Removed vestigial pre-picker code that overwrote `originalPalette`, `targetPalette`, `originToColumn`. Now only updates `fullColorDistribution` and analysis strips.
+8. **Instructions re-expand on beginner toggle** - Switching from Advanced back to Beginner now re-expands the instructions panel (removes `collapsed` class, resets arrow).
+9. **Page scroll position on reload** - `window.scrollTo(0, 0)` on DOMContentLoaded ensures page starts at top.
+
+### UI Polish
+10. **Target category labels repositioned** - Moved from below target swatches to above them (below origin collapsible). Changed from center-aligned to left-aligned.
+11. **Tool Reference panel updated** - Added "Fancy Stuff" section (advanced mode only) with Opacity, Luminosity, and Simple/Advanced entries. New `.tool-legend-divider` and `.tool-legend-subtitle` styles.
+12. **Opacity popup sizing** - Slider height 67px to 87px (30% taller), popup padding widened, input width 30px to 36px for 3-digit percentages.
+
+---
+
+## v30 Changes (February 14, 2026)
+
+### WebGL Direct Display (Option A)
+1. **GPU-accelerated recolor rendering** - Recolor algorithms (Simple and RBF) now run as WebGL fragment shaders, rendering directly to a visible `webglCanvas` at display resolution. No `readPixels` in the hot path. CPU sync only on demand (export, strip rebuild, luminosity).
+
+2. **Three-canvas architecture** - Hidden `canvas` (#imageCanvas, 2D context) holds original pixel data. `displayCanvas` (2D context) serves as CPU fallback. New `webglCanvas` (#webglDisplayCanvas, WebGL context) is the primary GPU-rendered display.
+
+3. **`renderWebGLToDisplay(type)`** - Core WebGL renderer. Sets webglCanvas to zoom-appropriate retina resolution using `devicePixelRatio`, renders cached shader uniforms, manages CSS sizing.
+
+4. **`syncWebGLToCPU()`** - Lazy readback for when CPU pixel data is needed. Re-renders at full image resolution, reads pixels via `readPixels`, flips Y (readPixels returns bottom-to-top), writes to hidden canvas. Re-renders display afterward.
+
+5. **Cached WebGL state** - Uniform locations (`_simpleUniformLocs`, `_rbfUniformLocs`), buffers (`_webglPositionBuffer`, `_webglTexCoordBuffer`), and image texture (`_webglImageTexture`) created once and reused.
+
+6. **Y-flip handling** - Vertex shader flips texture Y coordinate (`1.0 - a_texCoord.y`). `syncWebGLToCPU` does row-swap after `readPixels`.
+
+7. **Opacity fast path** - `recolorImageOpacityFast()` recalculates diffLab then calls `doRecolorSimpleWebGL()` which renders directly to display. No readPixels. Strip rebuild debounced 200ms.
+
+8. **Canvas visibility rules** - WebGL active: show webglCanvas, hide displayCanvas+canvas. CPU active: show displayCanvas, hide webglCanvas+canvas. Initial/reset: show displayCanvas.
+
+9. **`getVisibleCanvas()` helper** - Returns whichever canvas is currently visible (webgl > display > canvas) for coordinate mapping.
+
+10. **WebGL quality fixes** - CSS `image-rendering: high-quality` on webglCanvas. Uses `devicePixelRatio` instead of hardcoded `2` for retina. LINEAR filtering for image textures, NEAREST for LUT textures.
+
+11. **CPU fallback** - When WebGL unavailable, `_lastWebGLRenderType = null` and rendering falls back to `displayCanvas` with `drawImage()`.
 
 ---
 
@@ -300,5 +351,5 @@ Added a `uiStage` state machine tracking: `initial` → `image-loaded` → `colo
 
 ---
 
-*Last updated: February 13, 2026*
+*Last updated: February 15, 2026*
 *Compiled from Claude Code conversation history*
