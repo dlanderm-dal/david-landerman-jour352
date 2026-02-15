@@ -30,6 +30,32 @@ This document compiles all feature requests, bug fixes, and changes from past co
 | v29 | Feb 13 | Synthetic background opacity layering, vertical opacity slider, cached fast recolor |
 | v30 | Feb 14 | WebGL direct display (Option A), GPU-accelerated rendering, 3-canvas architecture |
 | v31 | Feb 15 | Dual logo system, UI polish, tolerance default fix, header restructure |
+| v32 | Feb 15 | Full-resolution rendering, distance-based attenuation, render log system, scroll fix |
+
+---
+
+## v32 Changes (February 15, 2026)
+
+### Full-Resolution Rendering Pipeline
+1. **Shader always renders at full image resolution** — `renderWebGLToDisplay()` now sets the WebGL framebuffer to `imgWidth × imgHeight` (the original image dimensions) instead of zoom-dependent display resolution. CSS `width/height` on `webglCanvas` handles display scaling. This eliminates cross-color contamination at text boundaries caused by GPU texture sampling during downscale.
+2. **Zoom changes are CSS-only** — `renderAtCurrentZoom()` WebGL path now just updates `webglCanvas.style.width/height` without re-invoking the shader. The full-res pixel buffer is already correct; only the CSS display size changes. This makes zoom instant.
+3. **CPU fallback full-res** — `renderAtCurrentZoom()` CPU path now renders `displayCanvas` at `imgWidth × imgHeight` with CSS scaling, matching the WebGL path behavior.
+4. **Simplified `syncWebGLToCPU()`** — Since the WebGL framebuffer is already at full image resolution, `readPixels` runs directly without a temporary re-render. Safety check re-renders only if dimensions mismatch.
+
+### Distance-Based Color Attenuation (Simple Mode)
+5. **Shader attenuation** — Added Gaussian attenuation to the Simple recolor fragment shader: `atten = exp(-minDist² / 1800.0)` where 1800 = 2×30². Pixels whose nearest palette color is beyond ~30 ΔE receive progressively weaker recolor shifts, leaving subtle grays, whites, and neutrals untouched.
+6. **CPU fallback attenuation** — Matching attenuation logic in `doRecolorSimpleCPU()` for consistency.
+
+### Initial Render Resolution Fix
+7. **`_resyncCSS` closure** — After `renderWebGLToDisplay()`, `requestAnimationFrame` + `setTimeout(250ms)` re-measures the wrapper and corrects `webglCanvas` CSS sizing. Fixes the "crappy resolution on initial load, fixed with zoom in/out" regression caused by measuring wrapper width before DOM reflow after canvas insertion.
+
+### Comprehensive Render Log System
+8. **~20 new log sources** — Added `debugLog` calls throughout the render pipeline: `[image-load]`, `[config-load]` (full config snapshot), `[config-repair]`, `[config-import]`, `[config-import-early]`, `[algorithm-switch]`, `[bypass-toggle]`, `[zoom-wheel]`, `[zoom-slider]`, `[zoom-reset]`, `[auto-recolor]`, `[live-preview]`, `[opacity-fast]` (cache hit/miss), `[sync-webgl-cpu]`, `[image-download]`, `[luminosity-apply]`, `[renderWebGL]`, `[renderAtZoom]`, `[renderAtZoom-CPU]`, `[resyncCSS]`.
+9. **Config snapshot on Record start** — `toggleDebugRecording()` logs current algorithm, palette size, image dimensions, WebGL state, zoom, and bypass state when recording begins.
+10. **Shader compilation error logging** — `compileShader()` and `createProgram()` now log `[shader-compile-error]` and `[shader-link-error]` to the render log, preventing silent fallback to CPU path.
+
+### Scroll Restoration
+11. **`history.scrollRestoration = 'manual'`** — Set before DOMContentLoaded to prevent browser from restoring previous scroll position on reload. Combined with `window.scrollTo(0, 0)` and `requestAnimationFrame` backup to guarantee page starts at top.
 
 ---
 
@@ -351,5 +377,5 @@ Added a `uiStage` state machine tracking: `initial` → `image-loaded` → `colo
 
 ---
 
-*Last updated: February 15, 2026*
+*Last updated: February 15, 2026 (v32)*
 *Compiled from Claude Code conversation history*

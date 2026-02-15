@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recolor Preview Tool</title>
 
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://cdn-icons-png.flaticon.com; connect-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://cdn-icons-png.flaticon.com; connect-src 'none';">
     <script src="numeric.min.js"></script>
     <script src="panzoom.min.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -321,6 +321,20 @@
                             <span class="tool-legend-desc"><strong>Simple / Advanced</strong> — Switch between nearest-neighbor and RBF interpolation algorithms</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Debug Console (always visible in advanced mode) -->
+                <div class="debug-console collapsed" id="debugConsole">
+                    <div class="debug-console-header" onclick="toggleDebugConsole()">
+                        <span class="debug-console-title">Render Log</span>
+                        <div class="debug-console-controls">
+                            <button class="debug-btn debug-btn-record" id="debugRecordBtn" onclick="event.stopPropagation(); toggleDebugRecording()" title="Paused"><span class="record-dot">&#9679;</span> Record</button>
+                            <button class="debug-btn debug-btn-clear" onclick="event.stopPropagation(); clearDebugLog()" title="Clear log">Clear</button>
+                            <button class="debug-btn debug-btn-copy" onclick="event.stopPropagation(); copyDebugLog()" title="Copy log">Copy</button>
+                            <span class="debug-collapse-arrow" id="debugCollapseArrow">&#9660;</span>
+                        </div>
+                    </div>
+                    <div class="debug-console-body" id="debugConsoleBody"><div class="log-entry"><span class="log-time">[—]</span> <span class="log-info">Waiting for render...</span></div></div>
                 </div>
             </div>
 

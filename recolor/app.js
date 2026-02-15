@@ -97,8 +97,73 @@ function rgbToHex(r, g, b) {
 // Matrix Operations
 // ============================================
 
+// Self-test numeric.js library on load
+(function() {
+    if (typeof numeric === 'undefined') {
+        console.error('[numeric self-test] numeric library not loaded at all!');
+        return;
+    }
+    var missing = [];
+    ['svd', 'dot', 'transpose', 'diag', 'clone', 'rep', 'epsilon'].forEach(function(fn) {
+        if (typeof numeric[fn] === 'undefined') missing.push(fn);
+    });
+    if (missing.length > 0) {
+        console.error('[numeric self-test] MISSING functions: ' + missing.join(', '));
+        console.error('[numeric self-test] Total keys: ' + Object.keys(numeric).length);
+    } else {
+        // Quick SVD smoke test with 2x2 identity
+        try {
+            var result = numeric.svd([[1, 0], [0, 1]]);
+            if (!result || !result.S || result.S.length !== 2) {
+                console.error('[numeric self-test] SVD returned unexpected result:', result);
+            } else {
+                console.log('[numeric self-test] OK — svd, dot, transpose, diag, clone, rep all present. SVD smoke test passed.');
+            }
+        } catch (e) {
+            console.error('[numeric self-test] SVD smoke test FAILED:', e.message || e);
+        }
+    }
+})();
+
 function pinv(A) {
-    var z = numeric.svd(A), foo = z.S[0];
+    if (typeof numeric === 'undefined') throw new Error('numeric library not loaded');
+    if (typeof numeric.svd !== 'function') {
+        var allKeys = Object.keys(numeric);
+        debugLog('numeric type: ' + typeof numeric, 'error');
+        debugLog('numeric.version: ' + (numeric.version || 'undefined'), 'error');
+        debugLog('total keys: ' + allKeys.length, 'error');
+        debugLog('all keys: ' + allKeys.join(', '), 'error');
+        debugLog('numeric.svd type: ' + typeof numeric.svd, 'error');
+        debugLog('has dot: ' + (typeof numeric.dot), 'error');
+        debugLog('has transpose: ' + (typeof numeric.transpose), 'error');
+        debugLog('has epsilon: ' + (typeof numeric.epsilon), 'error');
+        throw new Error('numeric.svd is ' + typeof numeric.svd + '. Library has ' + allKeys.length + ' keys (expected ~120+).');
+    }
+    // Validate matrix before passing to SVD
+    debugLog('pinv: matrix ' + A.length + 'x' + A[0].length + ', numeric.svd type=' + typeof numeric.svd);
+    var z;
+    try {
+        z = numeric.svd(A);
+    } catch (svdErr) {
+        debugLog('numeric.svd() internal error: ' + (svdErr.message || svdErr), 'error');
+        debugLog('numeric.svd type at call time: ' + typeof numeric.svd, 'error');
+        debugLog('numeric.clone type: ' + typeof numeric.clone, 'error');
+        debugLog('numeric.rep type: ' + typeof numeric.rep, 'error');
+        debugLog('numeric.epsilon: ' + numeric.epsilon, 'error');
+        debugLog('Matrix sample [0][0..2]: ' + (A[0] ? A[0].slice(0, 3).join(', ') : 'empty'), 'error');
+        // Check for NaN/Infinity in matrix
+        var hasNaN = false, hasInf = false;
+        for (var ri = 0; ri < A.length && !hasNaN && !hasInf; ri++) {
+            for (var ci = 0; ci < A[ri].length; ci++) {
+                if (isNaN(A[ri][ci])) { hasNaN = true; break; }
+                if (!isFinite(A[ri][ci])) { hasInf = true; break; }
+            }
+        }
+        if (hasNaN) debugLog('Matrix contains NaN values!', 'error');
+        if (hasInf) debugLog('Matrix contains Infinity values!', 'error');
+        throw svdErr;
+    }
+    var foo = z.S[0];
     var U = z.U, S = z.S, V = z.V;
     var m = A.length, n = A[0].length, tol = Math.max(m, n) * numeric.epsilon * foo, M = S.length;
     var Sinv = new Array(M);
@@ -241,7 +306,16 @@ const simpleRecolorFragmentSource = `
             }
         }
 
-        vec3 newLab = pixelLab + dLab;
+        // Distance-based attenuation: fade recolor shift for pixels far from
+        // all palette colors.  Pixels whose nearest palette colour is beyond
+        // ~30 ΔE receive a progressively weaker shift, leaving neutrals and
+        // subtle grays untouched.
+        float distSq  = minDist * minDist;
+        float sigma2  = 1800.0;               // 2 * 30^2
+        float atten   = exp(-distSq / sigma2);
+        vec3 attenuatedDLab = dLab * atten;
+
+        vec3 newLab = pixelLab + attenuatedDLab;
         vec3 newRgb = lab2rgb(newLab);
 
         // Apply luminosity
@@ -267,7 +341,7 @@ const rbfRecolorFragmentSource = `
     // Bypass correction: palette colors whose columns are locked/bypassed.
     // After the LUT lookup, pixels close to a bypassed color are blended back
     // toward their original value so the global RBF transform cannot bleed into them.
-    uniform vec3 u_bypassedRGB[20];  // up to 20 bypassed palette entries (RGB 0-1)
+    uniform vec3 u_bypassedRGB[20];
     uniform int  u_bypassedCount;
 
     void main() {
@@ -307,19 +381,13 @@ const rbfRecolorFragmentSource = `
         vec3 newRgb = mix(c0, c1, frac.x);
 
         // Bypass correction: blend back toward original for pixels near bypassed colors.
-        // Uses a Gaussian weight in RGB space — the closer the pixel is to a bypassed
-        // palette color, the more it keeps its original value.
         if (u_bypassedCount > 0) {
-            float maxKeep = 0.0;  // max "keep original" weight across all bypassed colors
+            float maxKeep = 0.0;
             for (int j = 0; j < 20; j++) {
                 if (j >= u_bypassedCount) break;
                 vec3 diff = texColor.rgb - u_bypassedRGB[j];
                 float d2 = dot(diff, diff);
                 // Gaussian falloff: sigma ~0.12 in 0-1 space (~30 in 0-255 space)
-                // At distance 0:    keep = 1.0  (fully original)
-                // At distance 0.12: keep ≈ 0.6
-                // At distance 0.24: keep ≈ 0.14
-                // At distance 0.35: keep ≈ 0.01
                 float keep = exp(-d2 / (2.0 * 0.12 * 0.12));
                 maxKeep = max(maxKeep, keep);
             }
@@ -399,7 +467,9 @@ function createWebGLProgram(gl, vertexSource, fragmentSource) {
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        console.error('Program link error:', gl.getProgramInfoLog(program));
+        const errMsg = gl.getProgramInfoLog(program);
+        console.error('Program link error:', errMsg);
+        debugLog(`[shader-link-error] ${errMsg}`, 'error');
         return null;
     }
 
@@ -412,7 +482,10 @@ function compileShader(gl, type, source) {
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+        const errMsg = gl.getShaderInfoLog(shader);
+        const shaderKind = (type === gl.VERTEX_SHADER) ? 'vertex' : 'fragment';
+        console.error('Shader compile error (' + shaderKind + '):', errMsg);
+        debugLog(`[shader-compile-error] ${shaderKind}: ${errMsg}`, 'error');
         gl.deleteShader(shader);
         return null;
     }
@@ -489,64 +562,21 @@ function invalidateImageTexture() {
 
 // Lazy sync: read WebGL pixels back to CPU-side imageData and 2D canvas.
 // Only called when something needs CPU pixel access (export, strip, luminosity).
+// Since renderWebGLToDisplay() always renders at full image resolution,
+// the framebuffer already contains the full-res result (preserveDrawingBuffer: true).
+// We just readPixels directly — no re-render needed.
 function syncWebGLToCPU() {
     if (!_webglDirty || !gl || !webglCanvas) return;
     const width = canvas.width;
     const height = canvas.height;
+    debugLog(`[sync-webgl-cpu] readback ${width}x${height}, dirty=${_webglDirty}`);
 
-    // Temporarily resize WebGL canvas to image dimensions for readback
-    const savedCSSWidth = webglCanvas.style.width;
-    const savedCSSHeight = webglCanvas.style.height;
-    const savedWidth = webglCanvas.width;
-    const savedHeight = webglCanvas.height;
-
-    // We need to re-render at image resolution for the readback
-    webglCanvas.width = width;
-    webglCanvas.height = height;
-    gl.viewport(0, 0, width, height);
-
-    // Re-render the last recolor at image resolution using cached uniform locations
-    if (_lastWebGLRenderType === 'simple' && _lastSimpleUniforms && _simpleUniformLocs) {
-        const u = _lastSimpleUniforms;
-        const loc = _simpleUniformLocs;
-        gl.useProgram(simpleRecolorProgram);
-        setupWebGLBuffers(gl, simpleRecolorProgram);
-        const tex = ensureImageTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(loc.u_image, 0);
-        gl.uniform3fv(loc.u_oldLab, u.oldLabFlat);
-        gl.uniform3fv(loc.u_diffLab, u.diffLabFlat);
-        gl.uniform1i(loc.u_paletteSize, u.k);
-        gl.uniform1f(loc.u_blendSharpness, 2.0);
-        gl.uniform1f(loc.u_luminosity, u.luminosity);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-    } else if (_lastWebGLRenderType === 'rbf' && _lastRBFUniforms && _rbfUniformLocs) {
-        const u = _lastRBFUniforms;
-        const loc = _rbfUniformLocs;
-        gl.useProgram(rbfRecolorProgram);
-        setupWebGLBuffers(gl, rbfRecolorProgram);
-        const tex = ensureImageTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(loc.u_image, 0);
-        // Re-create LUT texture
-        const lutTexture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
-        gl.uniform1i(loc.u_lut, 1);
-        gl.uniform1f(loc.u_lutSize, u.lutSize);
-        gl.uniform1f(loc.u_luminosity, u.luminosity);
-        // Bypass correction uniforms
-        gl.uniform3fv(loc.u_bypassedRGB, u.bypassedFlat || new Float32Array(60));
-        gl.uniform1i(loc.u_bypassedCount, u.bypassedCount || 0);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-        gl.deleteTexture(lutTexture);
+    // Safety check: if webglCanvas dimensions don't match image dimensions
+    // (shouldn't happen now that we always render at full res, but just in case),
+    // force a re-render at correct resolution.
+    if (webglCanvas.width !== width || webglCanvas.height !== height) {
+        console.warn('syncWebGLToCPU: canvas dimensions mismatch, re-rendering at full res');
+        renderWebGLToDisplay(_lastWebGLRenderType);
     }
 
     // Read pixels back — readPixels always returns bottom-to-top row order,
@@ -572,20 +602,8 @@ function syncWebGLToCPU() {
 
     _webglDirty = false;
 
-    // Re-render the WebGL canvas at display resolution (resizing cleared the framebuffer).
-    // Only needed if the webglCanvas is currently visible (i.e., we're in WebGL display mode).
-    if (webglCanvas.style.display !== 'none' && webglCanvas.parentNode && _lastWebGLRenderType) {
-        renderWebGLToDisplay(_lastWebGLRenderType);
-    } else {
-        // Not currently displaying WebGL — just restore buffer dimensions
-        webglCanvas.width = savedWidth;
-        webglCanvas.height = savedHeight;
-        webglCanvas.style.width = savedCSSWidth;
-        webglCanvas.style.height = savedCSSHeight;
-        if (savedWidth > 0 && savedHeight > 0) {
-            gl.viewport(0, 0, savedWidth, savedHeight);
-        }
-    }
+    // No need to re-render — the framebuffer is preserved (preserveDrawingBuffer: true)
+    // and is still at full image resolution. CSS sizing is unchanged.
 
     console.log('syncWebGLToCPU: pixels synced to CPU');
 }
@@ -937,9 +955,15 @@ function updateStickyOverlays() {
 // Initialization
 // ============================================
 
+// Disable browser's automatic scroll restoration on reload
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Scroll to top on page load/reload
+    // Scroll to top on page load/reload (immediate + deferred to override any browser restore)
     window.scrollTo(0, 0);
+    requestAnimationFrame(() => window.scrollTo(0, 0));
 
     // Initialize mode toggle UI
     setAppMode('beginner');
@@ -1248,6 +1272,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 wrapper.classList.add('zoomed', 'can-pan');
             }
 
+            debugLog(`[zoom-wheel] ${oldZoom.toFixed(2)} → ${newZoom.toFixed(2)}`);
+
             if (newZoom <= 1) {
                 // At 1x — reset pan but DON'T tear down zoomed layout yet.
                 // Layout teardown is deferred so zooming back in is seamless.
@@ -1384,6 +1410,7 @@ function loadImage(img) {
 
     let width = img.width;
     let height = img.height;
+    debugLog(`[image-load] ${width}x${height}, file=${originalFileName || 'unknown'}`);
 
     canvas.width = width;
     canvas.height = height;
@@ -2171,6 +2198,7 @@ function renderColumnMapping() {
 
 function toggleColumnBypass(colIdx) {
     columnBypass[colIdx] = !columnBypass[colIdx];
+    debugLog(`[bypass-toggle] col=${colIdx} → ${columnBypass[colIdx] ? 'LOCKED' : 'unlocked'}`);
     renderColumnMapping();
     if (livePreviewEnabled) {
         autoRecolorImage();
@@ -3044,8 +3072,10 @@ function autoRecolorImage() {
     }
     // Only auto-recolor if live preview is enabled
     if (!livePreviewEnabled) {
+        debugLog('[auto-recolor] skipped — live preview OFF');
         return;
     }
+    debugLog('[auto-recolor] triggered, invalidating opacity cache');
     // Invalidate opacity cache — palette/mapping changed, need full recompute
     _opacityCache = null;
     // Silently recolor without loading UI (but still async for UI responsiveness)
@@ -3078,6 +3108,7 @@ function autoRecolorOpacityOnly() {
 }
 
 function toggleLivePreview(enabled) {
+    debugLog(`[live-preview] ${enabled ? 'ON' : 'OFF'}`);
     livePreviewEnabled = enabled;
     const applyBtn = document.getElementById('applyRecolorBtn');
     const applyText = document.getElementById('applyRecolorText');
@@ -3113,14 +3144,23 @@ function recolorImage() {
     const width = canvas.width;
     const height = canvas.height;
     const k = originalPalette.length;
-    
+
     if (k === 0) return;
-    
+
     showLoading();
-    
+    debugRenderStart();
+
     // Use setTimeout to let the loading indicator render
     setTimeout(() => {
-        doRecolorImage();
+        try {
+            doRecolorImage();
+            debugRenderEnd(true);
+        } catch (e) {
+            console.error('Recolor failed:', e);
+            debugLog('EXCEPTION: ' + (e.message || e), 'error');
+            debugRenderEnd(false);
+            setStatus('Recolor failed — try a different algorithm or palette');
+        }
         hideLoading();
     }, 50);
 }
@@ -3135,10 +3175,12 @@ function recolorImageOpacityFast() {
     // Build or reuse cache of full-opacity target LAB values
     if (!_opacityCache || _opacityCache.k !== k || _opacityCache.algorithm !== selectedAlgorithm) {
         // Cache miss — need full recolor first to populate cache
+        debugLog(`[opacity-fast] cache MISS (k=${k}, algo=${selectedAlgorithm}), falling back to full recolor`);
         recolorImage();
         return;
     }
 
+    debugLog(`[opacity-fast] cache HIT, algo=${selectedAlgorithm}`);
     const { oldLab, fullTargetLab, bgLab } = _opacityCache;
 
     // Recompute newLab with current opacity values (instant — just array math)
@@ -3198,6 +3240,7 @@ function recolorImageOpacityFast() {
 
 function doRecolorImage() {
     // Dispatch to selected algorithm
+    debugLog('doRecolorImage() dispatching to: ' + selectedAlgorithm);
     if (selectedAlgorithm === 'rbf') {
         doRecolorRBF();
     } else {
@@ -3250,6 +3293,7 @@ function doRecolorSimple() {
     const k = originalPalette.length;
 
     if (k === 0) return;
+    debugLog('doRecolorSimple() — k=' + k + ', image=' + width + 'x' + height);
 
     const oldLab = originalPalette.map(c => RGB2LAB(c));
     const newLab = [];
@@ -3371,18 +3415,18 @@ function renderWebGLToDisplay(type) {
     // Guard: mid-layout-transition
     if (baseWidth < 1 || baseHeight < 1) return;
 
+    // Always render at full image resolution so the shader processes every
+    // source pixel without downsampling.  CSS sizing handles display scaling.
+    // This prevents cross-color bleed at text edges and fine detail boundaries.
+    const renderWidth = imgWidth;
+    const renderHeight = imgHeight;
+
     // Display size on screen = base * zoom
     const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
     const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
 
-    // Render at device pixel density, capped at original image size.
-    // Use devicePixelRatio so retina/HiDPI displays get native-resolution rendering.
-    const dpr = window.devicePixelRatio || 1;
-    const scaleFactor = Math.min(dpr, imgWidth / displayWidth, imgHeight / displayHeight);
-    const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
-    const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
-
-    // Set WebGL canvas pixel buffer
+    // Set WebGL canvas pixel buffer to full image resolution
+    debugLog(`[renderWebGL] pixels=${renderWidth}x${renderHeight}, css=${displayWidth}x${displayHeight}, wrapper=${baseWidth.toFixed(0)}x${baseHeight.toFixed(0)}, zoom=${zoomLevel}`);
     webglCanvas.width = renderWidth;
     webglCanvas.height = renderHeight;
     gl.viewport(0, 0, renderWidth, renderHeight);
@@ -3431,7 +3475,7 @@ function renderWebGLToDisplay(type) {
         gl.deleteTexture(lutTexture);
     }
 
-    // CSS size = actual zoomed display size
+    // CSS size = actual zoomed display size (browser scales down from full-res pixel buffer)
     webglCanvas.style.width = displayWidth + 'px';
     webglCanvas.style.height = displayHeight + 'px';
     webglCanvas.style.transform = 'scale(1)';
@@ -3443,12 +3487,40 @@ function renderWebGLToDisplay(type) {
 
     // Show WebGL canvas, hide both CPU canvases
     const canvasInner = document.getElementById('canvasInner');
-    if (canvasInner && !webglCanvas.parentNode) {
+    const firstInsertion = canvasInner && !webglCanvas.parentNode;
+    if (firstInsertion) {
         canvasInner.insertBefore(webglCanvas, canvas);
     }
     webglCanvas.style.display = 'block';
     if (displayCanvas) displayCanvas.style.display = 'none';
     canvas.style.display = 'none';
+
+    // After DOM changes (canvas swap, sidebar reveal, etc.), the wrapper may
+    // reflow to a different size.  Re-measure and correct CSS sizing once
+    // the layout has settled — both immediately after paint and after a short
+    // delay for sidebar transitions.
+    const _resyncCSS = () => {
+        if (!webglCanvas || webglCanvas.style.display === 'none') return;
+        const w = document.getElementById('canvasWrapper');
+        if (!w) return;
+        const rect = w.getBoundingClientRect();
+        const bw = rect.width;
+        const bh = bw / (imgWidth / imgHeight);
+        if (bw < 1 || bh < 1) return;
+        const dw = Math.max(1, Math.round(bw * zoomLevel));
+        const dh = Math.max(1, Math.round(bh * zoomLevel));
+        if (webglCanvas.style.width !== dw + 'px' || webglCanvas.style.height !== dh + 'px') {
+            debugLog(`[resyncCSS] correcting css ${webglCanvas.style.width}x${webglCanvas.style.height} → ${dw}x${dh}, wrapper=${bw.toFixed(0)}`, 'warn');
+            webglCanvas.style.width = dw + 'px';
+            webglCanvas.style.height = dh + 'px';
+            baseDisplayWidth = dw;
+            baseDisplayHeight = dh;
+        }
+    };
+    // Next frame (catches immediate reflows from canvas swap)
+    requestAnimationFrame(_resyncCSS);
+    // Deferred (catches sidebar/panel transitions that settle after the swap)
+    setTimeout(_resyncCSS, 250);
 }
 
 // Deferred strip rebuild — syncs CPU pixels then rebuilds the strip.
@@ -3506,6 +3578,13 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
             }
         }
 
+        // Distance-based attenuation: match the WebGL shader —
+        // fade recolor shift for pixels far from all palette colors
+        const distAtten = Math.exp(-(minDist * minDist) / 1800);  // 1800 = 2 * 30^2
+        dL *= distAtten;
+        dA *= distAtten;
+        dB *= distAtten;
+
         const newPixelLab = [
             pixelLab[0] + dL,
             pixelLab[1] + dA,
@@ -3549,6 +3628,23 @@ function doRecolorRBF() {
 
     if (k === 0) return;
 
+    debugLog('doRecolorRBF() called — k=' + k + ', ngrid=' + ngrid + ', image=' + width + 'x' + height);
+
+    // Wrap entire RBF computation — if anything fails, fall back to Simple
+    try {
+        return _doRecolorRBFInner(RBF_param_coff, ngrid, width, height, k);
+    } catch (e) {
+        console.error('RBF recolor failed, falling back to Simple:', e);
+        debugLog('RBF EXCEPTION: ' + (e.message || e), 'error');
+        debugLog('Falling back to Simple algorithm', 'warn');
+        setStatus('RBF failed — using Simple algorithm instead');
+        doRecolorSimple();
+    }
+}
+
+function _doRecolorRBFInner(RBF_param_coff, ngrid, width, height, k) {
+
+    debugLog('Building LAB grid (' + ((ngrid+1)**3) + ' entries)...');
     // Build LAB grid (this is fast - only 1331 entries)
     const gridSize = (ngrid + 1) ** 3;
     const gridLab = [];
@@ -3628,6 +3724,7 @@ function doRecolorRBF() {
     const avgDist = cnt > 0 ? totDist / cnt : 1;
     const param = RBF_param_coff / (avgDist * avgDist);
 
+    debugLog('LAB grid built. Building RBF matrix (' + k + 'x' + k + ')...');
     // Build RBF matrix
     const rbfMatrix = [];
     for (let i = 0; i < k; i++) {
@@ -3640,9 +3737,91 @@ function doRecolorRBF() {
         }
     }
 
-    const rbfInv = pinv(rbfMatrix);
+    debugLog('RBF matrix built. Checking for degenerate palette...');
+    // Check for degenerate palette (duplicate/near-duplicate origins cause SVD to hang)
+    for (let i = 0; i < k; i++) {
+        for (let j = i + 1; j < k; j++) {
+            const d2 = Math.pow(oldLab[i][0] - oldLab[j][0], 2) +
+                       Math.pow(oldLab[i][1] - oldLab[j][1], 2) +
+                       Math.pow(oldLab[i][2] - oldLab[j][2], 2);
+            if (d2 < 1.0) {
+                // Near-duplicate origins — RBF matrix will be singular
+                debugLog('Near-duplicate palette colors at indices ' + i + ',' + j + ' (dist²=' + d2.toFixed(4) + ') — falling back to Simple', 'warn');
+                console.warn('RBF: near-duplicate palette colors detected, falling back to Simple');
+                setStatus('RBF unavailable — palette has near-duplicate colors. Using Simple.');
+                doRecolorSimple();
+                return;
+            }
+        }
+    }
 
-    // Calculate grid transformation (CPU - fast for 1331 entries)
+    // Tikhonov regularization: add small epsilon to diagonal to ensure
+    // the matrix is well-conditioned and numeric.svd converges reliably.
+    // Without this, near-singular matrices can cause SVD to hang in an infinite loop.
+    const regularizationEpsilon = 1e-6;
+    for (let i = 0; i < k; i++) {
+        rbfMatrix[i][i] += regularizationEpsilon;
+    }
+    debugLog('Matrix regularized (eps=' + regularizationEpsilon + '). Computing pinv (SVD) for ' + k + 'x' + k + ' matrix...');
+
+    // Validate matrix before SVD
+    let matrixHasNaN = false, matrixHasInf = false;
+    for (let mi = 0; mi < k && !matrixHasNaN && !matrixHasInf; mi++) {
+        for (let mj = 0; mj < k; mj++) {
+            if (isNaN(rbfMatrix[mi][mj])) { matrixHasNaN = true; break; }
+            if (!isFinite(rbfMatrix[mi][mj])) { matrixHasInf = true; break; }
+        }
+    }
+    if (matrixHasNaN || matrixHasInf) {
+        debugLog('RBF matrix contains ' + (matrixHasNaN ? 'NaN' : 'Infinity') + ' — cannot compute SVD', 'error');
+        debugLog('avgDist=' + avgDist + ', param=' + param, 'error');
+        debugLog('Diagonal sample: ' + rbfMatrix.slice(0, 4).map((r, i) => r[i].toString()).join(', '), 'error');
+        console.error('RBF matrix has invalid values, falling back to Simple');
+        setStatus('RBF failed — matrix has invalid values. Using Simple.');
+        doRecolorSimple();
+        return;
+    }
+
+    debugLog('Matrix validated OK. Diagonal[0]=' + rbfMatrix[0][0].toFixed(6) + ', off-diag sample=' + rbfMatrix[0][1].toFixed(6));
+
+    let rbfInv;
+    try {
+        rbfInv = pinv(rbfMatrix);
+    } catch (e) {
+        debugLog('pinv/SVD threw exception: ' + (e.message || e), 'error');
+        debugLog('Exception stack: ' + (e.stack ? e.stack.split('\\n').slice(0, 3).join(' | ') : 'no stack'), 'error');
+
+        // Retry with stronger regularization before giving up
+        const retryEpsilon = 1e-3;
+        debugLog('Retrying SVD with stronger regularization (eps=' + retryEpsilon + ')...', 'warn');
+        for (let ri = 0; ri < k; ri++) {
+            rbfMatrix[ri][ri] += retryEpsilon - regularizationEpsilon;
+        }
+        try {
+            rbfInv = pinv(rbfMatrix);
+            debugLog('SVD succeeded with stronger regularization', 'info');
+        } catch (e2) {
+            debugLog('SVD retry also failed: ' + (e2.message || e2), 'error');
+            console.error('RBF matrix inversion failed (SVD error), falling back to Simple:', e2);
+            setStatus('RBF failed for this palette — using Simple algorithm instead');
+            doRecolorSimple();
+            return;
+        }
+    }
+
+    debugLog('pinv returned. Validating result...');
+    // Verify pinv result is valid (not NaN)
+    if (!rbfInv || !rbfInv[0] || isNaN(rbfInv[0][0])) {
+        debugLog('pinv result is NaN — matrix is ill-conditioned', 'error');
+        console.error('RBF matrix inversion produced NaN, falling back to Simple');
+        setStatus('RBF failed for this palette — using Simple algorithm instead');
+        doRecolorSimple();
+        return;
+    }
+
+    debugLog('pinv completed successfully. Computing grid transformation (' + gridSize + ' entries)...');
+
+    // Calculate grid transformation (CPU - fast for 4913 entries)
     const gridRGB = [];
     for (let i = 0; i < gridSize; i++) {
         const vsrc = gridLab[i];
@@ -3702,14 +3881,18 @@ function doRecolorRBF() {
         }
     }
 
+    debugLog('Grid transformation complete. Starting per-pixel recolor...');
     // Try WebGL for the per-pixel trilinear interpolation (the slow part)
     if (initWebGL() && doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRGB)) {
+        debugLog('WebGL RBF render complete');
         return;
     }
 
     // CPU fallback
+    debugLog('WebGL unavailable, using CPU fallback for RBF recolor', 'warn');
     console.log('Using CPU fallback for RBF recolor');
     doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB);
+    debugLog('CPU RBF render complete');
 }
 
 // WebGL implementation of RBF recolor (trilinear interpolation on GPU)
@@ -4597,6 +4780,7 @@ function revealFullUI() {
 // ============================================
 
 function resetZoom() {
+    debugLog(`[zoom-reset] from ${zoomLevel.toFixed(2)} → 1.00`);
     zoomLevel = 1;
     panX = 0;
     panY = 0;
@@ -4636,6 +4820,7 @@ function resetZoom() {
 function setZoomFromSlider(value) {
     let newZoom = Math.max(1, Math.min(4, parseInt(value) / 100));
     const oldZoom = zoomLevel;
+    debugLog(`[zoom-slider] ${oldZoom.toFixed(2)} → ${newZoom.toFixed(2)}`);
     const wrapper = document.getElementById('canvasWrapper');
 
     // Snap to exactly 1x if close
@@ -4821,17 +5006,19 @@ function updateDisplayCanvas() {
         }
     }
 
-    // If WebGL is active with cached uniforms, re-render directly on GPU
+    // If WebGL is active with cached uniforms, just update CSS sizing.
+    // The pixel buffer is always at full image resolution — no re-render needed on zoom.
     if (webglInitialized && _lastWebGLRenderType) {
-        // Use CSS scale on webglCanvas for instant feedback, then re-render at proper resolution
-        const cssScale = zoomLevel / lastRenderedZoom;
-        webglCanvas.style.transform = `scale(${cssScale})`;
+        const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
+        const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
+        webglCanvas.style.width = displayWidth + 'px';
+        webglCanvas.style.height = displayHeight + 'px';
+        webglCanvas.style.transform = 'scale(1)';
         webglCanvas.style.transformOrigin = '0 0';
 
-        if (zoomRenderTimeout) clearTimeout(zoomRenderTimeout);
-        zoomRenderTimeout = setTimeout(() => {
-            renderAtCurrentZoom();
-        }, 100);
+        baseDisplayWidth = displayWidth;
+        baseDisplayHeight = displayHeight;
+        lastRenderedZoom = zoomLevel;
 
         // Show WebGL canvas, hide CPU canvases
         if (canvasInner && !webglCanvas.parentNode) {
@@ -4861,55 +5048,69 @@ function updateDisplayCanvas() {
     }
 }
 
-// Render displayCanvas at the actual zoomed pixel size for crisp, pixel-perfect display.
-// WebGL path: re-renders the shader at zoom-appropriate resolution.
-// CPU fallback: draws the 2D canvas at zoom-appropriate resolution.
+// Render at the actual zoomed pixel size for crisp, pixel-perfect display.
+// WebGL path: pixel buffer is already full-res — just update CSS sizing (no shader re-render).
+// CPU fallback: draws hidden canvas at full image resolution, CSS handles display scaling.
 function renderAtCurrentZoom() {
     if (!canvas) return;
 
-    // WebGL path: re-render the shader directly at display resolution
-    if (webglInitialized && _lastWebGLRenderType) {
-        renderWebGLToDisplay(_lastWebGLRenderType);
-        return;
-    }
-
-    // CPU fallback path: use 2D context to scale the hidden canvas
-    if (!imageData) return;
-
     const wrapper = document.getElementById('canvasWrapper');
     if (!wrapper) return;
-
     const wrapperRect = wrapper.getBoundingClientRect();
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
+    if (imgWidth === 0 || imgHeight === 0) return;
     const aspectRatio = imgWidth / imgHeight;
 
     const baseWidth = wrapperRect.width;
     const baseHeight = baseWidth / aspectRatio;
-
     if (baseWidth < 1 || baseHeight < 1) return;
 
     const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
     const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
 
-    // Match device pixel density for crisp display (same as WebGL path)
-    const dpr = window.devicePixelRatio || 1;
-    const scaleFactor = Math.min(dpr, imgWidth / displayWidth, imgHeight / displayHeight);
-    const renderWidth = Math.max(1, Math.round(displayWidth * Math.max(1, scaleFactor)));
-    const renderHeight = Math.max(1, Math.round(displayHeight * Math.max(1, scaleFactor)));
+    // WebGL path: pixel buffer is already at full image resolution.
+    // Just update CSS sizing — no need to re-render the shader.
+    if (webglInitialized && _lastWebGLRenderType) {
+        debugLog(`[renderAtZoom] css=${displayWidth}x${displayHeight}, wrapper=${baseWidth.toFixed(0)}, zoom=${zoomLevel}`);
+        webglCanvas.style.width = displayWidth + 'px';
+        webglCanvas.style.height = displayHeight + 'px';
+        webglCanvas.style.transform = 'scale(1)';
+        webglCanvas.style.transformOrigin = '0 0';
 
-    // For CPU fallback, ensure we have a 2D context
+        baseDisplayWidth = displayWidth;
+        baseDisplayHeight = displayHeight;
+        lastRenderedZoom = zoomLevel;
+
+        // Show WebGL canvas, hide CPU canvases
+        const canvasInner = document.getElementById('canvasInner');
+        if (canvasInner && !webglCanvas.parentNode) {
+            canvasInner.insertBefore(webglCanvas, canvas);
+        }
+        webglCanvas.style.display = 'block';
+        displayCanvas.style.display = 'none';
+        canvas.style.display = 'none';
+        return;
+    }
+
+    // CPU fallback path: render at full image resolution, CSS handles display scaling.
+    // This prevents downsampling artifacts just like the WebGL path.
+    if (!imageData) return;
+    debugLog(`[renderAtZoom-CPU] image=${imgWidth}x${imgHeight}, css=${displayWidth}x${displayHeight}, zoom=${zoomLevel}`);
+
     if (!displayCtx) {
         displayCtx = displayCanvas.getContext('2d', { alpha: false });
     }
 
-    displayCanvas.width = renderWidth;
-    displayCanvas.height = renderHeight;
+    // Set pixel buffer to full image resolution (matching WebGL approach)
+    displayCanvas.width = imgWidth;
+    displayCanvas.height = imgHeight;
 
     displayCtx.imageSmoothingEnabled = true;
     displayCtx.imageSmoothingQuality = 'high';
-    displayCtx.drawImage(canvas, 0, 0, renderWidth, renderHeight);
+    displayCtx.drawImage(canvas, 0, 0, imgWidth, imgHeight);
 
+    // CSS handles display scaling
     displayCanvas.style.width = displayWidth + 'px';
     displayCanvas.style.height = displayHeight + 'px';
     displayCanvas.style.transform = 'scale(1)';
@@ -6449,6 +6650,7 @@ function downloadImage() {
         setStatus('No image to download');
         return;
     }
+    debugLog(`[image-download] ${canvas.width}x${canvas.height}, webglDirty=${_webglDirty}`);
 
     // Sync WebGL pixels to CPU canvas if needed
     syncWebGLToCPU();
@@ -6463,6 +6665,95 @@ function downloadImage() {
     link.href = canvas.toDataURL('image/png');
     link.click();
     setStatus(`Image downloaded as ${fileName}`);
+}
+
+// ============================================
+// Debug Console Logging System
+// ============================================
+// Always visible in advanced mode. Shows render pipeline trace.
+// Collapsible header, record/stop/copy controls.
+
+let _debugLog = [];
+let _debugRenderStart = null;
+let _debugRecording = false; // Default: recording off
+
+function debugLog(message, level = 'info') {
+    if (!_debugRecording) return;
+    const elapsed = _debugRenderStart ? ((performance.now() - _debugRenderStart) / 1000).toFixed(3) : '—';
+    _debugLog.push({ time: elapsed, message, level });
+    renderDebugConsole();
+}
+
+function debugRenderStart() {
+    if (!_debugRecording) return;
+    // Don't clear log — accumulate across renders.
+    // Log only clears on page reload or explicit Clear button.
+    _debugRenderStart = performance.now();
+    const imgSize = canvas ? canvas.width + 'x' + canvas.height : 'none';
+    debugLog('── Render started ── algo=' + selectedAlgorithm + ', palette=' + originalPalette.length + ', image=' + imgSize + ', webgl=' + webglInitialized);
+}
+
+function debugRenderEnd(success) {
+    if (!_debugRecording) return;
+    const elapsed = _debugRenderStart ? ((performance.now() - _debugRenderStart) / 1000).toFixed(3) + 's' : '?';
+    if (success) {
+        debugLog('── Render complete ── ' + elapsed, 'success');
+    } else {
+        debugLog('── Render FAILED ── ' + elapsed, 'error');
+    }
+    _debugRenderStart = null;
+}
+
+function toggleDebugConsole() {
+    const el = document.getElementById('debugConsole');
+    if (el) el.classList.toggle('collapsed');
+}
+
+function toggleDebugRecording() {
+    _debugRecording = !_debugRecording;
+    const btn = document.getElementById('debugRecordBtn');
+    if (btn) {
+        btn.classList.toggle('active', _debugRecording);
+        btn.title = _debugRecording ? 'Recording' : 'Paused';
+    }
+    if (_debugRecording) {
+        debugLog('Recording started', 'info');
+        // Log current state snapshot so user sees something useful immediately
+        debugLog(`State: algo=${selectedAlgorithm}, webgl=${webglInitialized}, renderType=${_lastWebGLRenderType}, image=${canvas ? canvas.width + 'x' + canvas.height : 'none'}`);
+        debugLog('Trigger a recolor (switch algorithm, change target, etc.) to capture render trace');
+    }
+}
+
+function clearDebugLog() {
+    _debugLog = [];
+    renderDebugConsole();
+}
+
+function copyDebugLog() {
+    const text = _debugLog.map(e => '[' + e.time + 's] ' + e.message).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.debug-btn-copy');
+        if (btn) {
+            const orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = orig; }, 800);
+        }
+    });
+}
+
+function renderDebugConsole() {
+    const body = document.getElementById('debugConsoleBody');
+    if (!body) return;
+    if (_debugLog.length === 0) {
+        body.innerHTML = '<div class="log-entry"><span class="log-time">[—]</span> <span class="log-info">Waiting for render...</span></div>';
+        return;
+    }
+    body.innerHTML = _debugLog.map(entry => {
+        const cls = 'log-' + entry.level;
+        return '<div class="log-entry"><span class="log-time">[' + entry.time + 's]</span> <span class="' + cls + '">' +
+            entry.message.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span></div>';
+    }).join('');
+    body.scrollTop = body.scrollHeight;
 }
 
 function showLoading() {
@@ -6490,7 +6781,9 @@ function setAlgorithm(algo) {
 }
 
 function toggleAlgorithm() {
+    const oldAlgo = selectedAlgorithm;
     selectedAlgorithm = selectedAlgorithm === 'simple' ? 'rbf' : 'simple';
+    debugLog(`[algorithm-switch] ${oldAlgo} → ${selectedAlgorithm}`);
     updateAlgorithmUI();
     if (originalImageData) {
         autoRecolorImage();
@@ -6543,6 +6836,7 @@ function applyLuminosityPostProcess() {
         setStatus('Luminosity is at 0 — no change applied');
         return;
     }
+    debugLog(`[luminosity-apply] value=${luminosity}`);
 
     // Sync WebGL pixels to CPU before manipulating them
     syncWebGLToCPU();
@@ -6728,6 +7022,90 @@ function toggleSaveForExport(configId) {
     }
 }
 
+function validateAndRepairConfig(config) {
+    const warnings = [];
+
+    // Ensure required arrays exist
+    if (!config.originalPalette || !Array.isArray(config.originalPalette)) {
+        warnings.push('Missing originalPalette');
+        config.originalPalette = [];
+    }
+    if (!config.targetPalette || !Array.isArray(config.targetPalette)) {
+        warnings.push('Missing targetPalette');
+        config.targetPalette = [];
+    }
+    if (!config.originToColumn || !Array.isArray(config.originToColumn)) {
+        warnings.push('Missing originToColumn');
+        config.originToColumn = [];
+    }
+    if (!config.colorPercentages || !Array.isArray(config.colorPercentages)) {
+        warnings.push('Missing colorPercentages');
+        config.colorPercentages = [];
+    }
+
+    // Validate originalPalette entries are valid RGB arrays
+    for (let i = 0; i < config.originalPalette.length; i++) {
+        const c = config.originalPalette[i];
+        if (!Array.isArray(c) || c.length < 3 || c.some(v => typeof v !== 'number' || isNaN(v))) {
+            warnings.push('Invalid originalPalette[' + i + ']: ' + JSON.stringify(c));
+            config.originalPalette[i] = [128, 128, 128];
+        }
+    }
+
+    // Validate targetPalette entries
+    for (let i = 0; i < config.targetPalette.length; i++) {
+        const c = config.targetPalette[i];
+        if (c === null || c === undefined) continue; // null means unmapped, that's OK
+        if (!Array.isArray(c) || c.length < 3 || c.some(v => typeof v !== 'number' || isNaN(v))) {
+            warnings.push('Invalid targetPalette[' + i + ']: ' + JSON.stringify(c));
+            config.targetPalette[i] = [128, 128, 128];
+        }
+    }
+
+    // Ensure counts match array lengths
+    if (config.originCount !== config.originalPalette.length) {
+        warnings.push('originCount (' + config.originCount + ') !== originalPalette.length (' + config.originalPalette.length + ')');
+        config.originCount = config.originalPalette.length;
+    }
+    if (config.targetCount !== config.targetPalette.length) {
+        warnings.push('targetCount (' + config.targetCount + ') !== targetPalette.length (' + config.targetPalette.length + ')');
+        config.targetCount = config.targetPalette.length;
+    }
+
+    // Ensure originToColumn length matches originalPalette
+    while (config.originToColumn.length < config.originalPalette.length) {
+        warnings.push('originToColumn too short, padding with column 0');
+        config.originToColumn.push(0);
+    }
+    if (config.originToColumn.length > config.originalPalette.length) {
+        warnings.push('originToColumn too long, truncating');
+        config.originToColumn.length = config.originalPalette.length;
+    }
+
+    // Validate originToColumn values — clamp to valid target range
+    for (let i = 0; i < config.originToColumn.length; i++) {
+        const col = config.originToColumn[i];
+        if (col === 'locked' || col === 'bank') continue;
+        if (typeof col === 'number' && col >= config.targetPalette.length) {
+            warnings.push('originToColumn[' + i + ']=' + col + ' exceeds targetPalette.length (' + config.targetPalette.length + '), clamping');
+            config.originToColumn[i] = Math.min(col, config.targetPalette.length - 1);
+        }
+    }
+
+    // Ensure colorPercentages length matches
+    while (config.colorPercentages.length < config.originalPalette.length) {
+        config.colorPercentages.push(0);
+    }
+
+    // Backfill missing optional fields
+    if (!config.columnBypass) config.columnBypass = {};
+    if (!config.originOpacity) config.originOpacity = {};
+    if (!config.targetOpacity) config.targetOpacity = {};
+    if (!config.algorithm) config.algorithm = 'simple';
+
+    return warnings;
+}
+
 function loadConfig(configId) {
     const config = recolorHistory.find(c => c.id === configId) || savedConfigs.find(c => c.id === configId);
     if (!config) {
@@ -6736,10 +7114,22 @@ function loadConfig(configId) {
     }
     currentViewedConfigId = configId;
 
+    // Validate and repair config data from potentially older versions
+    const warnings = validateAndRepairConfig(config);
+    if (warnings.length > 0) {
+        console.warn('Config repair warnings:', warnings);
+        debugLog(`[config-repair] ${warnings.join('; ')}`, 'warn');
+    }
+
+    const bypassCount = config.columnBypass ? Object.keys(config.columnBypass).filter(k => config.columnBypass[k]).length : 0;
+    const origOpacityCount = config.originOpacity ? Object.keys(config.originOpacity).filter(k => config.originOpacity[k] !== 100).length : 0;
+    const tgtOpacityCount = config.targetOpacity ? Object.keys(config.targetOpacity).filter(k => config.targetOpacity[k] !== 100).length : 0;
+    debugLog(`[config-load] "${config.name || 'unnamed'}", origins=${config.originCount}, targets=${config.targetCount}, algo=${config.algorithm || 'simple'}, bypass=${bypassCount}, opacity=(orig=${origOpacityCount},tgt=${tgtOpacityCount}), lum=${config.luminosity || 0}, picked=${config.pickedColors ? config.pickedColors.length : 0}`);
+
     originCount = config.originCount;
     targetCount = config.targetCount;
     originalPalette = config.originalPalette.map(c => [...c]);
-    targetPalette = config.targetPalette.map(c => [...c]);
+    targetPalette = config.targetPalette.map(c => c ? [...c] : [128, 128, 128]);
     colorPercentages = [...config.colorPercentages];
     originToColumn = [...config.originToColumn];
     columnBypass = config.columnBypass ? {...config.columnBypass} : {};
@@ -6923,10 +7313,15 @@ function importConfigFile(event) {
                         config.id = Date.now() + Math.random();
                     }
                     config.savedForExport = true; // imported configs are already saved
+                    const repairWarnings = validateAndRepairConfig(config);
+                    if (repairWarnings.length > 0) {
+                        console.warn('Repaired imported config "' + (config.name || 'unnamed') + '":', repairWarnings);
+                    }
                     recolorHistory.push(config);
                     importedCount++;
                 });
 
+                debugLog(`[config-import] ${importedCount} configs imported from file`);
                 renderConfigList();
                 setStatus(`Imported ${importedCount} configurations`);
             } else {
@@ -6957,11 +7352,17 @@ function importConfigFileEarly(event) {
                 let importedCount = 0;
                 let firstNewIndex = recolorHistory.length;
 
+                let repairedCount = 0;
                 data.configs.forEach(config => {
                     if (existingIds.has(config.id)) {
                         config.id = Date.now() + Math.random();
                     }
                     config.savedForExport = true;
+                    const repairWarnings = validateAndRepairConfig(config);
+                    if (repairWarnings.length > 0) {
+                        console.warn('Repaired imported config "' + (config.name || 'unnamed') + '":', repairWarnings);
+                        repairedCount++;
+                    }
                     recolorHistory.push(config);
                     importedCount++;
                 });
@@ -6973,7 +7374,9 @@ function importConfigFileEarly(event) {
                     loadConfig(recolorHistory[firstNewIndex].id);
                 }
 
-                setStatus(`Imported ${importedCount} configurations. First config auto-loaded.`);
+                debugLog(`[config-import-early] ${importedCount} configs imported, ${repairedCount} repaired, auto-loading first`);
+                const repairNote = repairedCount > 0 ? ` (${repairedCount} repaired from older format)` : '';
+                setStatus(`Imported ${importedCount} configurations${repairNote}. First config auto-loaded.`);
             } else {
                 setStatus('Invalid config file format');
             }

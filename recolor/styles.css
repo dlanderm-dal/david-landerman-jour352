@@ -4351,6 +4351,135 @@ textarea {
 }
 
 /* ============================================ */
+/* Debug Console (always visible in advanced)   */
+/* ============================================ */
+
+.debug-console {
+    margin-top: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e08530;
+    border-radius: 8px;
+    background: #1a1a2e;
+    color: #d4d4d4;
+    font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+    font-size: 0.65rem;
+    overflow: hidden;
+}
+
+.debug-console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem 0.6rem;
+    background: #e08530;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.7rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.debug-console-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.debug-btn {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #444;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.debug-btn:hover {
+    background: #f0f0f0;
+    border-color: #999;
+}
+
+.debug-btn-record {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.debug-btn-record .record-dot {
+    font-size: 0.75rem;
+    color: rgba(255,68,68,0.4);
+    line-height: 1;
+}
+
+.debug-btn-record.active {
+    background: #fff0f0;
+    border-color: #ff4444;
+    color: #cc0000;
+}
+
+.debug-btn-record.active .record-dot {
+    color: #ff4444;
+    text-shadow: 0 0 4px rgba(255,68,68,0.8);
+}
+
+.debug-collapse-arrow {
+    font-size: 0.7rem;
+    transition: transform 0.15s;
+    color: #fff;
+    margin-left: 0.15rem;
+}
+
+.debug-console.collapsed .debug-collapse-arrow {
+    transform: rotate(-90deg);
+}
+
+.debug-console.collapsed .debug-console-body {
+    display: none;
+}
+
+.debug-console-body {
+    padding: 0.5rem 0.6rem;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.5;
+}
+
+.debug-console-body .log-entry {
+    margin-bottom: 2px;
+}
+
+.debug-console-body .log-time {
+    color: #888;
+}
+
+.debug-console-body .log-info {
+    color: #7ec8e3;
+}
+
+.debug-console-body .log-warn {
+    color: #e0c040;
+}
+
+.debug-console-body .log-error {
+    color: #e06060;
+}
+
+.debug-console-body .log-success {
+    color: #60c060;
+}
+
+body.mode-beginner .debug-console {
+    display: none !important;
+}
+
+/* ============================================ */
 /* Step Number Circles                          */
 /* ============================================ */
 

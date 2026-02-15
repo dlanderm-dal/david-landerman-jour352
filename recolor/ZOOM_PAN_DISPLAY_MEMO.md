@@ -163,9 +163,38 @@ This was a major overhaul of the display pipeline. Recoloring now runs as WebGL 
 - **Scroll to top on reload:** `window.scrollTo(0, 0)` in DOMContentLoaded.
 - **Dual logo swap:** Tall logo shown initially, short logo replaces it at `image-loaded` stage. Reset restores tall logo. (Header-only change, no display pipeline impact.)
 
+### v32 (February 15, 2026) — Full-Resolution Rendering & Distance Attenuation
+
+#### Full-Resolution Rendering (Major Pipeline Change)
+- **Root cause of text bleeding identified:** When the image is zoomed out to fit the viewport (e.g., 1920×3241 displayed in ~800px wrapper), the WebGL framebuffer was set to display resolution. The GPU's texture sampling blended adjacent source pixels during this downscale, and the recolor shader then processed those already-blended pixels. This caused cross-color contamination at boundaries — white text on colored rows picked up tints from adjacent accent colors.
+- **Fix:** `renderWebGLToDisplay()` now always renders at full image resolution (`imgWidth × imgHeight`). CSS `width/height` properties handle display scaling. The shader processes every original pixel independently — no downsampling artifacts.
+- **Zoom is now CSS-only:** `renderAtCurrentZoom()` WebGL path just updates `webglCanvas.style.width/height`. No shader re-invocation on zoom change. This is both faster and simpler.
+- **CPU fallback updated:** `renderAtCurrentZoom()` CPU path also renders at `imgWidth × imgHeight` with CSS scaling.
+- **`syncWebGLToCPU()` simplified:** Since framebuffer is already at full image resolution, `readPixels` runs directly without a temporary re-render. Safety check re-renders only on dimension mismatch.
+
+#### Initial Render Resolution Fix (`_resyncCSS`)
+- **Bug:** First render after image load showed low resolution because `wrapperRect.width` was measured before the webglCanvas DOM insertion caused a reflow. The wrapper reported pre-insertion width.
+- **Fix:** After `renderWebGLToDisplay()`, a `_resyncCSS` closure runs via `requestAnimationFrame` + `setTimeout(250ms)`. It re-measures the wrapper, compares to current CSS sizing, and corrects if mismatched. Logs corrections via `[resyncCSS]`.
+
+#### Distance-Based Attenuation (Simple Mode)
+- **Concept:** Gaussian attenuation `exp(-minDist² / 1800.0)` (sigma=30 ΔE) fades the recolor shift for pixels whose nearest palette color is far away. Subtle grays, whites, and neutrals that don't closely match any picked palette entry are left untouched.
+- **GLSL implementation:** Uses explicit `float` intermediate variables (`distSq`, `sigma2`, `atten`) and creates a new `vec3 attenuatedDLab = dLab * atten` — avoids compound `*=` on vec3 that caused silent shader compilation failure on some drivers.
+- **CPU fallback:** Matching attenuation in `doRecolorSimpleCPU()`.
+
+#### Scroll Restoration Fix
+- **Bug:** `window.scrollTo(0, 0)` in DOMContentLoaded wasn't working because browsers restore scroll position AFTER that event fires.
+- **Fix:** `history.scrollRestoration = 'manual'` set before DOMContentLoaded, plus `requestAnimationFrame(() => window.scrollTo(0, 0))` backup.
+
+#### Shader Error Logging
+- `compileShader()` and `createProgram()` now log `[shader-compile-error]` / `[shader-link-error]` to the render log via `debugLog()`. Previously, shader compilation failures fell back silently to CPU path (causing grainy display that looked like a resolution bug).
+
+#### Comprehensive Render Log
+- ~20 new `debugLog()` sources across the pipeline: image load, config load (full snapshot), config repair, algorithm switch, bypass toggle, zoom wheel/slider/reset, auto-recolor, live preview, opacity fast path, sync WebGL→CPU, image download, luminosity, renderWebGL, renderAtZoom, resyncCSS.
+- `toggleDebugRecording()` logs a state snapshot when recording starts.
+
 ---
 
-## Part 2: Current Architecture (As of v31)
+## Part 2: Current Architecture (As of v32)
 
 ### DOM Structure
 ```
@@ -181,24 +210,26 @@ canvasWrapper (overflow: hidden, position: relative)
 | Canvas | Purpose | Visible? | Size |
 |--------|---------|----------|------|
 | `canvas` (#imageCanvas) | Working pixel buffer — original pixel data, source for WebGL texture | No (display:none) | Original image dimensions (e.g. 2000x1500) |
-| `displayCanvas` (#displayCanvas) | CPU fallback — used when WebGL unavailable or before first recolor | When WebGL inactive | `displayWidth * retina` pixel buffer, `displayWidth` CSS size |
-| `webglCanvas` (#webglDisplayCanvas) | Primary display — GPU-rendered recolor shader output | When WebGL active | `displayWidth * devicePixelRatio` pixel buffer, `displayWidth` CSS size |
+| `displayCanvas` (#displayCanvas) | CPU fallback — used when WebGL unavailable or before first recolor | When WebGL inactive | `imgWidth × imgHeight` pixel buffer, CSS-scaled to display size |
+| `webglCanvas` (#webglDisplayCanvas) | Primary display — GPU-rendered recolor shader output | When WebGL active | `imgWidth × imgHeight` pixel buffer (full image res), CSS-scaled to display size |
 
 ### The Full Render Pipeline (per recolor or zoom change)
 
-#### WebGL Path (primary, v30+):
+#### WebGL Path (primary, v30+, updated v32):
 1. Recolor algorithm runs as WebGL fragment shader via `doRecolorSimpleWebGL()` or `doRecolorRBFWebGL()`
 2. `renderWebGLToDisplay(type)` called:
-   - Calculates display size from wrapper width + image aspect ratio + zoom
-   - Sets `webglCanvas` dimensions to `displaySize * devicePixelRatio`
+   - Sets `webglCanvas` dimensions to `imgWidth × imgHeight` (always full image resolution)
+   - `gl.viewport(0, 0, imgWidth, imgHeight)`
    - Binds cached shader program, sets cached uniform values
-   - Draws fullscreen quad — shader output goes directly to screen
-   - Sets CSS `width/height` to `displaySize`
+   - Draws fullscreen quad — shader processes every pixel of the original image
+   - Sets CSS `width/height` to `baseWidth * zoomLevel` (display scaling)
    - Shows `webglCanvas`, hides `displayCanvas`
-3. CPU sync (only when needed for export/strips/luminosity):
-   - `syncWebGLToCPU()` re-renders at full image resolution
-   - `readPixels()` → Y-flip → write to hidden `canvas`
-   - Re-renders display at display resolution
+   - Runs `_resyncCSS` via rAF + setTimeout(250ms) to correct CSS after DOM reflow
+3. Zoom changes (v32): `renderAtCurrentZoom()` just updates CSS `width/height` — no shader re-invocation
+4. CPU sync (only when needed for export/strips/luminosity):
+   - `syncWebGLToCPU()` calls `readPixels()` directly (framebuffer already at image resolution)
+   - Y-flip → write to hidden `canvas`
+   - Safety check: re-renders only if webglCanvas dimensions don't match image dimensions
 
 #### CPU Fallback Path (when WebGL unavailable):
 1. Recolor algorithm writes pixels to hidden `canvas` via `ctx.putImageData()`
@@ -206,14 +237,11 @@ canvasWrapper (overflow: hidden, position: relative)
    - Calculates base display size from wrapper width + image aspect ratio
    - Applies CSS `transform: scale()` for instant visual feedback
    - Debounces `renderAtCurrentZoom()` at 150ms
-3. `renderAtCurrentZoom()`:
-   - Calculates display size: `baseWidth * zoomLevel`
-   - Calculates retina scale: `min(devicePixelRatio, imageWidth/displayWidth)`
-   - Sets `displayCanvas.width/height` to `displaySize * retinaScale`
-   - `displayCtx.drawImage(canvas, 0, 0, renderWidth, renderHeight)`
-   - Sets CSS `width/height` to `displaySize`
+3. `renderAtCurrentZoom()` (updated v32):
+   - Sets `displayCanvas.width/height` to `imgWidth × imgHeight` (full image resolution)
+   - `displayCtx.drawImage(canvas, 0, 0, imgWidth, imgHeight)`
+   - Sets CSS `width/height` to `baseWidth * zoomLevel` (display scaling)
    - Clears CSS scale transform
-   - Updates `lastRenderedZoom`
 
 ### Zoom Flow
 ```
@@ -348,6 +376,27 @@ getCanvasCoords(event):
 - **What:** If WebGL context creation fails, entire pipeline falls back to CPU 2D canvas rendering
 - **Guard:** `_lastWebGLRenderType = null` signals CPU mode; all render paths check this
 
+### 17. _resyncCSS Post-Render Correction (v32)
+- **What:** After `renderWebGLToDisplay()`, CSS sizing may be wrong because wrapper width was measured before canvas DOM insertion caused reflow
+- **How:** `_resyncCSS` closure runs via `requestAnimationFrame` + `setTimeout(250ms)`, re-measures wrapper, compares to current CSS sizing, corrects if mismatched
+- **Guard:** Skips if `webglCanvas` is hidden (`display: none`) or wrapper width < 1
+- **Where:** End of `renderWebGLToDisplay()` (~line 3491)
+
+### 18. Shader Compilation Error Detection (v32)
+- **What:** GLSL shader compilation or program link failures are logged to the render log
+- **Why:** Previously, shader failures fell back silently to CPU path, causing a "grainy resolution" display that looked like a rendering bug rather than a shader bug
+- **Where:** `compileShader()` (~line 482), `createProgram()` (~line 469)
+
+### 19. Distance-Based Attenuation Guard (v32)
+- **What:** Simple recolor attenuates shift based on `exp(-minDist² / 1800.0)` — pixels far from all palette colors receive weaker shifts
+- **Why:** Prevents subtle grays, whites, and neutral tones (that don't closely match any picked palette color) from being tinted by the nearest palette entry
+- **Where:** Simple fragment shader (lines ~313-316), `doRecolorSimpleCPU()` (lines ~3581-3586)
+
+### 20. Browser Scroll Restoration Override (v32)
+- **What:** `history.scrollRestoration = 'manual'` set before DOMContentLoaded
+- **Why:** Browsers restore previous scroll position AFTER DOMContentLoaded fires, overriding `window.scrollTo(0, 0)`. Setting `scrollRestoration` to manual prevents this.
+- **Where:** Before DOMContentLoaded listener (~line 951)
+
 ---
 
 ## Part 4: Regression Test Checklist
@@ -439,6 +488,18 @@ Use this list to manually verify correct behavior after any display pipeline cha
 - [ ] Coordinate mapping (`getCanvasCoords`) works against webglCanvas
 - [ ] Picker markers position correctly over webglCanvas
 
+### Full-Resolution Rendering Tests (v32)
+- [ ] Initial load + recolor displays at full sharpness (no "crappy resolution" on first render)
+- [ ] Zoom in/out after recolor — image stays crisp at all zoom levels (CSS-only zoom, no re-render)
+- [ ] White text on colored rows shows NO color bleeding/tinting in Simple mode
+- [ ] White text on colored rows shows NO color bleeding/tinting in RBF mode
+- [ ] Subtle gray lines/borders are NOT recolored (distance attenuation preserves neutrals)
+- [ ] Export after full-res render — output matches display quality
+- [ ] Render log shows `[renderWebGL] pixels=WxH` matching original image dimensions
+- [ ] No `[shader-compile-error]` entries in render log
+- [ ] `_resyncCSS` fires and corrects CSS on first render (check log for `[resyncCSS]`)
+- [ ] Page reload starts at top of page (scroll restoration override works)
+
 ### Edge Case Combinations
 - [ ] Zoom to 3x → resize wrapper smaller → pan → reset view (everything clean?)
 - [ ] Vertically crop → zoom in → pan → zoom out to 1x (pan still works because cropped?)
@@ -453,5 +514,5 @@ Use this list to manually verify correct behavior after any display pipeline cha
 ---
 
 *Created: February 14, 2026*
-*Updated: February 15, 2026*
+*Updated: February 15, 2026 (v32 — full-resolution rendering, distance attenuation, render log)*
 *For use as regression reference during display pipeline refactoring*
