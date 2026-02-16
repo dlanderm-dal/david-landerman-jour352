@@ -90,9 +90,8 @@
                     </div>
                     <div class="instruction-step" data-step="image-loaded">
                     <span class="instruction-step-num">2</span>
-                    <span class="instruction-step-text">Click the <span class="btn-highlight">🎯 Pick Colors</span> button to select <strong>"Origin"</strong> colors from the image by category (Background, Accent 1, etc). Colors of the same Origin category will all recolor to the same <strong>"Target"</strong> color.</span>
+                    <span class="instruction-step-text">Click the <span class="btn-highlight">🎯 Pick Colors</span> button to select <strong>"Origin"</strong> colors from the image by category (Background, Accent 1, etc). <br>Colors of the same Origin category will all recolor to the same <strong>"Target"</strong> color.</span>
                     <div class="instruction-hints">
-                        <span class="instruction-hint">⌥ + Scroll to zoom · ⌥ + Drag to pan · Ctrl to peek under overlay.</span>
                         <span class="instruction-hint">Mark colors as <strong>Locked</strong> to exempt them from the recolor.</span>
                         <span class="instruction-hint instruction-hint-advanced">Use the Color Consolidation slider to merge similar colors. <span class="advanced-tag">(Advanced)</span></span>
                     </div>
@@ -144,11 +143,16 @@
             <!-- ============================== -->
             <div class="canvas-area" id="canvasArea">
                 <div class="canvas-header">
-                    <span class="canvas-title">Image Preview</span>
+                    <span class="canvas-title">Image<br>Preview</span>
+                    <div class="keyboard-hints hidden" id="keyboardHints">
+                        <div class="key-hint" id="keyHintOption"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+                        <div class="key-hint picker-only-hint" id="keyHintCtrl"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+                        <div class="key-hint picker-only-hint" id="keyHintShift"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+                    </div>
                     <!-- Algorithm toggle MOVED to Target Choice box -->
                     <div class="btn-group hidden" id="imageButtonGroup">
-                        <button class="btn" onclick="resetImage()">Reset Recolor</button>
-                        <button class="btn" onclick="removeImage()" title="Remove image and start fresh">Remove this image</button>
+                        <button class="btn" onclick="resetImage()">Reset<br>Recolor</button>
+                        <button class="btn" onclick="removeImage()" title="Remove image and start fresh">Remove<br>Image</button>
                     </div>
                 </div>
                 <!-- Resize handles (hidden until image loaded) -->
@@ -164,8 +168,8 @@
                         <div class="tutorial-left">
                             <div class="tutorial-text" id="tutorialText"></div>
                             <div class="tutorial-hints">
-                                <span class="tutorial-hint-item tutorial-shift-hint">Double-tap Shift to advance to the next color category</span>
-                                <span class="tutorial-hint-item">When zoomed: Hold ⌥ + drag to explore</span>
+                                <!-- <span class="tutorial-hint-item tutorial-shift-hint">Double-tap Shift to advance to the next color category</span> -->
+                                <!-- <span class="tutorial-hint-item">When zoomed: Hold ⌥ + drag to explore</span> -->
                             </div>
                         </div>
                         <div class="tutorial-right" id="tutorialRight">
@@ -175,7 +179,7 @@
                     <div class="tutorial-bottom-row">
                         <div class="tutorial-bottom-left">
                             <button class="tutorial-hide-btn" id="tutorialHideBtn" onclick="collapseTutorial()">Hide Tutorial</button>
-                            <span class="tutorial-hint-item tutorial-ctrl-hint">Hit Ctrl to temporarily hide</span>
+                            <!-- <span class="tutorial-hint-item tutorial-ctrl-hint">Hit Ctrl to temporarily hide</span> -->
                         </div>
                         <div class="tutorial-buttons-right">
                             <button class="tutorial-finish-btn hidden" id="tutorialFinishBtn" onclick="applyPickedAsOriginal()">That's all my colors, let's move on!</button>
@@ -269,7 +273,7 @@
                         </div>
                         <div class="picker-swatches-list hidden" id="pickerSwatchesList"></div>
                         <button class="picker-apply-btn hidden" id="pickerApplyBtn" onclick="applyPickedAsOriginal()" disabled>
-                            Apply as Origin
+                            All done
                         </button>
                         <button class="picker-clear-btn hidden" id="pickerClearBtn" onclick="clearPickerSelections()">
                             Clear Selections
@@ -359,7 +363,8 @@
                         <div class="pick-colors-description">
                             A. Pick Colors by Category<br>
                             B. Colors with the Same Category will later be consolidated<br>
-                            C. Locked Colors will maintain their identity
+                            C. Locked Colors will maintain their identity<br>
+                            Shortcut: Double-tap Shift to advance to the next color category.
                         </div>
                     </div>
 

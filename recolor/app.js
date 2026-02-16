@@ -183,6 +183,8 @@ let simpleRecolorProgram = null;
 let rbfRecolorProgram = null;
 let webglInitialized = false;
 let _webglImageTexture = null; // Persistent source image texture (avoids re-upload per frame)
+let _webglLutTexture = null;   // Cached RBF LUT texture (avoids create/destroy per frame)
+let _webglLutData = null;      // Reference to last LUT data uploaded (for change detection)
 let _webglDirty = true;        // True when CPU-side imageData is stale and needs sync
 let _lastWebGLRenderType = null; // 'simple' or 'rbf' — tracks what's currently on the WebGL canvas
 let _lastSimpleUniforms = null;  // Cache last simple recolor uniforms for re-render on zoom
@@ -596,7 +598,7 @@ function syncWebGLToCPU() {
     // No need to re-render — the framebuffer is preserved (preserveDrawingBuffer: true)
     // and is still at full image resolution. CSS sizing is unchanged.
 
-    console.log('syncWebGLToCPU: pixels synced to CPU');
+    if (_debugRecording) console.log('syncWebGLToCPU: pixels synced to CPU');
 }
 
 // ============================================
@@ -723,6 +725,11 @@ function setAppMode(mode) {
             container.classList.remove('collapsed');
             instructionsCollapsed = false;
             if (arrow) arrow.textContent = '▾';
+        }
+        // If picker is active and tutorial is collapsed, expand it so the
+        // beginner user sees the full tutorial guidance immediately
+        if (pickerMode && tutorialCollapsed) {
+            expandTutorial();
         }
     }
 
@@ -1247,85 +1254,108 @@ document.addEventListener('DOMContentLoaded', function() {
     // Alt+scroll to zoom — we manage zoom ourselves (canvas re-render),
     // Panzoom only handles pan (translate).
     // Zoom-to-cursor: keeps the point under the mouse fixed on screen.
-    canvasWrapper.addEventListener('wheel', function(e) {
-        if (e.altKey) {
+    //
+    // Momentum absorption: macOS trackpad momentum can last 1-2s after finger lift.
+    // When the user releases Option mid-scroll, momentum events continue without
+    // altKey set. We absorb these at both wrapper and window level for 1s.
+    let _lastAltWheelTime = 0;
+    const ALT_WHEEL_MOMENTUM_MS = 1000;
+
+    // Window-level safety net — catches momentum events that escape the wrapper
+    // (e.g. if layout shifts or cursor is near wrapper edge)
+    window.addEventListener('wheel', function(e) {
+        if (!e.altKey && performance.now() - _lastAltWheelTime < ALT_WHEEL_MOMENTUM_MS) {
             e.preventDefault();
+        }
+    }, { passive: false });
 
-            const wrapper = document.getElementById('canvasWrapper');
-            const oldZoom = zoomLevel;
-
-            // Calculate new zoom from scroll delta (gentle 7% per tick)
-            const delta = e.deltaY > 0 ? -0.07 : 0.07;
-            let newZoom = Math.max(1, Math.min(4, zoomLevel * (1 + delta)));
-
-            // Snap to exactly 1x if we're very close — avoids partial-zoom limbo
-            if (newZoom < 1.02) newZoom = 1;
-
-            // Ensure wrapper height is locked and layout is in zoomed mode
-            // BEFORE any pan/zoom math (do this once, on first zoom above 1x)
-            if (!wrapper.classList.contains('zoomed') && newZoom > 1) {
-                const rect = wrapper.getBoundingClientRect();
-                wrapper.style.height = rect.height + 'px';
-                wrapper.classList.add('zoomed', 'can-pan');
+    canvasWrapper.addEventListener('wheel', function(e) {
+        if (!e.altKey) {
+            // Absorb residual trackpad momentum after last Alt+scroll
+            // so releasing Option mid-scroll doesn't jolt the page
+            if (performance.now() - _lastAltWheelTime < ALT_WHEEL_MOMENTUM_MS) {
+                e.preventDefault();
             }
+            return;
+        }
 
-            debugLog(`[zoom-wheel] ${oldZoom.toFixed(2)} → ${newZoom.toFixed(2)}`);
+        _lastAltWheelTime = performance.now();
+        e.preventDefault();
 
-            if (newZoom <= 1) {
-                // At 1x — reset pan but DON'T tear down zoomed layout yet.
-                // Layout teardown is deferred so zooming back in is seamless.
-                zoomLevel = 1;
-                panX = 0;
-                panY = 0;
-                panzoomInstance.pan(0, 0, { animate: false, force: true });
-            } else {
-                // Zoom-to-cursor math:
-                // Mouse position relative to wrapper top-left
-                const wrapperRect = wrapper.getBoundingClientRect();
-                const mouseX = e.clientX - wrapperRect.left;
-                const mouseY = e.clientY - wrapperRect.top;
+        const wrapper = document.getElementById('canvasWrapper');
+        const oldZoom = zoomLevel;
 
-                // Current pan from Panzoom
-                const currentPan = panzoomInstance.getPan();
+        // Calculate new zoom from scroll delta (gentle 7% per tick)
+        const delta = e.deltaY > 0 ? -0.07 : 0.07;
+        let newZoom = Math.max(1, Math.min(4, zoomLevel * (1 + delta)));
 
-                // Keep the content point under the cursor fixed:
-                // newPan = mousePos - (mousePos - oldPan) * (newZoom / oldZoom)
-                const ratio = newZoom / oldZoom;
-                const newPanX = mouseX - (mouseX - currentPan.x) * ratio;
-                const newPanY = mouseY - (mouseY - currentPan.y) * ratio;
+        // Snap to exactly 1x if we're very close — avoids partial-zoom limbo
+        if (newZoom < 1.02) newZoom = 1;
 
-                zoomLevel = newZoom;
-                panX = newPanX;
-                panY = newPanY;
-                panzoomInstance.pan(newPanX, newPanY, { animate: false, force: true });
-            }
+        // Ensure wrapper height is locked and layout is in zoomed mode
+        // BEFORE any pan/zoom math (do this once, on first zoom above 1x)
+        if (!wrapper.classList.contains('zoomed') && newZoom > 1) {
+            const rect = wrapper.getBoundingClientRect();
+            wrapper.style.height = rect.height + 'px';
+            wrapper.classList.add('zoomed', 'can-pan');
+        }
 
-            updateDisplayCanvas();
-            constrainPan();
-            updateMarkers();
-            updateZoomDisplay();
-            updateStickyOverlays();
+        debugLog(`[zoom-wheel] ${oldZoom.toFixed(2)} → ${newZoom.toFixed(2)}`);
 
-            // Deferred 1x layout cleanup: if we're at 1x, schedule the layout
-            // teardown for after scrolling stops (avoids layout thrashing during
-            // continuous scroll-through-1x).
-            if (zoomLevel <= 1) {
-                if (window._zoomResetTimeout) clearTimeout(window._zoomResetTimeout);
-                window._zoomResetTimeout = setTimeout(() => {
-                    if (zoomLevel <= 1) {
-                        if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
-                        if (!isVerticallyCropped) {
-                            wrapper.style.height = '';
-                            wrapper.classList.remove('zoomed', 'can-pan');
-                        }
-                        renderAtCurrentZoom();
-                        updateMarkers();
+        if (newZoom <= 1) {
+            // At 1x — reset pan but DON'T tear down zoomed layout yet.
+            // Layout teardown is deferred so zooming back in is seamless.
+            zoomLevel = 1;
+            panX = 0;
+            panY = 0;
+            panzoomInstance.pan(0, 0, { animate: false, force: true });
+        } else {
+            // Zoom-to-cursor math:
+            // Mouse position relative to wrapper top-left
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const mouseX = e.clientX - wrapperRect.left;
+            const mouseY = e.clientY - wrapperRect.top;
+
+            // Current pan from Panzoom
+            const currentPan = panzoomInstance.getPan();
+
+            // Keep the content point under the cursor fixed:
+            // newPan = mousePos - (mousePos - oldPan) * (newZoom / oldZoom)
+            const ratio = newZoom / oldZoom;
+            const newPanX = mouseX - (mouseX - currentPan.x) * ratio;
+            const newPanY = mouseY - (mouseY - currentPan.y) * ratio;
+
+            zoomLevel = newZoom;
+            panX = newPanX;
+            panY = newPanY;
+            panzoomInstance.pan(newPanX, newPanY, { animate: false, force: true });
+        }
+
+        updateDisplayCanvas();
+        constrainPan();
+        updateMarkers();
+        updateZoomDisplay();
+        updateStickyOverlays();
+
+        // Deferred 1x layout cleanup: if we're at 1x, schedule the layout
+        // teardown for after scrolling stops (avoids layout thrashing during
+        // continuous scroll-through-1x).
+        if (zoomLevel <= 1) {
+            if (window._zoomResetTimeout) clearTimeout(window._zoomResetTimeout);
+            window._zoomResetTimeout = setTimeout(() => {
+                if (zoomLevel <= 1) {
+                    if (zoomRenderTimeout) { clearTimeout(zoomRenderTimeout); zoomRenderTimeout = null; }
+                    if (!isVerticallyCropped) {
+                        wrapper.style.height = '';
+                        wrapper.classList.remove('zoomed', 'can-pan');
                     }
-                }, 200);
-            } else {
-                // Cancel any pending 1x cleanup if we zoomed back above 1
-                if (window._zoomResetTimeout) { clearTimeout(window._zoomResetTimeout); window._zoomResetTimeout = null; }
-            }
+                    renderAtCurrentZoom();
+                    updateMarkers();
+                }
+            }, 200);
+        } else {
+            // Cancel any pending 1x cleanup if we zoomed back above 1
+            if (window._zoomResetTimeout) { clearTimeout(window._zoomResetTimeout); window._zoomResetTimeout = null; }
         }
     }, { passive: false });
 });
@@ -1455,8 +1485,9 @@ function loadImage(img) {
     document.getElementById('sidebar').classList.remove('hidden');
     document.getElementById('colorAnalysisPanel').classList.remove('hidden');
     document.getElementById('colorAnalysisOptionalPanel').classList.remove('hidden');
-    // Show the Reset/Remove/Download buttons and resize handles
+    // Show the Reset/Remove/Download buttons, keyboard hints, and resize handles
     document.getElementById('imageButtonGroup').classList.remove('hidden');
+    document.getElementById('keyboardHints').classList.remove('hidden');
     document.querySelectorAll('.resize-handle').forEach(h => h.classList.remove('hidden'));
     uiStage = 'image-loaded';
     updateProgressiveInstructions('image-loaded');
@@ -1577,12 +1608,19 @@ function extractColorsKMeans(imgData, numColors) {
     centroids.push(labPixels[Math.floor(Math.random() * labPixels.length)]);
     
     while (centroids.length < numColors) {
-        const distances = labPixels.map(p => {
-            const minDist = Math.min(...centroids.map(c => 
-                Math.pow(p[0]-c[0], 2) + Math.pow(p[1]-c[1], 2) + Math.pow(p[2]-c[2], 2)
-            ));
-            return minDist;
-        });
+        // K-means++ — use manual min instead of Math.min(...spread) to avoid O(k²)
+        const distances = new Float64Array(labPixels.length);
+        for (let pi = 0; pi < labPixels.length; pi++) {
+            const p = labPixels[pi];
+            let minD = Infinity;
+            for (let ci = 0; ci < centroids.length; ci++) {
+                const c = centroids[ci];
+                const dL = p[0] - c[0], dA = p[1] - c[1], dB = p[2] - c[2];
+                const d = dL * dL + dA * dA + dB * dB;
+                if (d < minD) minD = d;
+            }
+            distances[pi] = minD;
+        }
         
         const totalDist = distances.reduce((a, b) => a + b, 0);
         let random = Math.random() * totalDist;
@@ -1594,50 +1632,57 @@ function extractColorsKMeans(imgData, numColors) {
         centroids.push(labPixels[Math.max(0, idx - 1)]);
     }
     
-    // K-means iterations
+    // K-means iterations — use for-loops and x*x instead of Math.pow
+    const nPix = labPixels.length;
+    const assignments = new Int32Array(nPix);
     for (let iter = 0; iter < 10; iter++) {
-        const clusters = Array(numColors).fill(null).map(() => []);
-        
-        labPixels.forEach((p, i) => {
+        // Assign each pixel to nearest centroid
+        for (let pi = 0; pi < nPix; pi++) {
+            const p = labPixels[pi];
             let minDist = Infinity;
             let minIdx = 0;
-            centroids.forEach((c, j) => {
-                const dist = Math.pow(p[0]-c[0], 2) + Math.pow(p[1]-c[1], 2) + Math.pow(p[2]-c[2], 2);
-                if (dist < minDist) {
-                    minDist = dist;
-                    minIdx = j;
-                }
-            });
-            clusters[minIdx].push(i);
-        });
-        
-        clusters.forEach((cluster, i) => {
-            if (cluster.length > 0) {
-                const avg = [0, 0, 0];
-                cluster.forEach(idx => {
-                    avg[0] += labPixels[idx][0];
-                    avg[1] += labPixels[idx][1];
-                    avg[2] += labPixels[idx][2];
-                });
-                centroids[i] = [avg[0]/cluster.length, avg[1]/cluster.length, avg[2]/cluster.length];
+            for (let ci = 0; ci < numColors; ci++) {
+                const c = centroids[ci];
+                const dL = p[0] - c[0], dA = p[1] - c[1], dB = p[2] - c[2];
+                const d = dL * dL + dA * dA + dB * dB;
+                if (d < minDist) { minDist = d; minIdx = ci; }
             }
-        });
+            assignments[pi] = minIdx;
+        }
+
+        // Recompute centroids from assignments
+        const sums = new Float64Array(numColors * 3);
+        const clusterCounts = new Int32Array(numColors);
+        for (let pi = 0; pi < nPix; pi++) {
+            const ci = assignments[pi];
+            const p = labPixels[pi];
+            const off = ci * 3;
+            sums[off] += p[0]; sums[off + 1] += p[1]; sums[off + 2] += p[2];
+            clusterCounts[ci]++;
+        }
+        for (let ci = 0; ci < numColors; ci++) {
+            if (clusterCounts[ci] > 0) {
+                const off = ci * 3;
+                const cnt = clusterCounts[ci];
+                centroids[ci] = [sums[off] / cnt, sums[off + 1] / cnt, sums[off + 2] / cnt];
+            }
+        }
     }
-    
+
     // Calculate percentages using closest-match assignment (ensures sum = 100%)
-    const counts = new Array(numColors).fill(0);
-    labPixels.forEach(p => {
+    const counts = new Int32Array(numColors);
+    for (let pi = 0; pi < nPix; pi++) {
+        const p = labPixels[pi];
         let minDist = Infinity;
         let minIdx = 0;
-        centroids.forEach((c, j) => {
-            const dist = Math.pow(p[0]-c[0], 2) + Math.pow(p[1]-c[1], 2) + Math.pow(p[2]-c[2], 2);
-            if (dist < minDist) {
-                minDist = dist;
-                minIdx = j;
-            }
-        });
+        for (let ci = 0; ci < numColors; ci++) {
+            const c = centroids[ci];
+            const dL = p[0] - c[0], dA = p[1] - c[1], dB = p[2] - c[2];
+            const d = dL * dL + dA * dA + dB * dB;
+            if (d < minDist) { minDist = d; minIdx = ci; }
+        }
         counts[minIdx]++;
-    });
+    }
     
     const results = centroids.map((lab, i) => {
         const rgb = LAB2RGB(lab);
@@ -1858,9 +1903,10 @@ function renderRecoloredStrip() {
         let minDist = Infinity;
         let minIdx = 0;
         for (let j = 0; j < labTargets.length; j++) {
-            const dist = Math.pow(lab[0] - labTargets[j][0], 2) +
-                Math.pow(lab[1] - labTargets[j][1], 2) +
-                Math.pow(lab[2] - labTargets[j][2], 2);
+            const dL = lab[0] - labTargets[j][0];
+            const dA = lab[1] - labTargets[j][1];
+            const dB = lab[2] - labTargets[j][2];
+            const dist = dL * dL + dA * dA + dB * dB;
             if (dist < minDist) {
                 minDist = dist;
                 minIdx = j;
@@ -3505,7 +3551,7 @@ function doRecolorSimple() {
     }
 
     // CPU fallback
-    console.log('Using CPU fallback for simple recolor');
+    if (_debugRecording) console.log('Using CPU fallback for simple recolor');
     doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity);
 }
 
@@ -3536,7 +3582,7 @@ function doRecolorSimpleWebGL(width, height, k, oldLab, diffLab, luminosity) {
         _webglDirty = true;
 
         const elapsed = performance.now() - startTime;
-        console.log(`WebGL simple recolor: ${elapsed.toFixed(1)}ms`);
+        if (_debugRecording) console.log(`WebGL simple recolor: ${elapsed.toFixed(1)}ms`);
 
         renderRecoloredStripDeferred();
         return true;
@@ -3576,10 +3622,12 @@ function renderWebGLToDisplay(type) {
     const displayWidth = Math.max(1, Math.round(baseWidth * zoomLevel));
     const displayHeight = Math.max(1, Math.round(baseHeight * zoomLevel));
 
-    // Set WebGL canvas pixel buffer to full image resolution
+    // Set WebGL canvas pixel buffer to full image resolution (only when changed)
     debugLog(`[renderWebGL] pixels=${renderWidth}x${renderHeight}, css=${displayWidth}x${displayHeight}, wrapper=${baseWidth.toFixed(0)}x${baseHeight.toFixed(0)}, zoom=${zoomLevel}`);
-    webglCanvas.width = renderWidth;
-    webglCanvas.height = renderHeight;
+    if (webglCanvas.width !== renderWidth || webglCanvas.height !== renderHeight) {
+        webglCanvas.width = renderWidth;
+        webglCanvas.height = renderHeight;
+    }
     gl.viewport(0, 0, renderWidth, renderHeight);
 
     // Render the appropriate shader using cached uniform locations
@@ -3608,14 +3656,21 @@ function renderWebGLToDisplay(type) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.uniform1i(loc.u_image, 0);
-        const lutTexture = gl.createTexture();
+        // Cache LUT texture — only re-upload when data changes
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, lutTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
+        if (!_webglLutTexture || _webglLutData !== u.lutData) {
+            if (_webglLutTexture) gl.deleteTexture(_webglLutTexture);
+            _webglLutTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, _webglLutTexture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, u.lutWidth, u.lutHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, u.lutData);
+            _webglLutData = u.lutData;
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, _webglLutTexture);
+        }
         gl.uniform1i(loc.u_lut, 1);
         gl.uniform1f(loc.u_lutSize, u.lutSize);
         gl.uniform1f(loc.u_luminosity, u.luminosity);
@@ -3623,7 +3678,6 @@ function renderWebGLToDisplay(type) {
         gl.uniform3fv(loc.u_bypassedRGB, u.bypassedFlat || new Float32Array(60));
         gl.uniform1i(loc.u_bypassedCount, u.bypassedCount || 0);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-        gl.deleteTexture(lutTexture);
     }
 
     // CSS size = actual zoomed display size (browser scales down from full-res pixel buffer)
@@ -3694,67 +3748,76 @@ function doRecolorSimpleCPU(width, height, k, oldLab, diffLab, luminosity) {
     const startTime = performance.now();
     const newData = ctx.createImageData(width, height);
     const blendSharpness = 2.0;
+    const src = originalImageData.data;
+    const dst = newData.data;
+    const len = src.length;
 
-    for (let i = 0; i < originalImageData.data.length; i += 4) {
-        const r = originalImageData.data[i];
-        const g = originalImageData.data[i + 1];
-        const b = originalImageData.data[i + 2];
+    // Pre-allocate reusable arrays (avoid GC pressure in tight loop)
+    const distances = new Float64Array(k);
+    const weights = new Float64Array(k);
 
-        const pixelLab = RGB2LAB([r, g, b]);
+    // Flatten oldLab and diffLab for cache-friendly access
+    const oldL = new Float64Array(k), oldA = new Float64Array(k), oldB = new Float64Array(k);
+    const dfL = new Float64Array(k), dfA = new Float64Array(k), dfB = new Float64Array(k);
+    for (let j = 0; j < k; j++) {
+        oldL[j] = oldLab[j][0]; oldA[j] = oldLab[j][1]; oldB[j] = oldLab[j][2];
+        dfL[j] = diffLab[j][0]; dfA[j] = diffLab[j][1]; dfB[j] = diffLab[j][2];
+    }
 
-        const distances = [];
+    const lumFactor = luminosity !== 0 ? 1 + (luminosity / 100) : 0;
+
+    for (let i = 0; i < len; i += 4) {
+        const pixelLab = RGB2LAB([src[i], src[i + 1], src[i + 2]]);
+        const pL = pixelLab[0], pA = pixelLab[1], pB = pixelLab[2];
+
+        // Distance calculation — use x*x instead of Math.pow(x,2), skip Math.sqrt
         let minDist = Infinity;
         for (let j = 0; j < k; j++) {
-            const d2 = Math.pow(pixelLab[0] - oldLab[j][0], 2) +
-                      Math.pow(pixelLab[1] - oldLab[j][1], 2) +
-                      Math.pow(pixelLab[2] - oldLab[j][2], 2);
-            const d = Math.sqrt(d2);
-            distances.push(d);
+            const dL = pL - oldL[j], dAc = pA - oldA[j], dBc = pB - oldB[j];
+            const d = dL * dL + dAc * dAc + dBc * dBc; // squared distance
+            distances[j] = d;
             if (d < minDist) minDist = d;
         }
 
+        // Weights — work in squared-distance space (sqrt only on minDist once)
+        const minDistSqrt = minDist > 0 ? Math.sqrt(minDist) : 1;
         let totalWeight = 0;
-        const weights = [];
         for (let j = 0; j < k; j++) {
-            const relDist = distances[j] / Math.max(minDist, 1);
+            const dSqrt = distances[j] > 0 ? Math.sqrt(distances[j]) : 0;
+            const relDist = dSqrt / minDistSqrt;
             const w = Math.exp(-blendSharpness * (relDist - 1));
-            weights.push(w);
+            weights[j] = w;
             totalWeight += w;
         }
 
-        let dL = 0, dA = 0, dB = 0;
+        let ndL = 0, ndA = 0, ndB = 0;
         if (totalWeight > 0) {
+            const invTotal = 1 / totalWeight;
             for (let j = 0; j < k; j++) {
-                const normalizedWeight = weights[j] / totalWeight;
-                dL += normalizedWeight * diffLab[j][0];
-                dA += normalizedWeight * diffLab[j][1];
-                dB += normalizedWeight * diffLab[j][2];
+                const nw = weights[j] * invTotal;
+                ndL += nw * dfL[j];
+                ndA += nw * dfA[j];
+                ndB += nw * dfB[j];
             }
         }
 
-        const newPixelLab = [
-            pixelLab[0] + dL,
-            pixelLab[1] + dA,
-            pixelLab[2] + dB
-        ];
+        const rgb = LAB2RGB([pL + ndL, pA + ndA, pB + ndB]);
+        let newR = rgb[0], newG = rgb[1], newB = rgb[2];
 
-        let [newR, newG, newB] = LAB2RGB(newPixelLab);
-
-        if (luminosity !== 0) {
-            const factor = 1 + (luminosity / 100);
-            newR = Math.max(0, Math.min(255, newR * factor));
-            newG = Math.max(0, Math.min(255, newG * factor));
-            newB = Math.max(0, Math.min(255, newB * factor));
+        if (lumFactor) {
+            newR *= lumFactor;
+            newG *= lumFactor;
+            newB *= lumFactor;
         }
 
-        newData.data[i] = Math.round(Math.max(0, Math.min(255, newR)));
-        newData.data[i + 1] = Math.round(Math.max(0, Math.min(255, newG)));
-        newData.data[i + 2] = Math.round(Math.max(0, Math.min(255, newB)));
-        newData.data[i + 3] = 255;
+        dst[i]     = newR < 0 ? 0 : newR > 255 ? 255 : (newR + 0.5) | 0;
+        dst[i + 1] = newG < 0 ? 0 : newG > 255 ? 255 : (newG + 0.5) | 0;
+        dst[i + 2] = newB < 0 ? 0 : newB > 255 ? 255 : (newB + 0.5) | 0;
+        dst[i + 3] = 255;
     }
 
     const elapsed = performance.now() - startTime;
-    console.log(`CPU simple recolor: ${elapsed.toFixed(1)}ms`);
+    if (_debugRecording) console.log(`CPU simple recolor: ${elapsed.toFixed(1)}ms`);
 
     ctx.putImageData(newData, 0, 0);
     imageData = newData;
@@ -4037,7 +4100,7 @@ function _doRecolorRBFInner(RBF_param_coff, ngrid, width, height, k) {
 
     // CPU fallback
     debugLog('WebGL unavailable, using CPU fallback for RBF recolor', 'warn');
-    console.log('Using CPU fallback for RBF recolor');
+    if (_debugRecording) console.log('Using CPU fallback for RBF recolor');
     doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB);
     debugLog('CPU RBF render complete');
 }
@@ -4089,7 +4152,7 @@ function doRecolorRBFWebGL(width, height, ngrid, gridRGB, luminosity, bypassedRG
         _webglDirty = true;
 
         const elapsed = performance.now() - startTime;
-        console.log(`WebGL RBF recolor: ${elapsed.toFixed(1)}ms`);
+        if (_debugRecording) console.log(`WebGL RBF recolor: ${elapsed.toFixed(1)}ms`);
 
         renderRecoloredStripDeferred();
         return true;
@@ -4187,7 +4250,7 @@ function doRecolorRBFCPU(width, height, ngrid, gridRGB, luminosity, bypassedRGB)
     }
 
     const elapsed = performance.now() - startTime;
-    console.log(`CPU RBF recolor: ${elapsed.toFixed(1)}ms`);
+    if (_debugRecording) console.log(`CPU RBF recolor: ${elapsed.toFixed(1)}ms`);
 
     ctx.putImageData(newData, 0, 0);
     imageData = newData;
@@ -4245,6 +4308,12 @@ function togglePickerMode() {
         shouldKeepPickedMarkers = false; // Allow markers to be managed normally
 
         btn.classList.add('active');
+        // Update overlay button text to indicate closing won't apply
+        const toggleText = btn.querySelector('.picker-toggle-text');
+        if (toggleText) toggleText.textContent = "Close picker, don't apply colors";
+        // Show all keyboard hints (Ctrl, Shift) with stage-light glow
+        const kbHints = document.getElementById('keyboardHints');
+        if (kbHints) kbHints.classList.add('picker-active');
         if (sidebarPickBtn) {
             sidebarPickBtn.classList.add('active');
             sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors (tool active)';
@@ -4263,12 +4332,19 @@ function togglePickerMode() {
         categorySelector.classList.remove('hidden');
         updatePickerCategoryOptions();
 
-        // Tutorial logic: always default to expanded when picker activates
+        // Tutorial logic: beginner mode always expands the tutorial overlay.
+        // Advanced mode always defaults to collapsed (tab visible, traditional picker shown).
         if (!tutorialHasBeenShown) {
             tutorialHasBeenShown = true;
             tutorialStep = 0;
         }
-        showTutorialOverlay();
+        if (appMode === 'advanced') {
+            // Advanced mode — populate content then immediately collapse to tab
+            showTutorialOverlay();
+            collapseTutorial();
+        } else {
+            showTutorialOverlay();
+        }
         // Hide picker hints since tutorial shows them
         if (pickerPanHint) pickerPanHint.classList.add('hidden');
         if (pickerCtrlHint) pickerCtrlHint.classList.add('hidden');
@@ -4280,6 +4356,18 @@ function togglePickerMode() {
         }
     } else {
         btn.classList.remove('active');
+        // Hide picker-only keyboard hints and remove glow
+        const kbHints2 = document.getElementById('keyboardHints');
+        if (kbHints2) kbHints2.classList.remove('picker-active');
+        // Restore overlay button text based on state
+        const toggleText2 = btn.querySelector('.picker-toggle-text');
+        if (toggleText2) {
+            if (pickedColors.length > 0) {
+                toggleText2.innerHTML = 'Edit Origin<br><span class="picker-toggle-subtitle">Colors</span>';
+            } else {
+                toggleText2.textContent = 'Pick Colors';
+            }
+        }
         if (sidebarPickBtn) {
             sidebarPickBtn.classList.remove('active');
             // Text will be restored by updatePickColorsButtonState below or by caller
@@ -4647,7 +4735,12 @@ function applyPickedAsOriginal() {
     originalPalette = newOriginalPalette;
     colorPercentages = pcts;
     originToColumn = newOriginToColumn;
-    columnBypass = []; // Reset bypass states
+
+    if (!alreadyAdvanced) {
+        columnBypass = []; // Reset bypass states on first pick
+    }
+    // When alreadyAdvanced, preserve existing columnBypass (locks) — the user
+    // already set them and expects them to survive re-picking colors.
 
     if (alreadyAdvanced) {
         // Preserve existing targets — grow or shrink to match new target count
@@ -4683,6 +4776,9 @@ function applyPickedAsOriginal() {
     pickerMode = false;
     const pickerBtn = document.getElementById('pickerToggleBtn');
     pickerBtn.classList.remove('active');
+    // Hide picker-only keyboard hints and remove glow
+    const kbHintsApply = document.getElementById('keyboardHints');
+    if (kbHintsApply) kbHintsApply.classList.remove('picker-active');
     const sidebarPickBtn = document.getElementById('sidebarPickColorsBtn');
     if (sidebarPickBtn) sidebarPickBtn.classList.remove('active');
     document.getElementById('canvasInner').classList.remove('picking-mode');
@@ -6742,8 +6838,9 @@ function removeImage() {
     document.getElementById('targetChoicePanel').classList.add('hidden');
     document.getElementById('pickerPanHint').classList.add('hidden');
     document.getElementById('pickerCtrlHint').classList.add('hidden');
-    // Hide the image action buttons and resize handles
+    // Hide the image action buttons, keyboard hints, and resize handles
     document.getElementById('imageButtonGroup').classList.add('hidden');
+    document.getElementById('keyboardHints').classList.add('hidden');
     document.querySelectorAll('.resize-handle').forEach(h => h.classList.add('hidden'));
     // Reset recolored strip to grayed-out
     document.getElementById('recoloredStrip').classList.add('grayed-out');

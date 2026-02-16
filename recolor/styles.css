@@ -524,11 +524,115 @@ textarea {
     flex-wrap: wrap;
 }
 
+.canvas-header .btn-group .btn {
+    line-height: 1.2;
+    text-align: center;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.7rem;
+}
+
 .canvas-title {
     font-size: 0.75rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    line-height: 1.2;
+}
+
+/* Keyboard shortcut hint boxes in canvas header */
+.keyboard-hints {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.keyboard-hints.hidden {
+    display: none;
+}
+
+.key-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+}
+
+.key-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+}
+
+.key-action {
+    font-size: 7px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.key-hint kbd {
+    display: inline-block;
+    padding: 2px 5px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #333;
+    background: linear-gradient(180deg, #f8f8f8, #ddd);
+    border: 1px solid #bbb;
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    white-space: nowrap;
+    min-width: 36px;
+    text-align: center;
+}
+
+.key-hint > span {
+    font-size: 8px;
+    color: var(--text-muted);
+    line-height: 1.2;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Ctrl and Shift hints hidden unless picker is active */
+.picker-only-hint {
+    display: none;
+}
+
+.keyboard-hints.picker-active {
+    gap: 3px;
+}
+
+.keyboard-hints.picker-active .picker-only-hint {
+    display: flex;
+}
+
+/* Warm lifted card on all key hints when picker is active */
+.keyboard-hints.picker-active .key-hint {
+    background: linear-gradient(180deg, #fffef8, #fff3cd);
+    border: 1px solid rgba(218, 165, 32, 0.35);
+    border-radius: 6px;
+    padding: 5px 7px;
+    box-shadow: 0 2px 8px rgba(230, 168, 23, 0.2), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.keyboard-hints.picker-active .key-hint kbd {
+    background: linear-gradient(180deg, #ffffff, #ffe896);
+    border-color: #c4900a;
+}
+
+.keyboard-hints.picker-active .key-hint .key-action {
+    color: #8b6914;
+    font-weight: 600;
+}
+
+.keyboard-hints.picker-active .key-hint > span {
+    color: #5d4200;
 }
 
 /* Color Tolerance Slider */
@@ -2436,18 +2540,18 @@ textarea {
 }
 
 .picker-toggle-btn.active {
-    background: var(--accent);
-    color: #ffffff;
-    border-color: var(--accent);
+    background: #e6a817;
+    color: #333;
+    border-color: #c4900a;
 }
 
 .picker-toggle-btn.active .picker-toggle-subtitle {
-    color: #ffffff;
+    color: #333;
 }
 
 .picker-toggle-btn.colors-picked.active,
 .picker-toggle-btn.colors-picked.active .picker-toggle-subtitle {
-    color: #ffffff;
+    color: #333;
 }
 
 .picker-swatches-list {
@@ -2596,7 +2700,7 @@ textarea {
 
 .picker-apply-btn {
     padding: 6px 10px;
-    background: var(--accent);
+    background: #28a745;
     color: #ffffff;
     border: none;
     border-radius: 4px;
@@ -2615,9 +2719,9 @@ textarea {
 
 .picker-clear-btn {
     padding: 5px 10px;
-    background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
+    background: #dc3545;
+    color: #ffffff;
+    border: 1px solid #c82333;
     border-radius: 4px;
     font-size: 10px;
     cursor: pointer;
@@ -2626,9 +2730,9 @@ textarea {
 }
 
 .picker-clear-btn:hover {
-    background: var(--surface-2);
-    color: var(--text);
-    border-color: var(--text-muted);
+    background: #c82333;
+    color: #ffffff;
+    border-color: #b21f2d;
 }
 
 .picker-clear-btn.hidden {
