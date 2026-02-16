@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Key Hint Emphasis — 10 Drafts</title>
+<style>
+  :root {
+    --text-muted: #7a8a97;
+    --border: #d0d7de;
+    --surface: #f6f8fa;
+    --surface-2: #edf0f3;
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    padding: 2rem;
+    color: #333;
+  }
+  h1 { font-size: 1.2rem; margin-bottom: 2rem; }
+  .draft {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .draft-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+  .draft-desc {
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+  }
+
+  /* ========== SHARED BASE STYLES ========== */
+  .keyboard-hints {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .key-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+  }
+  .key-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+  .key-action {
+    font-size: 7px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .key-hint kbd {
+    display: inline-block;
+    padding: 2px 5px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #333;
+    background: linear-gradient(180deg, #f8f8f8, #ddd);
+    border: 1px solid #bbb;
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    white-space: nowrap;
+    min-width: 36px;
+    text-align: center;
+  }
+  .key-hint > span {
+    font-size: 8px;
+    color: var(--text-muted);
+    line-height: 1.2;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Toggle button for each draft */
+  .toggle-btn {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+  }
+  .toggle-btn.on { background: #e6a817; color: #333; border-color: #c4900a; }
+
+  /* ========== DRAFT 1: Golden border + warm background ========== */
+  .d1 .key-hint.active kbd {
+    background: linear-gradient(180deg, #fff8e1, #ffe082);
+    border-color: #e6a817;
+    color: #5d4200;
+    box-shadow: 0 1px 3px rgba(230, 168, 23, 0.3);
+  }
+  .d1 .key-hint.active .key-action {
+    color: #b8860b;
+    font-weight: 600;
+  }
+  .d1 .key-hint.active > span {
+    color: #5d4200;
+  }
+
+  /* ========== DRAFT 2: Pill background behind entire hint ========== */
+  .d2 .key-hint.active {
+    background: rgba(230, 168, 23, 0.1);
+    border-radius: 8px;
+    padding: 4px 6px;
+    margin: -4px -6px;
+  }
+  .d2 .key-hint.active kbd {
+    background: linear-gradient(180deg, #fff3cd, #ffd54f);
+    border-color: #daa520;
+    box-shadow: 0 1px 4px rgba(230, 168, 23, 0.25);
+  }
+  .d2 .key-hint.active .key-action,
+  .d2 .key-hint.active > span {
+    color: #6d5200;
+  }
+
+  /* ========== DRAFT 3: Left accent bar ========== */
+  .d3 .key-hint.active {
+    padding-left: 6px;
+    border-left: 2px solid #e6a817;
+  }
+  .d3 .key-hint.active kbd {
+    background: linear-gradient(180deg, #fffde7, #ffe082);
+    border-color: #c4900a;
+  }
+  .d3 .key-hint.active .key-action { color: #b8860b; }
+  .d3 .key-hint.active > span { color: #5d4200; }
+
+  /* ========== DRAFT 4: Subtle box-shadow glow (no pseudo-element) ========== */
+  .d4 .key-hint.active kbd {
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.08),
+      0 0 0 2px rgba(230, 168, 23, 0.25),
+      0 0 8px rgba(230, 168, 23, 0.15);
+    border-color: #daa520;
+    background: linear-gradient(180deg, #fffef5, #f0e6c0);
+  }
+  .d4 .key-hint.active .key-action { color: #a07000; }
+  .d4 .key-hint.active > span { color: #5d4200; }
+
+  /* ========== DRAFT 5: Bottom underline with gradient ========== */
+  .d5 .key-hint.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #e6a817, transparent);
+    border-radius: 1px;
+  }
+  .d5 .key-hint.active kbd {
+    border-color: #c4900a;
+    background: linear-gradient(180deg, #fffde7, #f5e6b8);
+  }
+  .d5 .key-hint.active .key-action { color: #b8860b; }
+  .d5 .key-hint.active > span { color: #5d4200; }
+
+  /* ========== DRAFT 6: Scale up + warm tint ========== */
+  .d6 .key-hint {
+    transition: transform 0.2s, filter 0.2s;
+  }
+  .d6 .key-hint.active {
+    transform: scale(1.12);
+  }
+  .d6 .key-hint.active kbd {
+    background: linear-gradient(180deg, #fff8e1, #ffcc02);
+    border-color: #b8860b;
+    box-shadow: 0 2px 6px rgba(230, 168, 23, 0.3);
+    color: #4a3500;
+  }
+  .d6 .key-hint.active .key-action { color: #b8860b; font-weight: 700; }
+  .d6 .key-hint.active > span { color: #5d4200; font-weight: 500; }
+
+  /* ========== DRAFT 7: Dotted ring ========== */
+  .d7 .key-hint.active {
+    outline: 2px dotted #e6a817;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .d7 .key-hint.active kbd {
+    background: linear-gradient(180deg, #fff8e1, #ffe082);
+    border-color: #c4900a;
+  }
+  .d7 .key-hint.active .key-action { color: #b8860b; }
+  .d7 .key-hint.active > span { color: #5d4200; }
+
+  /* ========== DRAFT 8: Warm card with shadow lift ========== */
+  .d8 .key-hint.active {
+    background: linear-gradient(180deg, #fffef8, #fff3cd);
+    border: 1px solid rgba(218, 165, 32, 0.35);
+    border-radius: 6px;
+    padding: 5px 7px;
+    margin: -5px -7px;
+    box-shadow: 0 2px 8px rgba(230, 168, 23, 0.2), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .d8 .key-hint.active kbd {
+    background: linear-gradient(180deg, #ffffff, #ffe896);
+    border-color: #c4900a;
+  }
+  .d8 .key-hint.active .key-action { color: #8b6914; font-weight: 600; }
+  .d8 .key-hint.active > span { color: #5d4200; }
+
+  /* ========== DRAFT 9: Pulsing border animation ========== */
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(230, 168, 23, 0.4); }
+    50% { box-shadow: 0 0 0 3px rgba(230, 168, 23, 0.15); }
+  }
+  .d9 .key-hint.active kbd {
+    animation: pulse-border 2s ease-in-out infinite;
+    background: linear-gradient(180deg, #fffde7, #ffe082);
+    border-color: #daa520;
+  }
+  .d9 .key-hint.active .key-action { color: #b8860b; }
+  .d9 .key-hint.active > span { color: #5d4200; }
+
+  /* ========== DRAFT 10: Amber badge dot + tinted text ========== */
+  .d10 .key-hint.active kbd {
+    background: linear-gradient(180deg, #fffef5, #f5e6b8);
+    border-color: #c4900a;
+  }
+  .d10 .key-hint.active kbd::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 6px;
+    height: 6px;
+    background: #e6a817;
+    border-radius: 50%;
+    border: 1px solid #fff;
+    box-shadow: 0 0 4px rgba(230, 168, 23, 0.5);
+  }
+  .d10 .key-hint.active kbd {
+    position: relative;
+  }
+  .d10 .key-hint.active .key-action { color: #b8860b; font-weight: 600; }
+  .d10 .key-hint.active > span { color: #5d4200; }
+</style>
+</head>
+<body>
+
+<h1>Key Hint Emphasis Styles — 10 Drafts</h1>
+<p style="font-size:0.8rem; color:#666; margin-bottom:2rem;">Click "Activate" to toggle the picker-active emphasis on Ctrl and Shift for each draft. Option is always visible and unemphasized.</p>
+
+<script>
+function toggleDraft(n) {
+  const container = document.getElementById('draft' + n);
+  const btn = container.querySelector('.toggle-btn');
+  const hints = container.querySelectorAll('.key-hint.picker-key');
+  const isOn = btn.classList.toggle('on');
+  hints.forEach(h => h.classList.toggle('active', isOn));
+  hints.forEach(h => h.style.display = isOn ? 'flex' : 'none');
+  btn.textContent = isOn ? 'Deactivate' : 'Activate';
+}
+</script>
+
+<!-- DRAFT 1 -->
+<div class="draft" id="draft1">
+  <div class="draft-label">Draft 1 — Golden Key</div>
+  <div class="draft-desc">The kbd element itself turns warm gold with a golden border. Text darkens. Simple color swap, no layout shift.</div>
+  <button class="toggle-btn" onclick="toggleDraft(1)">Activate</button>
+  <div class="keyboard-hints d1">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 2 -->
+<div class="draft" id="draft2">
+  <div class="draft-label">Draft 2 — Warm Pill</div>
+  <div class="draft-desc">Entire key-hint gets a soft amber pill background. Key turns golden. Groups the action + key + label visually.</div>
+  <button class="toggle-btn" onclick="toggleDraft(2)">Activate</button>
+  <div class="keyboard-hints d2">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 3 -->
+<div class="draft" id="draft3">
+  <div class="draft-label">Draft 3 — Left Accent Bar</div>
+  <div class="draft-desc">A small gold vertical bar on the left side. Minimal, doesn't touch the key itself much. Subtle but directional.</div>
+  <button class="toggle-btn" onclick="toggleDraft(3)">Activate</button>
+  <div class="keyboard-hints d3">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 4 -->
+<div class="draft" id="draft4">
+  <div class="draft-label">Draft 4 — Soft Ring Glow</div>
+  <div class="draft-desc">A subtle amber box-shadow ring around the key with a warm tint. No pseudo-elements, pure CSS shadow. Clean.</div>
+  <button class="toggle-btn" onclick="toggleDraft(4)">Activate</button>
+  <div class="keyboard-hints d4">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 5 -->
+<div class="draft" id="draft5">
+  <div class="draft-label">Draft 5 — Gradient Underline</div>
+  <div class="draft-desc">A thin amber gradient line under the entire hint. Minimal, elegant, doesn't compete with the key styling.</div>
+  <button class="toggle-btn" onclick="toggleDraft(5)">Activate</button>
+  <div class="keyboard-hints d5">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 6 -->
+<div class="draft" id="draft6">
+  <div class="draft-label">Draft 6 — Scale Pop</div>
+  <div class="draft-desc">Keys scale up 12% with a golden key face and warm shadow. Draws the eye through size difference. Animated transition.</div>
+  <button class="toggle-btn" onclick="toggleDraft(6)">Activate</button>
+  <div class="keyboard-hints d6">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 7 -->
+<div class="draft" id="draft7">
+  <div class="draft-label">Draft 7 — Dotted Ring</div>
+  <div class="draft-desc">A gold dotted outline around the whole hint group. Playful, non-aggressive. Good for a tool-tip style callout.</div>
+  <button class="toggle-btn" onclick="toggleDraft(7)">Activate</button>
+  <div class="keyboard-hints d7">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 8 -->
+<div class="draft" id="draft8">
+  <div class="draft-label">Draft 8 — Warm Lifted Card</div>
+  <div class="draft-desc">Each active hint becomes a mini card with a warm gradient background, subtle border, and a lifted shadow. Premium feel.</div>
+  <button class="toggle-btn" onclick="toggleDraft(8)">Activate</button>
+  <div class="keyboard-hints d8">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 9 -->
+<div class="draft" id="draft9">
+  <div class="draft-label">Draft 9 — Pulse Glow</div>
+  <div class="draft-desc">A gentle pulsing amber glow animation on the key. Breathing rhythm draws attention without being jarring. 2s cycle.</div>
+  <button class="toggle-btn" onclick="toggleDraft(9)">Activate</button>
+  <div class="keyboard-hints d9">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+<!-- DRAFT 10 -->
+<div class="draft" id="draft10">
+  <div class="draft-label">Draft 10 — Amber Badge Dot</div>
+  <div class="draft-desc">A small amber notification dot on the top-right corner of the key. Mimics an "active" indicator like a notification badge.</div>
+  <button class="toggle-btn" onclick="toggleDraft(10)">Activate</button>
+  <div class="keyboard-hints d10">
+    <div class="key-hint"><div class="key-stack"><span class="key-action">Hold</span><kbd>Option</kbd></div><span>Scroll to zoom<br>Drag to pan</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Tap</span><kbd>Ctrl</kbd></div><span>Toggle overlay<br>visibility</span></div>
+    <div class="key-hint picker-key active" style="display:none"><div class="key-stack"><span class="key-action">Double-tap</span><kbd>Shift</kbd></div><span>Switch to next<br>color category</span></div>
+  </div>
+</div>
+
+</body>
+</html>
