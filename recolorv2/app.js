@@ -1396,19 +1396,68 @@ function handleFileSelect(event) {
 function loadDemoImage() {
     // Load demo image via relative URL. Works on any HTTP server (localhost,
     // GitHub Pages, etc.) where same-origin policy allows canvas getImageData.
+    var resolvedURL = new URL(_DEMO_IMAGE_FILE, window.location.href).href;
+    debugLog('[demo] Attempting to load: ' + resolvedURL);
+    debugLog('[demo] Protocol: ' + window.location.protocol + ', origin: ' + window.location.origin);
+
+    // Try fetch first for diagnostic info (HTTP status, CORS, etc.)
+    if (typeof fetch !== 'undefined' && window.location.protocol !== 'file:') {
+        fetch(resolvedURL, { mode: 'cors' })
+            .then(function(response) {
+                debugLog('[demo] fetch response: status=' + response.status + ' ok=' + response.ok + ' type=' + response.type + ' content-type=' + response.headers.get('content-type'));
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+                }
+                return response.blob();
+            })
+            .then(function(blob) {
+                debugLog('[demo] fetch OK, blob size=' + blob.size + ' type=' + blob.type);
+                var objectURL = URL.createObjectURL(blob);
+                var img = new Image();
+                img.onload = function() {
+                    debugLog('[demo] Image decoded: ' + img.naturalWidth + 'x' + img.naturalHeight);
+                    originalFileName = 'demo';
+                    _isDemoImage = true;
+                    loadImage(img);
+                    updateDemoConfigVisibility();
+                    URL.revokeObjectURL(objectURL);
+                    debugLog('[demo] Loaded demo image successfully via fetch');
+                };
+                img.onerror = function(e) {
+                    debugLog('[demo] ERROR: blob-to-Image decode failed, blob type=' + blob.type + ' size=' + blob.size, 'error');
+                    setStatus('Demo image failed to decode');
+                    URL.revokeObjectURL(objectURL);
+                };
+                img.src = objectURL;
+            })
+            .catch(function(err) {
+                debugLog('[demo] ERROR: fetch failed — ' + err.message, 'error');
+                debugLog('[demo] Falling back to direct img.src', 'warn');
+                _loadDemoImageDirect(resolvedURL);
+            });
+    } else {
+        debugLog('[demo] fetch unavailable or file:// protocol, using direct img.src');
+        _loadDemoImageDirect(resolvedURL);
+    }
+}
+
+function _loadDemoImageDirect(url) {
     var img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = function() {
+        debugLog('[demo] Direct load OK: ' + img.naturalWidth + 'x' + img.naturalHeight);
         originalFileName = 'demo';
         _isDemoImage = true;
         loadImage(img);
         updateDemoConfigVisibility();
-        debugLog('[demo] Loaded demo image from ' + _DEMO_IMAGE_FILE);
+        debugLog('[demo] Loaded demo image successfully via direct img.src');
     };
-    img.onerror = function() {
+    img.onerror = function(e) {
+        var details = 'event type=' + (e && e.type || 'unknown');
+        debugLog('[demo] ERROR: direct img.src failed — ' + details + ', url=' + url, 'error');
         setStatus('Demo image not found — ensure ' + _DEMO_IMAGE_FILE + ' is in the app directory');
-        debugLog('[demo] ERROR: could not load ' + _DEMO_IMAGE_FILE, 'error');
     };
-    img.src = _DEMO_IMAGE_FILE;
+    img.src = url;
 }
 
 function loadDemoConfig() {
