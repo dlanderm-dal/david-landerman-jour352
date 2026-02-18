@@ -32,6 +32,53 @@ This document compiles all feature requests, bug fixes, and changes from past co
 | v31 | Feb 15 | Dual logo system, UI polish, tolerance default fix, header restructure |
 | v32 | Feb 15 | Full-resolution rendering, distance-based attenuation, render log system, scroll fix |
 | v32b | Feb 15 | Eyedropper probe tool, config-load swatch fix, drift log noise reduction |
+| v33 | Feb 17 | Debug toolkit (Layout/Inspect/State), demo image fix, column line alignment |
+| v34 | Feb 18 | Harmony preview strip, base slot picker, locked-color wheel dots, drag & drop upload |
+
+---
+
+## v34 Changes (February 18, 2026)
+
+### Harmony Live Preview Strip
+1. **`updateHarmonyPreview()` function** — Renders a row of colored swatches showing what the harmony generator will produce based on current slider values (hue, brightness, harmony type). Uses seeded pseudo-random for stable colors during slider drags. Base slot swatch marked with `.is-base` class.
+
+### Base Slot Selection
+2. **"Base color slot" picker in Lock a Harmony panel** — Clickable list of target columns by category label (B, A1, A2, etc.) with color swatches. Lets the user explicitly choose which column receives the base hue. `getHarmonyBaseSlot()` resolves explicit selection or falls back to first unlocked column.
+3. **`buildHarmonyHues()` helper** — Centralized hue array construction with rotation so the base hue always lands on the selected slot. Used by generate, randomize, and preview.
+
+### Locked Colors on Harmony Wheel
+4. **"Consider locked colors on wheel" toggle** — When enabled, draws static square dots on the harmony wheel for ALL origin colors mapped to locked columns (not just the dominant one). `adjustHuesForLockedColors()` performs gap analysis on locked origin hues and nudges clashing unlocked hues to the midpoint of the largest gap.
+
+### Locked Swatch Origin Popup
+5. **Click-to-select origin colors** — Clicking a locked item in the base slot picker opens a floating popup showing all origin colors in that column. Selecting one sets the locked column as the harmony base and syncs the hue/brightness sliders to match the chosen origin color.
+
+### Beginner Mode
+6. **Hidden advanced harmony controls** — Base picker, preview strip, and "Consider locked colors" toggle hidden via `body.mode-beginner` CSS rules.
+
+### State Dump Expansion
+7. **53 additional variables** — Added Harmony, Color Analysis, Swatch Picker Internals, Opacity Internals, UI State, Display & Rendering, Config & History, and Debug sections to the State button output.
+8. **DOM Snapshot section** — Walks 16 key containers reporting visibility flags, dimensions, child count, and content preview.
+
+### Drag & Drop Image Upload
+9. **Drop zone on upload area** — Added `dragover`, `dragleave`, and `drop` event handlers to the upload zone. Accepts dragged image files and loads them via FileReader. Visual feedback with solid accent border during drag-over.
+
+---
+
+## v33 Changes (February 17, 2026)
+
+### Demo Image Loading
+1. **Rebuilt `loadDemoImage()` from reference** — Replaced the broken multi-fallback demo image loader (data URI path, `_loadDemoImageDirect`, `_loadDemoImageDirectFallback`, XHR SVG text fallback) with the clean version from the reference codebase. Now uses fetch-with-CORS on HTTP, falling back to direct `img.src` via `_loadDemoImageDirect()`. No `file://` data URI path — demo image only works over HTTP (e.g., GitHub Pages), which is acceptable.
+2. **Removed dead code** — Deleted `_loadDemoImageDirectFallback()` and the `file://` SVG blob workaround that were part of the broken implementation.
+
+### Column Divider Line Alignment
+3. **Selector mismatch fix** — Origin column dividers used `:not(.locked-column)` (matched ALL columns since `locked-column` was never applied), while target column dividers used `:not(:last-child)`. Changed origins to `:not(:last-child)` so both rows draw lines on the same columns.
+4. **Centering fix** — Changed `right: -1px` to `right: -2px` for 3px-wide divider lines, centering them on column boundaries.
+5. **Horizontal padding fix** — Added `padding-left: 0.25rem; padding-right: 0.25rem` to `.mapping-targets-row` to match the padding from `.origin-collapsible .target-tool-content`, which wraps the origin columns. Without this, the targets row was wider, offsetting all column boundaries.
+
+### Debug Toolkit (Render Log)
+6. **Layout button** — Dumps bounding rects of all origin and target columns, parent row rects with padding, and per-column right-edge deltas showing exact pixel misalignment. Auto-copies to clipboard.
+7. **Inspect button** — Click-to-inspect mode. Activates crosshair cursor; clicking any element dumps: tag/id/classes, bounding rect, key computed styles (display, visibility, opacity, pointer-events, position, overflow, z-index, padding, margin), inline styles, disabled/aria state, dataset attributes, ancestry chain (6 levels with hidden flags), outer HTML (truncated), and onclick attribute. Auto-copies to clipboard.
+8. **State button** — Dumps full application state snapshot: uiStage, appMode, algorithm, image dimensions, WebGL state, picker mode/colors/categories, harmony state, tutorial state, palette colors/counts, column mapping, bypass locks, opacity values, zoom/pan, swatch picker state, drag state, visibility of all major panels (checked for display:none, .hidden, .collapsed, opacity:0, pointer-events:none, details open/closed), and disabled/active state of key buttons. Auto-copies to clipboard.
 
 ---
 
@@ -402,5 +449,5 @@ Added a `uiStage` state machine tracking: `initial` → `image-loaded` → `colo
 
 ---
 
-*Last updated: February 15, 2026 (v32)*
+*Last updated: February 18, 2026 (v34)*
 *Compiled from Claude Code conversation history*

@@ -1,0 +1,177 @@
+POST PUSH CHANGES
+==================
+
+Changes made across index.html, app.js, and styles.css:
+
+1. INSTRUCTION STEP 1 (Both Modes)
+   - Removed parentheses from "(Won't work for photographs)"
+   - Made text red (#d9534f) and italic
+   - New CSS class: .photo-warning
+
+2. INSTRUCTION STEP 2 (Both Modes)
+   - Second mention of "Origin" is now bold and in quotes to match the first: "Origin"
+
+3. REMOVED A,B,C,SHORTCUT TEXT BLOCK (Both Modes)
+   - The descriptive text block under the Pick Colors sidebar button (A. Pick Colors by Category, B. Colors with same category..., C. Locked colors..., Shortcut: Double-tap Shift...) has been hidden
+
+4. KEYBOARD HINTS TEXT SIZE (Both Modes)
+   - The Option/Ctrl/Shift button guide text at the top of the image preview box has been increased from 7-9px to 0.8-0.85rem to match instruction text size
+
+5. TUTORIAL TEXT SIZE (Both Modes)
+   - Increased all text inside the color picker tutorial overlay (title, subtitle, italic, buttons)
+   - Exception: "Picking for" dropdown, color bank swatches, and Clear Selections button remain unchanged
+
+6. INSTRUCTION STEP 3 - ADD COLOR STYLING (Both Modes)
+   - Replaced emoji + bold "Add Color" with a mini text box containing a bold "+" with:
+     - Dotted border in faded gray (#b0b8c0)
+     - Zero margin, modest padding
+     - "Add Color" text in faded gray inline after the box
+   - Removed the "Don't worry about using all the features..." reassurance text from step 3
+   - New CSS classes: .add-color-icon-box, .add-color-label-faded
+
+7. DYNAMIC ACCENT CATEGORIES - PICKER DROPDOWN (Advanced Mode Only)
+   - Added "Add Accent Category (wild)" option at the bottom of the picker category dropdown
+   - When selected, instantly creates the next accent category (Accent 5, 6, 7, etc.)
+   - Changes the dropdown selection to the newly created category
+   - Subsequent "Add" options show "(really?)" text after Accent 5
+   - Automatically increases target count to accommodate new categories
+   - New JS: handlePickerCategoryChange(), dynamicAccentMax variable
+   - Tutorial cloned dropdown also supports this feature
+
+8. BEGINNER MODE: REMOVED +/- COUNTER
+   - Hidden the +/- target count control at the bottom of the target area in beginner mode
+   - CSS: body.mode-beginner #targetControlRow .palette-count-control { display: none }
+
+9. MOVED RESET/REMOVE BUTTONS (Both Modes)
+   - "Reset Recolor" and "Remove Image" buttons moved from canvas header to below the image preview
+   - Positioned between the canvas wrapper and the Tool Reference panel
+   - In advanced mode: buttons appear between the image and Tool Reference box
+   - In beginner mode: buttons appear below the image (Tool Reference hidden in beginner)
+   - New CSS class: .image-action-buttons
+   - Buttons displayed as single-line text instead of two-line
+
+10. INSTRUCTION STEP 5 TEXT UPDATE (Both Modes)
+    - Changed: "hit the export button and hold onto that file with your image"
+    - To: "hit the export button and all your saved configurations will be recorded on one file. Hold onto that file and your image."
+
+11. BEGINNER MODE: FLIPPABLE INSTRUCTION SLIDES (Steps 4-6)
+    - Steps 4, 5, and 6 are now a slideshow in beginner mode
+    - Default shows step 4 with Prev/Next navigation buttons
+    - Step 5/6 combined into one slide with heading "5/6 Save your recolor / Download your recolored image!"
+    - Combined slide includes extra text: "Hit the Download Recolored Image button" (styled in green)
+    - Navigation indicator shows "Step 4" or "Steps 5 & 6"
+    - Advanced mode: no slideshow, all steps visible as before
+    - New HTML: instruction-slides-wrapper, instruction-slide-nav
+    - New CSS: .instruction-slide-nav, .instruction-slide-prev/next, .instruction-slide-indicator, .btn-download-inline
+    - New JS: currentInstructionSlide, applyInstructionSlideVisibility(), updateInstructionSlideNav(), changeInstructionSlide()
+
+12. "WHAT IS THIS?" COLLAPSIBLE (Both Modes)
+    - Added collapsible "What is this?" section under the Recolor History scroll box
+    - Contains the step 5 save/export instructions text
+    - Uses <details>/<summary> for native collapsible behavior
+    - New CSS classes: .what-is-this-collapsible, .what-is-this-summary, .what-is-this-content
+
+13. BEGINNER MODE: LIVE PREVIEW BUTTON BLUE STYLING
+    - When the Recolor Live toggle is OFF in beginner mode, it now displays with the accent blue background (same blue as "Looks Good" button)
+    - White text on blue background signals to the user this is the next action to take
+    - When ON (checked), reverts to the subtle light background with dark text
+
+14. FADED SAVE/DOWNLOAD BUTTONS PRE-RECOLOR (Both Modes)
+    - Save Recolor Configuration, Export, and Download Recolored Image buttons appear faded/grayed out until at least one recolor exists in history
+    - Uses .btn-pre-recolor-faded class: opacity 0.35, pointer-events none, slight grayscale
+    - Automatically unfades when first recolor is run, imported, or uploaded via JSON
+    - New JS: updatePreRecolorFadedState()
+
+15. MODE SWITCHING
+    - setAppMode() now handles slide visibility when switching between beginner/advanced
+    - Resets slide to step 4 when entering beginner mode
+    - Removes slide-hidden classes when entering advanced mode
+
+--- SECOND BATCH ---
+
+16. TUTORIAL TEXT UPDATES
+    - Background step: Changed "Click your mouse on the Background of your image." to
+      "Click your mouse on the background color of your image, then hit "Next Color"."
+    - Accent steps: Changed "set it to recode to green, all blue and red spots will be green."
+      to "later set it to recolor to green, all blue and red spots will look green."
+
+17. ADD COLORS TOOL - DUPLICATE PREVENTION
+    - getUnusedExtractedColors() now filters out colors already present in originalPalette
+    - Uses existing colorsMatch() function for exact RGB comparison
+    - Prevents adding duplicate origin colors via the Add Color dropdown in the color bank
+
+18. RECOLOR LIVE STEP BUBBLE FIX (Beginner Mode)
+    - Step number circle on Recolor Live button now white background with accent text when unchecked
+    - Reverts to accent background with white text when checked
+    - Previously the circle was invisible (accent-on-accent) when unchecked
+
+19. "WHAT IS THIS?" BOX RESTYLED
+    - Upgraded from plain paragraphs to icon + text card layout
+    - Each instruction step has an emoji icon (💾, 📦, 🔄) with description
+    - Collapsible has dashed border that becomes solid accent on open
+    - Summary text turns accent color on hover and when open
+    - Content area uses surface-2 background with highlighted strong text
+
+20. BEGINNER STEP 4 TEXT UPDATE
+    - Changed "The preview updates live as you make changes."
+    - To "Turn on Recolor Live to have the preview update whenever you make a change."
+    - "Recolor Live" styled with .btn-highlight (accent blue, bold)
+
+21. BEGINNER MODE: DIRECT COLOR PICKER + TARGET DESCRIPTION
+    - Hidden "Choose your target colors manually above or use the tools below." in beginner mode
+    - Updated Direct Color Picker description to "Click each Target swatch's palette icon above to directly determine its color."
+
+--- THIRD BATCH ---
+
+22. FIX: SAVE/DOWNLOAD BUTTONS NOT UNFADING ON LIVE PREVIEW
+    - toggleLivePreview() now calls addToRecolorHistory() after the initial recolorImage()
+    - This ensures the save/download/export buttons unfade as soon as live preview runs its first recolor
+    - Previously, the buttons stayed faded because the live-preview initial recolor bypassed the history chain
+
+--- FOURTH BATCH (v34) ---
+
+23. HARMONY LIVE PREVIEW STRIP
+    - New updateHarmonyPreview() renders colored swatches showing harmony output from current slider values
+    - Uses seeded pseudo-random (Math.sin-based) for stable colors during slider drags
+    - Base slot swatch highlighted with .is-base class
+    - Calls populateHarmonyBasePicker() to keep base picker in sync
+
+24. BASE SLOT SELECTION PICKER
+    - New "Base color slot:" UI in Lock a Harmony panel
+    - Clickable list of target columns showing category label (B, A1, A2) + color swatch
+    - getHarmonyBaseSlot(n) resolves explicit selection or falls back to first unlocked column
+    - buildHarmonyHues() centralizes hue array construction with rotation so base hue lands on selected slot
+    - populateHarmonyBasePicker() rebuilds on every renderColumnMapping() and updateHarmonyPreview()
+    - New state variable: harmonyBaseSlot
+
+25. "CONSIDER LOCKED COLORS ON WHEEL" TOGGLE
+    - New checkbox in Lock a Harmony panel
+    - When on, draws static square dots on harmony wheel for ALL origin colors in locked columns
+    - adjustHuesForLockedColors() does gap analysis on locked origin hues, nudges clashing unlocked hues to largest gap midpoint
+    - New state variable: harmonyIncludeLocked
+
+26. LOCKED SWATCH ORIGIN POPUP
+    - Clicking a locked item in the base picker opens floating popup of all origin colors in that column
+    - Selecting an origin sets locked column as harmony base, syncs hue + brightness sliders to origin's values
+    - New functions: showHarmonyBaseOriginPopup(), selectHarmonyBaseFromOrigin()
+    - New CSS: .harmony-base-origin-popup, .harmony-base-origin-grid, .harmony-base-origin-swatch
+
+27. BEGINNER MODE: HIDDEN ADVANCED HARMONY CONTROLS
+    - Base picker, preview strip, and "Consider locked colors" toggle hidden via body.mode-beginner CSS rules
+
+28. STATE DUMP EXPANSION
+    - Added ~53 missing variables across new sections: Harmony, Color Analysis, Swatch Picker Internals, Opacity Internals, UI State, Display & Rendering, Config & History, Debug
+    - Added DOM Snapshot section that walks 16 key containers reporting visibility, dimensions, child count, content preview
+
+29. DRAG & DROP IMAGE UPLOAD
+    - Added dragover, dragleave, drop event handlers to upload zone in DOMContentLoaded
+    - Accepts dragged image files, loads via FileReader → loadImage()
+    - New CSS: .upload-zone.drag-over (solid accent border, stronger background tint)
+
+30. FIX: BASE PICKER NOT SHOWING ON CONFIG LOAD
+    - populateHarmonyBasePicker() added to loadConfig(), renderColumnMapping() end, and toggleColumnBypass()
+    - Previously, config-import path never called it so the picker stayed empty
+
+31. FIX: LOCKED COLORS NOT SHOWING ON WHEEL
+    - Changed from getEffectiveColumnColor() (dominant only) to iterating ALL origins via originToColumn
+    - All origin colors mapped to a locked column now appear as dots on the wheel

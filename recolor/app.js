@@ -613,6 +613,8 @@ let selectedSlotIndex = 0;
 let harmonyMode = 'harmony'; // 'harmony' or 'color'
 let _currentHarmonyType = 'complementary'; // cached harmony type, survives DOM hidden/show resets
 let lockColorSelectedIdx = 0; // Which target is selected in Lock a Color mode
+let harmonyBaseSlot = null; // Which target column gets the base hue in Lock a Harmony (null = first unlocked)
+let harmonyIncludeLocked = false; // Whether locked origin colors appear on wheel and factor into generation
 let canvas, ctx;
 let displayCanvas, displayCtx; // For high-quality scaled display
 let useHighQualityDisplay = true; // Toggle for high-quality rendering
@@ -684,12 +686,18 @@ let appMode = 'beginner'; // 'beginner' or 'advanced'
 
 // Demo mode state — unique filenames prevent accidental collision with user files
 let _isDemoImage = false;
+// Tracks how the current image and palette were set up (for debug State dump)
+let _imageSource = 'none';       // 'upload', 'demo', 'none'
+let _paletteSource = 'none';     // 'picker', 'config-import', 'demo-config', 'theme', 'none'
+let _modeHistory = [];            // tracks beginner/advanced switches: [{mode, time}]
+let _deferredBgLock = false;      // tutorial "Lock Background" deferred until target-selection stage
 const _DEMO_IMAGE_FILE = 'ps-demo-83x7q.svg';
 // Demo config embedded directly — avoids XHR/fetch issues on file:// protocol
 const _DEMO_CONFIG_DATA = {"version":"18","exportDate":"2026-02-15T04:48:51.770Z","configs":[{"id":1771043608455.106,"name":"Recolor 29","timestamp":"2026-02-14T04:33:28.455Z","savedForExport":true,"originCount":16,"targetCount":3,"originalPalette":[[255,255,255],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142]],"targetPalette":[[70,179,237],[102,209,211],[211,160,71]],"colorPercentages":[75.83719016764373,0.9349609174123212,0.8095495217525456,4.4956546333436185,2.097796461997326,2.152113545202098,3.4038491206417767,2.151277897768179,1.7511313380643834,1.5580325002571223,0.8700375398539545,0.968708217628304,0.6571402859199835,0.15568754499640028,1.8221613699475472,0.33470893757070863],"originToColumn":[0,1,1,1,1,1,2,2,2,"bank","bank","bank","bank","bank","bank","bank"],"columnBypass":{"0":true},"algorithm":"simple","luminosity":0,"originOpacity":{},"targetOpacity":{},"pickedColors":[[255,255,255],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166]],"pickedPositions":[{"x":1664,"y":881,"color":[255,255,255]},{"x":836,"y":350,"color":[0,0,0]},{"x":968,"y":898,"color":[219,200,183]},{"x":947,"y":1003,"color":[212,191,164]},{"x":1059,"y":1084,"color":[137,111,78]},{"x":1228,"y":1045,"color":[130,95,63]},{"x":1311,"y":1048,"color":[151,122,92]},{"x":1128,"y":991,"color":[199,172,142]},{"x":933,"y":764,"color":[31,58,95]},{"x":1561,"y":738,"color":[246,217,175]},{"x":1414,"y":1284,"color":[214,214,214]},{"x":904,"y":2008,"color":[250,140,0]},{"x":1028,"y":162,"color":[64,32,239]},{"x":875,"y":955,"color":[243,209,16]},{"x":1221,"y":2041,"color":[0,144,118]},{"x":223,"y":2034,"color":[0,220,166]}],"pickedCategories":[0,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,2,2,2]},{"id":1771130638599.195,"name":"Recolor 7","timestamp":"2026-02-15T04:43:58.599Z","savedForExport":true,"originCount":16,"targetCount":3,"originalPalette":[[255,255,255],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142]],"targetPalette":[[70,179,237],[71,165,230],[228,135,62]],"colorPercentages":[75.83719016764373,0.9349609174123212,0.8095495217525456,4.4956546333436185,2.097796461997326,2.152113545202098,3.4038491206417767,2.151277897768179,1.7511313380643834,1.5580325002571223,0.8700375398539545,0.968708217628304,0.6571402859199835,0.15568754499640028,1.8221613699475472,0.33470893757070863],"originToColumn":[0,1,1,1,1,1,2,2,2,"bank","bank","bank","bank","bank","bank","bank"],"columnBypass":{"0":true},"algorithm":"simple","luminosity":0,"originOpacity":{},"targetOpacity":{},"pickedColors":[[255,255,255],[0,0,0],[219,200,183],[212,191,164],[137,111,78],[130,95,63],[151,122,92],[199,172,142],[31,58,95],[246,217,175],[214,214,214],[250,140,0],[64,32,239],[243,209,16],[0,144,118],[0,220,166]],"pickedPositions":[{"x":1664,"y":881,"color":[255,255,255]},{"x":836,"y":350,"color":[0,0,0]},{"x":968,"y":898,"color":[219,200,183]},{"x":947,"y":1003,"color":[212,191,164]},{"x":1059,"y":1084,"color":[137,111,78]},{"x":1228,"y":1045,"color":[130,95,63]},{"x":1311,"y":1048,"color":[151,122,92]},{"x":1128,"y":991,"color":[199,172,142]},{"x":933,"y":764,"color":[31,58,95]},{"x":1561,"y":738,"color":[246,217,175]},{"x":1414,"y":1284,"color":[214,214,214]},{"x":904,"y":2008,"color":[250,140,0]},{"x":1028,"y":162,"color":[64,32,239]},{"x":875,"y":955,"color":[243,209,16]},{"x":1221,"y":2041,"color":[0,144,118]},{"x":223,"y":2034,"color":[0,220,166]}],"pickedCategories":[0,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,2,2,2]}]};
 
 function setAppMode(mode) {
     appMode = mode;
+    _modeHistory.push({ mode, time: new Date().toLocaleTimeString() });
     const isAdvanced = mode === 'advanced';
 
     // Update toggle UI
@@ -740,6 +748,28 @@ function setAppMode(mode) {
 
     // Update palette icon visibility based on Direct Picker state
     updatePaletteIconVisibility();
+
+    // Re-apply instruction slide visibility for mode change
+    if (uiStage === 'target-selection' || uiStage === 'complete') {
+        if (!isAdvanced) {
+            currentInstructionSlide = 0;
+            applyInstructionSlideVisibility();
+            updateInstructionSlideNav();
+            const slideNav = document.getElementById('instructionSlideNav');
+            if (slideNav) slideNav.style.display = 'flex';
+        } else {
+            // In advanced mode, remove slide-hidden from all slides
+            const wrapper = document.getElementById('instructionSlidesWrapper');
+            if (wrapper) {
+                wrapper.querySelectorAll('.instruction-slide').forEach(s => s.classList.remove('slide-hidden'));
+            }
+            const slideNav = document.getElementById('instructionSlideNav');
+            if (slideNav) slideNav.style.display = 'none';
+        }
+    }
+
+    // Update pre-recolor faded state
+    if (typeof updatePreRecolorFadedState === 'function') updatePreRecolorFadedState();
 }
 
 function toggleAppMode() {
@@ -753,7 +783,7 @@ function updateInstructionTextForMode() {
     if (!stepText) return;
 
     if (appMode === 'beginner') {
-        stepText.innerHTML = 'Time to choose your new colors — there\'s LOTS of ways to do this! The preview updates live as you make changes.';
+        stepText.innerHTML = 'Time to choose your new colors — there\'s LOTS of ways to do this! Turn on <span class="btn-highlight">Recolor Live</span> to have the preview update whenever you make a change.';
     } else {
         stepText.innerHTML = 'Time to choose your new colors — there\'s LOTS of ways to do this! Hit <span class="btn-highlight">Apply this recolor</span> when you\'re done, or just turn on <span class="btn-highlight">Recolor Live</span> to have the preview update whenever you make a change.';
     }
@@ -765,30 +795,14 @@ function handleDirectPickerToggle(detailsEl) {
     updatePaletteIconVisibility();
 }
 
-// Update palette icon visibility based on Direct Picker state
+// Update palette icon visibility — always visible after Looks Good in all modes
 function updatePaletteIconVisibility() {
-    const directPicker = document.getElementById('directPickerSection');
-    const isOpen = directPicker && directPicker.open;
-    const isBeginner = appMode === 'beginner';
-
-    // Get all palette (color picker) buttons under target swatches
+    // Palette icons are always visible after target selection (uiStage === 'complete')
     document.querySelectorAll('.swatch-buttons').forEach(btnRow => {
         const pickerBtn = btnRow.querySelector('button:first-child');
         if (!pickerBtn) return;
-
-        if (isBeginner) {
-            if (isOpen) {
-                pickerBtn.classList.remove('palette-icon-hidden');
-                pickerBtn.classList.add('palette-icon-active');
-            } else {
-                pickerBtn.classList.add('palette-icon-hidden');
-                pickerBtn.classList.remove('palette-icon-active');
-            }
-        } else {
-            // Advanced mode: always visible, normal style
-            pickerBtn.classList.remove('palette-icon-hidden');
-            pickerBtn.classList.remove('palette-icon-active');
-        }
+        pickerBtn.classList.remove('palette-icon-hidden');
+        pickerBtn.classList.remove('palette-icon-active');
     });
 }
 
@@ -821,6 +835,8 @@ function toggleInstructions() {
     if (arrow) arrow.textContent = instructionsCollapsed ? '▸' : '▾';
 }
 
+let currentInstructionSlide = 0; // 0 = step 4, 1 = step 5/6 (beginner combined)
+
 function updateProgressiveInstructions(step) {
     const container = document.getElementById('progressiveInstructions');
     if (!container) return;
@@ -833,6 +849,24 @@ function updateProgressiveInstructions(step) {
             el.classList.toggle('active', elStep === step);
         }
     });
+
+    // In beginner mode, apply slide visibility for steps 4-6
+    if (appMode === 'beginner' && (step === 'target-selection' || step === 'complete')) {
+        currentInstructionSlide = 0; // reset to step 4
+        applyInstructionSlideVisibility();
+        updateInstructionSlideNav();
+    }
+
+    // Show/hide slide nav
+    const slideNav = document.getElementById('instructionSlideNav');
+    if (slideNav) {
+        if (appMode === 'beginner' && (step === 'target-selection' || step === 'complete')) {
+            slideNav.style.display = 'flex';
+        } else {
+            slideNav.style.display = 'none';
+        }
+    }
+
     // Advanced mode: auto-collapse instructions at every stage change
     if (appMode === 'advanced') {
         const arrow = document.getElementById('instructionsToggleArrow');
@@ -844,9 +878,58 @@ function updateProgressiveInstructions(step) {
     }
 }
 
+function applyInstructionSlideVisibility() {
+    if (appMode !== 'beginner') return;
+    const wrapper = document.getElementById('instructionSlidesWrapper');
+    if (!wrapper) return;
+    const slides = wrapper.querySelectorAll('.instruction-slide');
+    slides.forEach(slide => {
+        const idx = parseInt(slide.dataset.slideIndex);
+        const isBegOnly = slide.classList.contains('instruction-slide-beginner-only');
+        const isAdvOnly = slide.classList.contains('instruction-slide-advanced-only');
+
+        if (isAdvOnly) {
+            slide.classList.add('slide-hidden');
+            return;
+        }
+        if (isBegOnly) {
+            // Show beginner-only if it matches the current slide
+            slide.classList.toggle('slide-hidden', idx !== currentInstructionSlide);
+        } else {
+            // Regular slide (step 4)
+            slide.classList.toggle('slide-hidden', idx !== currentInstructionSlide);
+        }
+    });
+}
+
+function updateInstructionSlideNav() {
+    const prevBtn = document.getElementById('instrSlidePrev');
+    const nextBtn = document.getElementById('instrSlideNext');
+    const indicator = document.getElementById('instrSlideIndicator');
+    if (!prevBtn) return;
+
+    // In beginner mode: 2 slides (0 = step 4, 1 = step 5/6 combined)
+    const maxSlide = 1;
+    prevBtn.disabled = currentInstructionSlide <= 0;
+    nextBtn.disabled = currentInstructionSlide >= maxSlide;
+    if (currentInstructionSlide === 0) {
+        indicator.textContent = 'Step 4';
+    } else {
+        indicator.textContent = 'Steps 5 & 6';
+    }
+}
+
+function changeInstructionSlide(delta) {
+    const maxSlide = 1;
+    currentInstructionSlide = Math.max(0, Math.min(maxSlide, currentInstructionSlide + delta));
+    applyInstructionSlideVisibility();
+    updateInstructionSlideNav();
+}
+
 // Palette counts
 let originCount = 5;
 let targetCount = 5;
+let dynamicAccentMax = 4; // Tracks the max accent category available in the picker dropdown (for advanced mode wild accents)
 
 // Color tolerance for extraction merging (0 = no merging, higher = more merging)
 let colorTolerance = 0;
@@ -859,8 +942,10 @@ let panzoomInstance = null;
 let draggingMarker = null;
 let altHeld = false;
 let draggedOriginIndex = null;
+let _originDuplicateIndices = new Set(); // indices of origin colors that have exact-hex duplicates
 let draggedTargetIndex = null;    // For target swatch drag-and-drop
-let targetConflict = null;        // {col: colIdx} if two targets in same slot
+let draggedConflictSwatch = false; // true when dragging the conflict (displaced) swatch
+let targetConflict = null;        // {col, color, opacity} when two targets occupy same column
 
 // Theme Presets
 const THEME_NAMES = {
@@ -996,8 +1081,51 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize resize handles
     initResizeHandles();
 
+    // Drag & drop image upload
+    const uploadZone = document.getElementById('uploadZone');
+    if (uploadZone) {
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadZone.classList.add('drag-over');
+        });
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadZone.classList.remove('drag-over');
+        });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                // Reuse the same logic as handleFileSelect
+                _isDemoImage = (file.name === _DEMO_IMAGE_FILE);
+                _imageSource = _isDemoImage ? 'demo' : 'upload';
+                const name = file.name || 'image';
+                const dotIdx = name.lastIndexOf('.');
+                originalFileName = dotIdx > 0 ? name.substring(0, dotIdx) : name;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const img = new Image();
+                    img.onload = function() { loadImage(img); };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     // Initialize theme browser
     const themeContainer = document.getElementById('themeScrollContainer');
+
+    // Add header row
+    const header = document.createElement('div');
+    header.className = 'theme-list-header';
+    header.innerHTML = '<span class="theme-header-name">Name</span><span>Colors</span>';
+    themeContainer.appendChild(header);
+
     Object.keys(THEMES).forEach(themeKey => {
         const item = document.createElement('div');
         item.className = 'theme-item';
@@ -1372,6 +1500,7 @@ function handleFileSelect(event) {
 
     // Check if uploaded file is the demo image (by unique filename)
     _isDemoImage = (file.name === _DEMO_IMAGE_FILE);
+    _imageSource = _isDemoImage ? 'demo' : 'upload';
 
     // Extract filename without extension for download naming
     const name = file.name || 'image';
@@ -1418,6 +1547,7 @@ function loadDemoImage() {
                     debugLog('[demo] Image decoded: ' + img.naturalWidth + 'x' + img.naturalHeight);
                     originalFileName = 'demo';
                     _isDemoImage = true;
+                    _imageSource = 'demo';
                     loadImage(img);
                     updateDemoConfigVisibility();
                     URL.revokeObjectURL(objectURL);
@@ -1441,6 +1571,124 @@ function loadDemoImage() {
     }
 }
 
+
+// Reload an image as a data URL to avoid tainted canvas (file:// protocol SVGs)
+function _reloadImageAsDataURL(url, width, height, wrapper) {
+    // Use XMLHttpRequest to fetch the file as a blob, then create an object URL
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    xhr.onload = function() {
+        if (xhr.status === 0 || xhr.status === 200) {
+            var blob = xhr.response;
+            var objectURL = URL.createObjectURL(blob);
+            var retryImg = new Image();
+            retryImg.onload = function() {
+                canvas.width = retryImg.naturalWidth || width;
+                canvas.height = retryImg.naturalHeight || height;
+                var w = canvas.width, h = canvas.height;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(retryImg, 0, 0, w, h);
+                URL.revokeObjectURL(objectURL);
+                try {
+                    imageData = ctx.getImageData(0, 0, w, h);
+                    originalImageData = ctx.getImageData(0, 0, w, h);
+                    debugLog('[image-load] Data URL reload succeeded (' + w + 'x' + h + ')');
+                } catch (e2) {
+                    debugLog('[image-load] Data URL reload also tainted: ' + e2.message, 'error');
+                    setStatus('Cannot read image pixels (canvas security restriction).');
+                    return;
+                }
+                invalidateImageTexture();
+                _lastWebGLRenderType = null;
+                _lastSimpleUniforms = null;
+                _lastRBFUniforms = null;
+                _webglDirty = false;
+                autoSizeCanvasArea();
+                wrapper.style.aspectRatio = w + ' / ' + h;
+                wrapper.style.height = '';
+                wrapper.style.minHeight = '';
+                updateDisplayCanvas();
+                requestAnimationFrame(updateStickyOverlays);
+                extractPalette();
+                updateDemoConfigVisibility();
+                setStatus('Image loaded. Palette extracted.');
+            };
+            retryImg.onerror = function() {
+                URL.revokeObjectURL(objectURL);
+                debugLog('[image-load] Blob object URL also failed to decode', 'error');
+                setStatus('Cannot load image for pixel reading.');
+            };
+            retryImg.src = objectURL;
+        } else {
+            debugLog('[image-load] XHR fetch failed: status ' + xhr.status, 'error');
+            setStatus('Cannot fetch image for untainted reload.');
+        }
+    };
+    xhr.onerror = function() {
+        // On file://, XHR may also fail — try inline SVG approach as last resort
+        debugLog('[image-load] XHR failed (likely file:// CORS), trying inline SVG render', 'warn');
+        _reloadSVGInline(url, width, height, wrapper);
+    };
+    xhr.send();
+}
+
+// Last-resort: fetch SVG text and render inline to avoid tainted canvas
+function _reloadSVGInline(url, width, height, wrapper) {
+    var xhr2 = new XMLHttpRequest();
+    xhr2.open('GET', url, true);
+    xhr2.responseType = 'text';
+    xhr2.onload = function() {
+        var svgText = xhr2.responseText;
+        var blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        var objectURL = URL.createObjectURL(blob);
+        var retryImg = new Image();
+        retryImg.onload = function() {
+            var w = retryImg.naturalWidth || width;
+            var h = retryImg.naturalHeight || height;
+            canvas.width = w;
+            canvas.height = h;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(retryImg, 0, 0, w, h);
+            URL.revokeObjectURL(objectURL);
+            try {
+                imageData = ctx.getImageData(0, 0, w, h);
+                originalImageData = ctx.getImageData(0, 0, w, h);
+                debugLog('[image-load] Inline SVG reload succeeded (' + w + 'x' + h + ')');
+            } catch (e3) {
+                debugLog('[image-load] Inline SVG also tainted: ' + e3.message, 'error');
+                setStatus('Cannot read SVG pixels on file:// protocol. Please use a local HTTP server.');
+                return;
+            }
+            invalidateImageTexture();
+            _lastWebGLRenderType = null;
+            _lastSimpleUniforms = null;
+            _lastRBFUniforms = null;
+            _webglDirty = false;
+            autoSizeCanvasArea();
+            wrapper.style.aspectRatio = w + ' / ' + h;
+            wrapper.style.height = '';
+            wrapper.style.minHeight = '';
+            updateDisplayCanvas();
+            requestAnimationFrame(updateStickyOverlays);
+            extractPalette();
+            updateDemoConfigVisibility();
+            setStatus('Image loaded. Palette extracted.');
+        };
+        retryImg.onerror = function() {
+            URL.revokeObjectURL(objectURL);
+            debugLog('[image-load] Inline SVG blob also failed', 'error');
+            setStatus('Cannot load SVG on file:// protocol. Please use a local HTTP server.');
+        };
+        retryImg.src = objectURL;
+    };
+    xhr2.onerror = function() {
+        debugLog('[image-load] All reload attempts failed on file://', 'error');
+        setStatus('Image loaded but pixels cannot be read on file:// protocol. Try using a local HTTP server.');
+    };
+    xhr2.send();
+}
+
 function _loadDemoImageDirect(url) {
     var img = new Image();
     // Only set crossOrigin on HTTP(S) — setting it on file:// blocks the load entirely
@@ -1451,6 +1699,7 @@ function _loadDemoImageDirect(url) {
         debugLog('[demo] Direct load OK: ' + img.naturalWidth + 'x' + img.naturalHeight);
         originalFileName = 'demo';
         _isDemoImage = true;
+        _imageSource = 'demo';
         loadImage(img);
         updateDemoConfigVisibility();
         debugLog('[demo] Loaded demo image successfully via direct img.src');
@@ -1464,6 +1713,7 @@ function _loadDemoImageDirect(url) {
 }
 
 function loadDemoConfig() {
+    _paletteSource = 'demo-config';
     // Config is embedded in _DEMO_CONFIG_DATA — no network request needed.
     // Deep-clone so repeated loads don't mutate the original.
     var data = JSON.parse(JSON.stringify(_DEMO_CONFIG_DATA));
@@ -2060,6 +2310,9 @@ function changeTargetCount(delta) {
 // ============================================
 
 function renderColumnMapping() {
+    // Close any open origin picker popup since DOM is being rebuilt
+    closeOriginPickerPopup();
+
     const container = document.getElementById('mappingColumns');
     const targetsRow = document.getElementById('mappingTargetsRow');
     const mappingContainer = document.getElementById('columnMappingContainer');
@@ -2082,7 +2335,10 @@ function renderColumnMapping() {
     container.innerHTML = '';
     targetsRow.innerHTML = '';
     overflowGrid.innerHTML = '';
-    
+
+    // Compute duplicate origin indices for overlay marking
+    _originDuplicateIndices = getDuplicateOriginIndices();
+
     // Get origins by type (bank origins are now treated as locked)
     const bankOrigins = [];
     const columnOrigins = {};
@@ -2209,42 +2465,124 @@ function renderColumnMapping() {
         targetDiv.className = 'column-target';
 
         const isBlank = targetPalette[colIdx] === null;
+        const hasConflict = targetConflict !== null && targetConflict.col === colIdx;
 
-        const slot = document.createElement('div');
-        let slotClass = 'color-slot';
-        if (targetsSelectable && colIdx === selectedSlotIndex) slotClass += ' selected';
-        if (isBlank) slotClass += ' blank-target';
-        if (!targetsSelectable) slotClass += ' not-selectable';
-        slot.className = slotClass;
+        if (hasConflict) {
+            targetDiv.classList.add('has-conflict');
+        }
 
-        if (!isBlank) {
-            const swatchHex = rgbToHex(...targetPalette[colIdx]);
-            slot.style.background = swatchHex;
-            slot.title = targetsSelectable
-                ? swatchHex + ' (click to select, drag to swap)'
-                : 'Engage Target Selector to modify';
+        // --- Helper to create a draggable target swatch ---
+        function makeTargetSwatch(color, isConflictSwatch, inConflictColumn) {
+            const s = document.createElement('div');
+            let cls = 'color-slot';
+            if (targetsSelectable && colIdx === selectedSlotIndex && !isConflictSwatch) cls += ' selected';
+            if (!targetsSelectable) cls += ' not-selectable';
+            if (isConflictSwatch) cls += ' conflict-swatch';
+            s.className = cls;
+
+            const hex = rgbToHex(...color);
+            s.style.background = hex;
+            s.title = targetsSelectable
+                ? hex + (isConflictSwatch ? ' (displaced — drag out or X to resolve)' : (inConflictColumn ? ' (drag out or X to resolve)' : ' (click to pick from origins, drag to move)'))
+                : 'Engage New Color Selector to modify';
+
+            if (targetsSelectable && !isConflictSwatch && !inConflictColumn) {
+                s.onclick = (e) => {
+                    e.stopPropagation();
+                    // Check if popup is already open for this column (toggle off)
+                    const wasOpen = _originPickerPopup && _originPickerPopup.dataset.col === String(colIdx);
+                    // Capture rect before selectSlot re-renders DOM
+                    const rect = s.getBoundingClientRect();
+                    // Mark as pending so renderColumnMapping's close doesn't interfere
+                    _originPickerPendingCol = wasOpen ? -1 : colIdx;
+                    selectSlot(colIdx);
+                    // Open/close popup after re-render
+                    setTimeout(() => {
+                        if (_originPickerPendingCol === -1) {
+                            // Was open → toggle off (already closed by render)
+                            _originPickerPendingCol = null;
+                        } else {
+                            _originPickerPendingCol = null;
+                            toggleOriginPickerPopup(colIdx, rect);
+                        }
+                    }, 0);
+                };
+            }
+
+            if (targetsSelectable) {
+                s.draggable = true;
+                s.addEventListener('dragstart', (e) => {
+                    draggedTargetIndex = colIdx;
+                    draggedConflictSwatch = isConflictSwatch;
+                    s.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', 'target-' + colIdx + (isConflictSwatch ? '-conflict' : ''));
+                });
+                s.addEventListener('dragend', () => {
+                    s.classList.remove('dragging');
+                    draggedTargetIndex = null;
+                    draggedConflictSwatch = false;
+                    document.querySelectorAll('.column-target.drag-over-target').forEach(el => el.classList.remove('drag-over-target'));
+                });
+            }
+
+            // X button on conflict swatches — resolves conflict by removing this one
+            if (inConflictColumn && targetsSelectable) {
+                const xBtn = document.createElement('button');
+                xBtn.className = 'target-delete-btn';
+                xBtn.innerHTML = '×';
+                xBtn.title = isConflictSwatch ? 'Remove this color (keep the other)' : 'Remove this color (keep the displaced one)';
+                xBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (isConflictSwatch) {
+                        // Remove the displaced swatch — main stays
+                        targetConflict = null;
+                    } else {
+                        // Remove the main swatch — displaced becomes the occupant
+                        targetPalette[colIdx] = targetConflict.color;
+                        if (targetConflict.opacity !== undefined) {
+                            targetOpacity[colIdx] = targetConflict.opacity;
+                        } else {
+                            delete targetOpacity[colIdx];
+                        }
+                        targetConflict = null;
+                    }
+                    _opacityCache = null;
+                    renderColumnMapping();
+                    // Check if there's a blank slot remaining — if so, don't auto-recolor
+                    if (targetPalette.some(t => t === null)) {
+                        setStatus('Conflict resolved — assign a color to the empty slot to recolor.');
+                    } else {
+                        if (livePreviewEnabled) autoRecolorImage();
+                        setStatus('Conflict resolved.');
+                    }
+                };
+                s.appendChild(xBtn);
+            }
+
+            return s;
+        }
+
+        // --- Create swatch(es) ---
+        let slot;
+        let conflictSlot = null;
+        if (hasConflict) {
+            // Two swatches stacked: main (dropped) on top, conflict (displaced) on bottom
+            slot = makeTargetSwatch(targetPalette[colIdx], false, true);
+            conflictSlot = makeTargetSwatch(targetConflict.color, true, true);
+        } else if (!isBlank) {
+            slot = makeTargetSwatch(targetPalette[colIdx], false, false);
         } else {
+            // Blank swatch
+            slot = document.createElement('div');
+            let slotClass = 'color-slot blank-target';
+            if (!targetsSelectable) slotClass += ' not-selectable';
+            slot.className = slotClass;
             slot.style.background = 'transparent';
-            slot.title = targetsSelectable ? 'No target color assigned yet' : 'Engage Target Selector to assign colors';
-        }
-        if (targetsSelectable) {
-            slot.onclick = () => selectSlot(colIdx);
-        }
-
-        // Make target swatch draggable when targets are selectable and swatch has a color
-        if (targetsSelectable && !isBlank) {
-            slot.draggable = true;
-            slot.addEventListener('dragstart', (e) => {
-                draggedTargetIndex = colIdx;
-                slot.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', 'target-' + colIdx);
-            });
-            slot.addEventListener('dragend', () => {
-                slot.classList.remove('dragging');
-                draggedTargetIndex = null;
-                document.querySelectorAll('.column-target.drag-over-target').forEach(el => el.classList.remove('drag-over-target'));
-            });
+            slot.title = targetsSelectable ? 'Empty — click to select, then assign a color' : 'Engage New Color Selector to assign colors';
+            if (targetsSelectable) {
+                slot.onclick = () => selectSlot(colIdx);
+            }
         }
 
         // Make this column a drop zone for target swatches
@@ -2261,26 +2599,29 @@ function renderColumnMapping() {
                 e.preventDefault();
                 targetDiv.classList.remove('drag-over-target');
                 if (draggedTargetIndex !== null && draggedTargetIndex !== colIdx) {
-                    handleTargetSwap(draggedTargetIndex, colIdx);
+                    handleTargetDrop(draggedTargetIndex, colIdx, draggedConflictSwatch);
                 }
                 draggedTargetIndex = null;
+                draggedConflictSwatch = false;
             });
         }
 
-        // Delete button on the slot (styled like origin X button)
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'target-delete-btn';
-        deleteBtn.innerHTML = '×';
-        deleteBtn.title = 'Remove this target';
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            deleteTarget(colIdx);
-        };
-        slot.appendChild(deleteBtn);
+        // Delete button on the slot (hidden during conflict)
+        if (!hasConflict) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'target-delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.title = 'Remove this new color';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteTarget(colIdx);
+            };
+            slot.appendChild(deleteBtn);
+        }
 
         // When bypassed, show all origin colors unconsolidated below the swatch
         let bypassOriginsRow = null;
-        if (columnBypass[colIdx]) {
+        if (columnBypass[colIdx] && !hasConflict) {
             const originsInCol = [];
             for (let i = 0; i < originToColumn.length; i++) {
                 if (originToColumn[i] === colIdx && originalPalette[i]) {
@@ -2310,7 +2651,11 @@ function renderColumnMapping() {
 
         const hexLabel = document.createElement('div');
         hexLabel.className = 'swatch-hex';
-        hexLabel.textContent = isBlank ? '—' : rgbToHex(...targetPalette[colIdx]);
+        if (hasConflict) {
+            hexLabel.textContent = rgbToHex(...targetPalette[colIdx]) + ' / ' + rgbToHex(...targetConflict.color);
+        } else {
+            hexLabel.textContent = isBlank ? '—' : rgbToHex(...targetPalette[colIdx]);
+        }
 
         // Calculate percentage sum for this column
         let pctSum = 0;
@@ -2324,9 +2669,9 @@ function renderColumnMapping() {
         pctLabel.className = 'column-percentage';
         pctLabel.textContent = pctSum.toFixed(1) + '%';
 
-        // Buttons - hidden until target selection stage
+        // Buttons - hidden until target selection stage, hidden during conflict
         const btnRow = document.createElement('div');
-        btnRow.className = 'swatch-buttons' + (hideSwatchButtons ? ' target-hidden' : '');
+        btnRow.className = 'swatch-buttons' + (hideSwatchButtons || hasConflict ? ' target-hidden' : '');
 
         const pickerBtn = document.createElement('button');
         pickerBtn.innerHTML = '🎨';
@@ -2340,7 +2685,7 @@ function renderColumnMapping() {
         const bypassBtn = document.createElement('button');
         bypassBtn.className = 'bypass-btn' + (columnBypass[colIdx] ? ' active' : '');
         bypassBtn.innerHTML = '🔒';
-        bypassBtn.title = columnBypass[colIdx] ? 'Bypass ON: Origins keep original colors' : 'Bypass OFF: Origins consolidated to target';
+        bypassBtn.title = columnBypass[colIdx] ? 'Bypass ON: Original colors keep their colors' : 'Bypass OFF: Original colors consolidated to new color';
         bypassBtn.onclick = (e) => {
             e.stopPropagation();
             toggleColumnBypass(colIdx);
@@ -2357,10 +2702,15 @@ function renderColumnMapping() {
 
         targetDiv.appendChild(slot);
 
+        // Append conflict swatch right after the main swatch
+        if (conflictSlot) {
+            targetDiv.appendChild(conflictSlot);
+        }
+
         // Always reserve space for bypass origins row so buttons align across columns
         if (bypassOriginsRow) {
             targetDiv.appendChild(bypassOriginsRow);
-        } else {
+        } else if (!hasConflict) {
             const spacer = document.createElement('div');
             spacer.className = 'bypass-origins-spacer';
             targetDiv.appendChild(spacer);
@@ -2379,11 +2729,16 @@ function renderColumnMapping() {
         targetsRow.appendChild(targetColumn);
     }
     
-    // Update hex input (skip if target is null/blank)
-    if (targetPalette.length > 0 && targetPalette[selectedSlotIndex] !== null) {
-        const hex = rgbToHex(...targetPalette[selectedSlotIndex]);
-        document.getElementById('hexInput').value = hex;
-        document.getElementById('hexPreview').style.background = hex;
+    // Update hex input — show current color or empty placeholder
+    if (targetPalette.length > 0) {
+        if (targetPalette[selectedSlotIndex] !== null) {
+            const hex = rgbToHex(...targetPalette[selectedSlotIndex]);
+            document.getElementById('hexInput').value = hex;
+            document.getElementById('hexPreview').style.background = hex;
+        } else {
+            document.getElementById('hexInput').value = '';
+            document.getElementById('hexPreview').style.background = 'transparent';
+        }
     }
 
     // Refresh lock-a-color swatch pickers (always, so they're ready when user switches mode)
@@ -2392,12 +2747,17 @@ function renderColumnMapping() {
     updateHarmonyNudgeSwatch();
     // Update palette icon visibility for beginner mode Direct Picker
     if (typeof updatePaletteIconVisibility === 'function') updatePaletteIconVisibility();
+    // Keep harmony base picker and preview in sync with column state
+    if (typeof populateHarmonyBasePicker === 'function') populateHarmonyBasePicker();
 }
 
 function toggleColumnBypass(colIdx) {
     columnBypass[colIdx] = !columnBypass[colIdx];
     debugLog(`[bypass-toggle] col=${colIdx} → ${columnBypass[colIdx] ? 'LOCKED' : 'unlocked'}`);
     renderColumnMapping();
+    populateHarmonyBasePicker();
+    updateHarmonyPreview();
+    if (harmonyIncludeLocked) updateHarmonyWheel();
     if (livePreviewEnabled) {
         autoRecolorImage();
     }
@@ -2405,44 +2765,130 @@ function toggleColumnBypass(colIdx) {
     addToRecolorHistory();
 }
 
-function handleTargetSwap(fromCol, toCol) {
-    // Swap the target colors between two columns
-    const tempColor = targetPalette[fromCol];
-    targetPalette[fromCol] = targetPalette[toCol];
-    targetPalette[toCol] = tempColor;
+function lockBackgroundFromTutorial() {
+    // Toggle the deferred background lock flag.
+    // The actual columnBypass[0] is applied later in activateTargetSelection().
+    _deferredBgLock = !_deferredBgLock;
+    debugLog(`[tutorial] Deferred bg lock toggled → ${_deferredBgLock}`);
 
-    // Swap target opacities
-    const fromOpacity = targetOpacity[fromCol];
-    const toOpacity = targetOpacity[toCol];
-    if (fromOpacity !== undefined || toOpacity !== undefined) {
-        if (toOpacity !== undefined) targetOpacity[fromCol] = toOpacity;
-        else delete targetOpacity[fromCol];
-        if (fromOpacity !== undefined) targetOpacity[toCol] = fromOpacity;
-        else delete targetOpacity[toCol];
+    // Update button appearance to show active/inactive state
+    const btn = document.querySelector('.btn-lock-bg-tutorial');
+    if (btn) {
+        btn.classList.toggle('active', _deferredBgLock);
+    }
+
+    setStatus(_deferredBgLock ? 'Background will be locked when you proceed.' : 'Background lock removed.');
+}
+
+function handleTargetDrop(fromCol, toCol, fromConflict) {
+    // fromConflict: true if the dragged swatch was the conflict (displaced) one
+
+    // Determine the color/opacity being moved
+    let movedColor, movedOpacity;
+    if (fromConflict && targetConflict && targetConflict.col === fromCol) {
+        // Dragging the conflict swatch out of its column
+        movedColor = targetConflict.color;
+        movedOpacity = targetConflict.opacity;
+    } else {
+        // Dragging the main swatch
+        movedColor = targetPalette[fromCol];
+        movedOpacity = targetOpacity[fromCol];
+    }
+
+    // --- Resolve old conflict at source column ---
+    if (targetConflict && targetConflict.col === fromCol) {
+        if (fromConflict) {
+            // Dragged the conflict swatch out — main stays, just clear conflict
+            targetConflict = null;
+        } else {
+            // Dragged the main swatch out — conflict swatch becomes the sole occupant
+            targetPalette[fromCol] = targetConflict.color;
+            if (targetConflict.opacity !== undefined) {
+                targetOpacity[fromCol] = targetConflict.opacity;
+            } else {
+                delete targetOpacity[fromCol];
+            }
+            targetConflict = null;
+        }
+    } else {
+        // Source was a normal column — clear it
+        targetPalette[fromCol] = null;
+        delete targetOpacity[fromCol];
+    }
+
+    // --- If there's an unrelated conflict elsewhere, resolve it first ---
+    if (targetConflict && targetConflict.col !== toCol) {
+        // The remaining swatch becomes the sole occupant of the old conflict column
+        const oldCol = targetConflict.col;
+        targetPalette[oldCol] = targetConflict.color;
+        if (targetConflict.opacity !== undefined) {
+            targetOpacity[oldCol] = targetConflict.opacity;
+        } else {
+            delete targetOpacity[oldCol];
+        }
+        targetConflict = null;
+    }
+
+    // --- Handle destination column ---
+    const destHasColor = targetPalette[toCol] !== null;
+
+    if (destHasColor) {
+        // Destination is occupied → create conflict (stack both)
+        targetConflict = {
+            col: toCol,
+            color: targetPalette[toCol],
+            opacity: targetOpacity[toCol]
+        };
+        targetPalette[toCol] = movedColor;
+        if (movedOpacity !== undefined) {
+            targetOpacity[toCol] = movedOpacity;
+        } else {
+            delete targetOpacity[toCol];
+        }
+        debugLog(`[target-conflict] created at col ${toCol}: main=${rgbToHex(...movedColor)}, displaced=${rgbToHex(...targetConflict.color)}`);
+        setStatus(`Two colors in column ${toCol + 1} — drag one out to resolve.`);
+    } else {
+        // Destination is empty — just place the color
+        targetPalette[toCol] = movedColor;
+        if (movedOpacity !== undefined) {
+            targetOpacity[toCol] = movedOpacity;
+        } else {
+            delete targetOpacity[toCol];
+        }
+        setStatus(`Moved new color to column ${toCol + 1}.`);
     }
 
     // Invalidate opacity cache since targets moved
     _opacityCache = null;
 
-    // columnBypass stays with the column position — do NOT swap it
-
-    // Re-render and recolor
+    // Re-render
     renderColumnMapping();
-    if (livePreviewEnabled) {
-        autoRecolorImage();
+
+    // Only auto-recolor if no conflict exists
+    if (!targetConflict) {
+        if (livePreviewEnabled) {
+            autoRecolorImage();
+        }
+        addToRecolorHistory();
     }
-    addToRecolorHistory();
-    setStatus(`Swapped target colors between columns ${fromCol + 1} and ${toCol + 1}.`);
 }
 
 function deleteTarget(colIdx) {
+    // If deleting the conflict column, clear the conflict
+    if (targetConflict && targetConflict.col === colIdx) {
+        targetConflict = null;
+    } else if (targetConflict && targetConflict.col > colIdx) {
+        // Shift conflict column index if it's after the deleted one
+        targetConflict.col--;
+    }
+
     // Move all origins from this target back to bank
     for (let i = 0; i < originCount; i++) {
         if (originToColumn[i] === colIdx) {
             originToColumn[i] = 'bank';
         }
     }
-    
+
     // Remove the target
     targetPalette.splice(colIdx, 1);
     targetCount--;
@@ -2461,7 +2907,7 @@ function deleteTarget(colIdx) {
     }
     
     renderColumnMapping();
-    setStatus(`Target ${colIdx + 1} removed. Origins moved to bank.`);
+    setStatus(`New Color ${colIdx + 1} removed. Original colors moved to bank.`);
 }
 
 function createOriginSwatch(originIndex) {
@@ -2473,7 +2919,11 @@ function createOriginSwatch(originIndex) {
     swatch.style.background = rgbToHex(...originalPalette[originIndex]);
     swatch.draggable = true;
     swatch.dataset.originIndex = originIndex;
-    swatch.title = `${rgbToHex(...originalPalette[originIndex])} - ${colorPercentages[originIndex]?.toFixed(1)}% (drag to reassign)`;
+    const thisHex = rgbToHex(...originalPalette[originIndex]);
+    swatch.title = `${thisHex} - ${colorPercentages[originIndex]?.toFixed(1)}% (drag to reassign)`;
+
+    // Mark duplicate origins — class goes on wrapper (styled like target conflict)
+    const isDuplicate = _originDuplicateIndices.has(originIndex);
 
     // Add number label for picked colors
     if (shouldKeepPickedMarkers && pickedColors.length > 0) {
@@ -2507,6 +2957,25 @@ function createOriginSwatch(originIndex) {
         document.querySelectorAll('.column-origins.drag-over, .overflow-origins-grid.drag-over').forEach(el => {
             el.classList.remove('drag-over');
         });
+    });
+
+    // Hover: show a marker bubble in the image preview at the picked position
+    // + highlight duplicate group
+    swatch.addEventListener('mouseenter', () => {
+        showOriginHoverMarker(originIndex);
+        if (isDuplicate) {
+            document.querySelectorAll(`.origin-swatch-wrapper.duplicate-origin[data-dup-hex="${thisHex}"]`).forEach(el => {
+                el.classList.add('dup-hover');
+            });
+        }
+    });
+    swatch.addEventListener('mouseleave', () => {
+        hideOriginHoverMarker();
+        if (isDuplicate) {
+            document.querySelectorAll('.origin-swatch-wrapper.dup-hover').forEach(el => {
+                el.classList.remove('dup-hover');
+            });
+        }
     });
 
     const currentOpacity = originOpacity[originIndex] !== undefined ? originOpacity[originIndex] : 100;
@@ -2608,6 +3077,12 @@ function createOriginSwatch(originIndex) {
     info.innerHTML = `${hex}<br>${colorPercentages[originIndex]?.toFixed(1)}%`;
     wrapper.appendChild(info);
 
+    // Apply duplicate styling to the wrapper (background pad like target conflict)
+    if (isDuplicate) {
+        wrapper.classList.add('duplicate-origin');
+        wrapper.dataset.dupHex = thisHex;
+    }
+
     return wrapper;
 }
 
@@ -2633,19 +3108,46 @@ function removeOriginFromMapping(originIndex) {
 
     renderColumnMapping();
     autoRecolorImage();
-    setStatus(`Removed origin color ${originIndex + 1} from mapping`);
+    setStatus(`Removed original color ${originIndex + 1} from mapping`);
+}
+
+// Find duplicate origin colors by exact hex match. Returns a Set of indices that have duplicates.
+function getDuplicateOriginIndices() {
+    const hexMap = {}; // hex -> [indices]
+    for (let i = 0; i < originalPalette.length; i++) {
+        const hex = rgbToHex(...originalPalette[i]);
+        if (!hexMap[hex]) hexMap[hex] = [];
+        hexMap[hex].push(i);
+    }
+    const dupIndices = new Set();
+    for (const hex in hexMap) {
+        if (hexMap[hex].length > 1) {
+            hexMap[hex].forEach(idx => dupIndices.add(idx));
+        }
+    }
+    return dupIndices;
 }
 
 function colorsMatch(c1, c2) {
     if (!c1 || !c2) return false;
-    return c1[0] === c2[0] && c1[1] === c2[1] && c1[2] === c2[2];
+    // Perceptual match using ΔE in LAB space (threshold ~3 catches near-dupes
+    // like #FFFFFF vs #FEFEFE without merging genuinely different colors)
+    const lab1 = RGB2LAB(c1);
+    const lab2 = RGB2LAB(c2);
+    const dL = lab1[0] - lab2[0];
+    const da = lab1[1] - lab2[1];
+    const db = lab1[2] - lab2[2];
+    const deltaE = Math.sqrt(dL * dL + da * da + db * db);
+    return deltaE < 3;
 }
 
-// Get extracted colors not currently in the origin palette
+// Get extracted colors not currently in the origin palette (filters out duplicates)
 function getUnusedExtractedColors() {
-    // Return ALL extracted colors (per user spec: Add Color shows all extracted colors, not just unused)
     if (!fullColorDistribution || fullColorDistribution.length === 0) return [];
-    return fullColorDistribution;
+    // Filter out colors that already exist in the origin palette
+    return fullColorDistribution.filter(item => {
+        return !originalPalette.some(orig => colorsMatch(orig, item.color));
+    });
 }
 
 // Create the "add swatch" button with dropdown
@@ -2700,7 +3202,7 @@ function createAddSwatchButton(unusedColors, targetColumn) {
 
     const label = document.createElement('div');
     label.className = 'add-swatch-label';
-    label.textContent = 'Add Color';
+    label.textContent = 'Leftover Colors';
 
     wrapper.appendChild(btn);
     wrapper.appendChild(dropdown);
@@ -2725,7 +3227,7 @@ function addOriginColor(color, pct, targetColumn) {
 
     renderColumnMapping();
     autoRecolorImage();
-    setStatus(`Added ${rgbToHex(...color)} to origin palette`);
+    setStatus(`Added ${rgbToHex(...color)} to original color palette`);
 }
 
 function selectSlot(index) {
@@ -2734,6 +3236,97 @@ function selectSlot(index) {
     updateHarmonyWheel();
     updateGradientFromSelectedColor();
     updateHarmonyNudgeSwatch();
+}
+
+// Origin picker popup — shows origins in a column, lets user set target to match one
+let _originPickerPopup = null;
+let _originPickerPendingCol = null; // set when a click intends to toggle — survives the render close
+
+function closeOriginPickerPopup() {
+    if (_originPickerPopup) {
+        _originPickerPopup.remove();
+        _originPickerPopup = null;
+    }
+}
+
+function toggleOriginPickerPopup(colIdx, swatchRect) {
+    closeOriginPickerPopup();
+
+    // Get origins in this column
+    const origins = [];
+    for (let i = 0; i < originCount; i++) {
+        if (originToColumn[i] === colIdx && originalPalette[i]) {
+            origins.push({ idx: i, color: originalPalette[i], pct: colorPercentages[i] || 0 });
+        }
+    }
+
+    if (origins.length === 0) {
+        setStatus('No original colors in this column.');
+        return;
+    }
+
+    // Create popup
+    const popup = document.createElement('div');
+    popup.className = 'origin-picker-popup';
+    popup.dataset.col = String(colIdx);
+
+    origins.forEach(item => {
+        const option = document.createElement('div');
+        option.className = 'origin-picker-option';
+
+        const swatch = document.createElement('div');
+        swatch.className = 'origin-picker-color';
+        swatch.style.background = rgbToHex(...item.color);
+
+        const info = document.createElement('div');
+        info.className = 'origin-picker-info';
+        info.innerHTML = `${rgbToHex(...item.color)}<br>${item.pct.toFixed(1)}%`;
+
+        option.appendChild(swatch);
+        option.appendChild(info);
+
+        option.onclick = (e) => {
+            e.stopPropagation();
+            targetPalette[colIdx] = [...item.color];
+            _opacityCache = null;
+            closeOriginPickerPopup();
+            renderColumnMapping();
+            autoRecolorImage();
+            setStatus(`Column ${colIdx + 1} set to ${rgbToHex(...item.color)} (from original color)`);
+        };
+
+        popup.appendChild(option);
+    });
+
+    document.body.appendChild(popup);
+    _originPickerPopup = popup;
+
+    // Position above the swatch, centered horizontally (absolute on body = page coords)
+    const scrollX = window.scrollX || document.documentElement.scrollLeft;
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    popup.style.left = (swatchRect.left + swatchRect.width / 2 + scrollX) + 'px';
+    popup.style.top = (swatchRect.top + scrollY) + 'px';
+
+    // After rendering, adjust if popup overflows viewport top
+    requestAnimationFrame(() => {
+        const popupRect = popup.getBoundingClientRect();
+        if (popupRect.top < 4) {
+            // Not enough space above — show below instead
+            popup.style.top = (swatchRect.bottom + scrollY + 4) + 'px';
+            popup.style.transform = 'translateX(-50%)';
+        }
+    });
+
+    // Close on outside click (delayed to avoid catching this click)
+    setTimeout(() => {
+        const handler = (e) => {
+            if (!popup.contains(e.target)) {
+                closeOriginPickerPopup();
+                document.removeEventListener('click', handler);
+            }
+        };
+        document.addEventListener('click', handler);
+    }, 0);
 }
 
 function openColorPicker(index) {
@@ -2987,8 +3580,8 @@ function toggleSwatchPicker(colIdx, targetDiv) {
         picker.classList.remove('visible');
         activeSwatchPicker = null;
     } else {
-        // Update picker state from current target color
-        const currentColor = targetPalette[colIdx];
+        // Update picker state from current target color (default to gray if blank)
+        const currentColor = targetPalette[colIdx] || [128, 128, 128];
         const [h, s, v] = rgbToHsv(...currentColor);
         swatchPickerState[colIdx] = { h, s, v };
 
@@ -3034,19 +3627,47 @@ function revertSlot(index) {
 }
 
 function shuffleTargetPalette() {
-    for (let i = targetPalette.length - 1; i > 0; i--) {
-        // Skip bypassed columns during shuffle
-        if (columnBypass[i]) continue;
-        let j;
-        do {
-            j = Math.floor(Math.random() * (i + 1));
-        } while (columnBypass[j] && j !== i); // avoid swapping into a bypassed slot
-        if (!columnBypass[j]) {
-            [targetPalette[i], targetPalette[j]] = [targetPalette[j], targetPalette[i]];
+    // Clear any target conflict before shuffling
+    targetConflict = null;
+
+    // Collect indices of shuffleable targets: not bypassed, not null
+    const shuffleable = [];
+    for (let i = 0; i < targetPalette.length; i++) {
+        if (!columnBypass[i] && targetPalette[i] !== null) {
+            shuffleable.push(i);
         }
     }
+
+    // 0 or 1 shuffleable targets — nothing to do
+    if (shuffleable.length <= 1) {
+        setStatus('Not enough unlocked colors to shuffle');
+        return;
+    }
+
+    // Snapshot the current arrangement (as hex strings for easy comparison)
+    const startState = shuffleable.map(i => rgbToHex(...targetPalette[i])).join(',');
+
+    // Fisher-Yates on only the shuffleable indices, retry until arrangement differs.
+    // With 2+ items, worst case is small — but cap at 100 attempts for safety.
+    let attempts = 0;
+    do {
+        // Shuffle the values at the shuffleable positions
+        const values = shuffleable.map(i => targetPalette[i]);
+        for (let k = values.length - 1; k > 0; k--) {
+            const r = Math.floor(Math.random() * (k + 1));
+            [values[k], values[r]] = [values[r], values[k]];
+        }
+        // Write back
+        for (let k = 0; k < shuffleable.length; k++) {
+            targetPalette[shuffleable[k]] = values[k];
+        }
+        attempts++;
+        const newState = shuffleable.map(i => rgbToHex(...targetPalette[i])).join(',');
+        if (newState !== startState) break;
+    } while (attempts < 100);
+
     renderColumnMapping();
-    setStatus('Target colors shuffled');
+    setStatus('New colors shuffled');
     autoRecolorImage();
 }
 
@@ -3207,8 +3828,7 @@ function rgbToHsv(r, g, b) {
 function updateGradientFromSelectedColor() {
     if (targetPalette.length === 0) return;
 
-    const rgb = targetPalette[selectedSlotIndex];
-    if (!rgb) return; // Blank target - skip gradient update
+    const rgb = targetPalette[selectedSlotIndex] || [128, 128, 128];
     const [h, s, v] = rgbToHsv(...rgb);
     
     gradientHue = h;
@@ -3240,9 +3860,15 @@ function applyRecolor() {
         return;
     }
 
+    // Block recolor while a target conflict exists
+    if (targetConflict !== null) {
+        setStatus('Resolve color conflict before recoloring.');
+        return;
+    }
+
     // Check if any targets are still blank
     if (targetPalette.some(t => t === null)) {
-        setStatus('Please assign target colors first.');
+        setStatus('Please assign new colors first.');
         return;
     }
 
@@ -3266,6 +3892,18 @@ let _autoRecolorHistoryTimer = null;
 function autoRecolorImage() {
     // Only recolor if an image is loaded and has been previously recolored
     if (!originalImageData) {
+        return;
+    }
+    // Block recolor while a target conflict exists
+    if (targetConflict !== null) {
+        debugLog('[auto-recolor] skipped — target conflict active');
+        setStatus('Resolve color conflict before recoloring.');
+        return;
+    }
+    // Block recolor if any target slot is empty (placeholder)
+    if (targetPalette.some(t => t === null)) {
+        debugLog('[auto-recolor] skipped — empty target slot');
+        setStatus('Assign a color to the empty slot before recoloring.');
         return;
     }
     // Only auto-recolor if live preview is enabled
@@ -3327,6 +3965,8 @@ function toggleLivePreview(enabled) {
     if (enabled && originalImageData) {
         // Immediately trigger a recolor when turning on
         recolorImage();
+        // Add to history so save/download buttons unfade
+        addToRecolorHistory();
     }
 }
 
@@ -3340,6 +3980,9 @@ function manualRecolorImage() {
 }
 
 function recolorImage() {
+    if (targetConflict !== null) return; // blocked during conflict
+    if (targetPalette.some(t => t === null)) return; // blocked with empty slots
+
     const width = canvas.width;
     const height = canvas.height;
     const k = originalPalette.length;
@@ -4323,12 +4966,12 @@ function updatePickColorsButtonState(colorsPicked) {
 
     if (colorsPicked) {
         if (sidebarBtn) {
-            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Origin Colors';
+            sidebarBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Original Colors';
             sidebarBtn.classList.add('colors-picked');
         }
         if (overlayBtn) {
             const textSpan = overlayBtn.querySelector('.picker-toggle-text');
-            if (textSpan) textSpan.innerHTML = 'Edit Origin<br><span class="picker-toggle-subtitle">Colors</span>';
+            if (textSpan) textSpan.innerHTML = 'Edit Original<br><span class="picker-toggle-subtitle">Colors</span>';
             overlayBtn.classList.add('colors-picked');
         }
     } else {
@@ -4415,7 +5058,7 @@ function togglePickerMode() {
         const toggleText2 = btn.querySelector('.picker-toggle-text');
         if (toggleText2) {
             if (pickedColors.length > 0) {
-                toggleText2.innerHTML = 'Edit Origin<br><span class="picker-toggle-subtitle">Colors</span>';
+                toggleText2.innerHTML = 'Edit Original<br><span class="picker-toggle-subtitle">Colors</span>';
             } else {
                 toggleText2.textContent = 'Pick Colors';
             }
@@ -4424,7 +5067,7 @@ function togglePickerMode() {
             sidebarPickBtn.classList.remove('active');
             // Text will be restored by updatePickColorsButtonState below or by caller
             if (pickedColors.length > 0) {
-                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Origin Colors';
+                sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Edit Original Colors';
             } else {
                 sidebarPickBtn.innerHTML = '<span class="step-circle step-circle-btn">2</span> <span>🎯</span> Pick Colors';
             }
@@ -4486,13 +5129,47 @@ function updatePickerCategoryOptions() {
 
     // Add Accent 1, 2, 3, etc. — always show at least 4 accent options
     // so the user can always pick new categories even if current targetCount is low
-    const maxAccent = Math.max(targetCount, 5);
+    const maxAccent = Math.max(targetCount, 5, dynamicAccentMax + 1);
     for (let i = 1; i < maxAccent; i++) {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = getTargetCategoryLabel(i);
         if (i === pickerTargetCategory) option.selected = true;
         select.appendChild(option);
+    }
+
+    // In advanced mode, add "Add Accent Category" option at the bottom
+    if (appMode === 'advanced') {
+        const addOption = document.createElement('option');
+        addOption.value = '__add_accent__';
+        const nextAccentNum = maxAccent;
+        if (nextAccentNum <= 5) {
+            addOption.textContent = 'Add Accent Category (wild)';
+        } else {
+            addOption.textContent = 'Add Accent Category (really?)';
+        }
+        select.appendChild(addOption);
+    }
+}
+
+function handlePickerCategoryChange(value) {
+    if (value === '__add_accent__') {
+        // Create the next accent category
+        const maxAccent = Math.max(targetCount, 5, dynamicAccentMax + 1);
+        const newAccentNum = maxAccent; // This is the new Accent N
+        dynamicAccentMax = newAccentNum;
+        // Ensure targetCount accommodates the new category
+        if (newAccentNum >= targetCount) {
+            changeTargetCount(newAccentNum - targetCount + 1);
+        }
+        // Update the dropdown options
+        updatePickerCategoryOptions();
+        // Set selection to the newly created accent
+        const select = document.getElementById('pickerCategorySelect');
+        if (select) select.value = newAccentNum;
+        updatePickerCategory(newAccentNum);
+    } else {
+        updatePickerCategory(value);
     }
 }
 
@@ -4679,6 +5356,53 @@ function clearMarkers() {
     }
 }
 
+// Show a hover marker in the image preview at the position where this origin color was picked
+function showOriginHoverMarker(originIndex) {
+    hideOriginHoverMarker(); // Remove any existing hover marker
+
+    // Find the picked position for this origin color by matching the color
+    const originColor = originalPalette[originIndex];
+    if (!originColor) return;
+
+    let matchPos = null;
+    for (let i = 0; i < pickedPositions.length; i++) {
+        const pc = pickedPositions[i].color;
+        if (pc && pc[0] === originColor[0] && pc[1] === originColor[1] && pc[2] === originColor[2]) {
+            matchPos = pickedPositions[i];
+            break;
+        }
+    }
+    if (!matchPos) return;
+
+    const canvasInner = document.getElementById('canvasInner');
+    if (!canvasInner) return;
+
+    const vc = getVisibleCanvas();
+    const localWidth = parseFloat(vc.style.width) || vc.offsetWidth;
+    const localHeight = parseFloat(vc.style.height) || vc.offsetHeight;
+
+    const displayX = (matchPos.x / canvas.width) * localWidth;
+    const displayY = (matchPos.y / canvas.height) * localHeight;
+
+    const marker = document.createElement('div');
+    marker.className = 'origin-hover-marker';
+    marker.style.left = displayX + 'px';
+    marker.style.top = displayY + 'px';
+    marker.style.background = rgbToHex(...originColor);
+
+    // Add a label with the hex color
+    const label = document.createElement('span');
+    label.className = 'origin-hover-marker-label';
+    label.textContent = rgbToHex(...originColor);
+    marker.appendChild(label);
+
+    canvasInner.appendChild(marker);
+}
+
+function hideOriginHoverMarker() {
+    document.querySelectorAll('.origin-hover-marker').forEach(m => m.remove());
+}
+
 function removePickedColor(index) {
     pickedColors.splice(index, 1);
     pickedPositions.splice(index, 1);
@@ -4698,6 +5422,7 @@ function applyPickedAsOriginal() {
         setStatus('Pick at least 1 color first');
         return;
     }
+    _paletteSource = 'picker';
 
     // Group picked colors by category
     // categoryGroups[categoryIndex] = [{color, pickedIndex, position}, ...]
@@ -4887,7 +5612,7 @@ function applyPickedAsOriginal() {
 
         const lockedCount = lockedColors.length;
         const lockedMsg = lockedCount > 0 ? ` (${lockedCount} locked)` : '';
-        setStatus('Updated origin colors' + lockedMsg + '. Targets preserved.');
+        setStatus('Updated original colors' + lockedMsg + '. New colors preserved.');
     } else {
         // First time through — show Palette Mapping panel and "Look's Good!" button
         document.getElementById('paletteMappingPanel').classList.remove('hidden');
@@ -4898,7 +5623,7 @@ function applyPickedAsOriginal() {
 
         const lockedCount = lockedColors.length;
         const lockedMsg = lockedCount > 0 ? ` (${lockedCount} locked)` : '';
-        setStatus('Applied ' + originCount + ' picked colors grouped by category' + lockedMsg + '. Now choose your targets.');
+        setStatus('Applied ' + originCount + ' picked colors grouped by category' + lockedMsg + '. Now choose your new colors.');
     }
 }
 
@@ -4925,6 +5650,9 @@ function activateTargetSelection() {
 
     // Show Target Choice panel
     document.getElementById('targetChoicePanel').classList.remove('hidden');
+
+    // Set initial faded state for save/download buttons
+    updatePreRecolorFadedState();
 
     // Collapse the Color Analysis panel to save vertical space
     const colorAnalysis = document.getElementById('colorAnalysisOptionalPanel');
@@ -4987,13 +5715,22 @@ function activateTargetSelection() {
         }
     }
 
+    // Apply deferred background lock from tutorial if engaged
+    if (_deferredBgLock) {
+        columnBypass[0] = true;
+        debugLog('[bypass-toggle] col=0 → LOCKED (deferred from tutorial)');
+        _deferredBgLock = false; // consumed
+    }
+
     // Re-render with buttons now visible and targets populated
     renderColumnMapping();
     updateHarmonyWheel();
     updateGradientFromSelectedColor();
     renderThemesSortedByMatch();
+    populateHarmonyBasePicker();
+    updateHarmonyPreview();
 
-    setStatus('Target selection active. Choose your target colors using the tools below.');
+    setStatus('New color selection active. Choose your new colors using the tools below.');
 }
 
 function revealFullUI() {
@@ -5627,7 +6364,15 @@ function renderThemesSortedByMatch() {
     
     // Clear and rebuild
     themeContainer.innerHTML = '';
-    
+
+    // Add header row with match column
+    const header = document.createElement('div');
+    header.className = 'theme-list-header';
+    header.innerHTML = '<span class="theme-header-name">Name</span>' +
+        (originalPalette.length > 0 ? '<span class="theme-header-match">Similarity</span>' : '') +
+        '<span>Colors</span>';
+    themeContainer.appendChild(header);
+
     themeScores.forEach(({ key: themeKey, score }) => {
         const item = document.createElement('div');
         item.className = 'theme-item' + (themeKey === selectedTheme ? ' selected' : '');
@@ -5683,6 +6428,8 @@ function applyTheme() {
         setStatus('Select a theme first');
         return;
     }
+    _paletteSource = 'theme';
+    targetConflict = null; // clear any conflict when applying a theme
 
     const colors = THEMES[selectedTheme].map(hex => hexToRgb(hex));
     for (let i = 0; i < Math.min(colors.length, targetPalette.length); i++) {
@@ -5817,10 +6564,22 @@ function harmonizePalette() {
         setStatus('Load an image first');
         return;
     }
-    
-    const baseColor = targetPalette[selectedSlotIndex];
+
+    // Resolve base color from Lock a Color selection (lockColorSelectedIdx)
+    const selIdx = lockColorSelectedIdx;
+    let baseColor;
+    let lockedTargetIdx = null; // Only set if base IS a target column (skip it during nudge)
+
+    if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
+        const oi = parseInt(selIdx.replace('origin_', ''));
+        baseColor = originalPalette[oi] ? [...originalPalette[oi]] : null;
+    } else {
+        lockedTargetIdx = selIdx;
+        baseColor = getEffectiveColumnColor(selIdx);
+    }
+
     if (!baseColor) {
-        setStatus('Select a target color first');
+        setStatus('Select a color in Lock a Color first');
         return;
     }
     const [h, s, l] = rgbToHsl(...baseColor);
@@ -5862,6 +6621,7 @@ function harmonizePalette() {
 
     targetPalette.forEach((color, i) => {
         if (columnBypass[i]) return;  // Respect locked/bypassed columns
+        if (i === lockedTargetIdx) return; // Don't nudge the anchor color itself
         // If target is blank, use default saturation/lightness
         const origS = color ? rgbToHsl(...color)[1] : 60;
         const origL = color ? rgbToHsl(...color)[2] : 50;
@@ -5876,7 +6636,344 @@ function harmonizePalette() {
 
 function updateHarmonyBaseHueDisplay(value) {
     document.getElementById('harmonyBaseHueValue').textContent = value + '°';
+    updateHarmonyBrightnessGradient(value);
     updateHarmonyWheel();
+}
+
+function updateHarmonyBrightnessDisplay(value) {
+    document.getElementById('harmonyBrightnessValue').textContent = value;
+}
+
+function updateHarmonyBrightnessGradient(hue) {
+    const slider = document.getElementById('harmonyBrightness');
+    if (!slider) return;
+    slider.style.background = `linear-gradient(to right, hsl(${hue},70%,5%), hsl(${hue},70%,50%), hsl(${hue},70%,95%))`;
+}
+
+// Determine the base slot index for harmony generation.
+// Uses explicit harmonyBaseSlot if set and valid (including locked columns chosen via origin popup),
+// otherwise first unlocked slot.
+function getHarmonyBaseSlot(n) {
+    if (harmonyBaseSlot !== null && harmonyBaseSlot >= 0 && harmonyBaseSlot < n) {
+        return harmonyBaseSlot;
+    }
+    for (let i = 0; i < n; i++) {
+        if (!columnBypass[i]) return i;
+    }
+    return 0;
+}
+
+// Build harmony hue array so hues[baseSlot] = baseHue, others get harmony offsets.
+function buildHarmonyHues(n, baseHue, harmonyType, baseSlot) {
+    // Build raw offsets for indices 0..n-1 (offset 0 = base)
+    let offsets = [];
+    switch (harmonyType) {
+        case 'complementary':
+            offsets = Array(n).fill(0).map((_, i) => i % 2 === 0 ? 0 : 180);
+            break;
+        case 'analogous': {
+            const spread = 30;
+            offsets = Array(n).fill(0).map((_, i) => (i - Math.floor(n/2)) * spread);
+            break;
+        }
+        case 'triadic':
+            offsets = Array(n).fill(0).map((_, i) => (i % 3) * 120);
+            break;
+        case 'split':
+            offsets = Array(n).fill(0).map((_, i) => {
+                const angles = [0, 150, 210];
+                return angles[i % 3];
+            });
+            break;
+        case 'tetradic':
+            offsets = Array(n).fill(0).map((_, i) => (i % 4) * 90);
+            break;
+    }
+    // Rotate so offset 0 lands on baseSlot
+    const rotated = new Array(n);
+    for (let i = 0; i < n; i++) {
+        rotated[(baseSlot + i) % n] = (baseHue + offsets[i] + 360) % 360;
+    }
+    return rotated;
+}
+
+// Adjust unlocked hues to avoid clashing with locked origin colors.
+// For each unlocked slot, if its hue is within 20° of any locked origin hue,
+// nudge it to the midpoint of the largest gap between locked hues.
+function adjustHuesForLockedColors(hues, n) {
+    // Collect ALL origin hues from locked columns
+    const lockedHues = [];
+    for (let i = 0; i < n; i++) {
+        if (!columnBypass[i]) continue;
+        for (let oi = 0; oi < originToColumn.length; oi++) {
+            if (originToColumn[oi] !== i) continue;
+            const originColor = originalPalette[oi];
+            if (!originColor) continue;
+            lockedHues.push(rgbToHsl(...originColor)[0]);
+        }
+    }
+    if (lockedHues.length === 0) return hues;
+
+    // Sort locked hues for gap analysis
+    lockedHues.sort((a, b) => a - b);
+
+    // Angular distance helper (0-180)
+    function hueDist(a, b) {
+        const d = Math.abs(a - b) % 360;
+        return d > 180 ? 360 - d : d;
+    }
+
+    // Find gaps between locked hues (sorted, with wrap-around)
+    const gaps = [];
+    for (let i = 0; i < lockedHues.length; i++) {
+        const next = (i + 1) % lockedHues.length;
+        let gap = lockedHues[next] - lockedHues[i];
+        if (gap <= 0) gap += 360;
+        gaps.push({ start: lockedHues[i], size: gap, mid: (lockedHues[i] + gap / 2) % 360 });
+    }
+    gaps.sort((a, b) => b.size - a.size); // largest gap first
+
+    const adjusted = [...hues];
+    const clashThreshold = 20;
+
+    for (let i = 0; i < n; i++) {
+        if (columnBypass[i]) continue; // skip locked slots
+        const h = hues[i];
+        // Check if this hue clashes with any locked hue
+        const clashes = lockedHues.some(lh => hueDist(h, lh) < clashThreshold);
+        if (clashes && gaps.length > 0) {
+            // Nudge toward the midpoint of the largest available gap
+            // Use different gaps for different slots to spread them out
+            const gapIdx = i % gaps.length;
+            adjusted[i] = gaps[gapIdx].mid;
+        }
+    }
+    return adjusted;
+}
+
+// Live preview strip for harmony controls
+let _harmonyPreviewSeed = 1;
+function updateHarmonyPreview() {
+    const strip = document.getElementById('harmonyPreviewStrip');
+    if (!strip) return;
+
+    // Keep base slot picker in sync
+    populateHarmonyBasePicker();
+
+    const n = targetPalette.length || 5;
+    if (n === 0) { strip.innerHTML = ''; return; }
+
+    const harmonyType = _currentHarmonyType;
+    const baseHue = parseInt(document.getElementById('harmonyBaseHue')?.value ?? 180);
+    const baseBrightness = parseInt(document.getElementById('harmonyBrightness')?.value ?? 50);
+
+    const baseSlot = getHarmonyBaseSlot(n);
+    let hues = buildHarmonyHues(n, baseHue, harmonyType, baseSlot);
+
+    if (harmonyIncludeLocked) {
+        hues = adjustHuesForLockedColors(hues, n);
+    }
+
+    // Stable pseudo-random per slot (seeded so preview doesn't flicker while dragging)
+    function seededRand(slot) {
+        let x = Math.sin(_harmonyPreviewSeed * 9301 + slot * 49297) * 49297;
+        return x - Math.floor(x);
+    }
+
+    const litMargin = 12;
+    const litMin = Math.max(5, baseBrightness - litMargin);
+    const litMax = Math.min(95, baseBrightness + litMargin);
+
+    strip.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+        const swatch = document.createElement('div');
+        swatch.className = 'harmony-preview-swatch';
+
+        if (columnBypass[i]) {
+            swatch.classList.add('is-locked');
+            const col = targetPalette[i];
+            if (col) {
+                swatch.style.background = `rgb(${col[0]},${col[1]},${col[2]})`;
+            } else {
+                swatch.style.background = 'var(--surface-alt)';
+            }
+        } else {
+            const sat = 45 + seededRand(i) * 45;
+            const lit = litMin + seededRand(i + 100) * (litMax - litMin);
+            const rgb = hslToRgb(hues[i], sat, lit);
+            swatch.style.background = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+            if (i === baseSlot) {
+                swatch.classList.add('is-base');
+            }
+        }
+        strip.appendChild(swatch);
+    }
+}
+
+// Reseed the preview random on Generate (so each generate shows fresh variation)
+function reseedHarmonyPreview() {
+    _harmonyPreviewSeed = Math.floor(Math.random() * 100000) + 1;
+}
+
+// Populate base slot picker in Lock a Harmony panel
+let _harmonyBaseOriginPopup = null;
+let _harmonyBaseOriginIdx = null; // When set, the base hue comes from this specific origin color
+
+function populateHarmonyBasePicker() {
+    const list = document.getElementById('harmonyBasePickerList');
+    if (!list) return;
+    list.innerHTML = '';
+    closeHarmonyBaseOriginPopup();
+
+    const n = targetPalette.length;
+    if (n === 0) return;
+
+    const effectiveBase = getHarmonyBaseSlot(n);
+
+    for (let i = 0; i < n; i++) {
+        const item = document.createElement('div');
+        item.className = 'harmony-base-picker-item';
+        const isLocked = !!columnBypass[i];
+        if (isLocked) item.classList.add('is-locked');
+        if (i === effectiveBase) item.classList.add('selected');
+
+        // Color swatch
+        const swatch = document.createElement('div');
+        swatch.className = 'harmony-base-picker-swatch';
+        const col = getEffectiveColumnColor(i);
+        if (col) {
+            swatch.style.background = `rgb(${col[0]},${col[1]},${col[2]})`;
+        } else {
+            swatch.style.background = 'var(--surface-alt)';
+        }
+
+        // Category label
+        const label = document.createElement('span');
+        label.textContent = getTargetCategoryLabel(i, true);
+
+        item.appendChild(swatch);
+        item.appendChild(label);
+
+        if (isLocked) {
+            // Locked columns: click shows origin color popup
+            item.onclick = (e) => showHarmonyBaseOriginPopup(i, item, e);
+            item.style.cursor = 'pointer';
+        } else {
+            item.onclick = () => selectHarmonyBaseSlot(i);
+        }
+
+        list.appendChild(item);
+    }
+}
+
+function showHarmonyBaseOriginPopup(colIdx, anchorEl, event) {
+    event.stopPropagation();
+    closeHarmonyBaseOriginPopup();
+
+    // Gather all origins mapped to this locked column
+    const origins = [];
+    for (let oi = 0; oi < originToColumn.length; oi++) {
+        if (originToColumn[oi] !== colIdx) continue;
+        if (!originalPalette[oi]) continue;
+        origins.push({ idx: oi, color: originalPalette[oi] });
+    }
+    if (origins.length === 0) return;
+
+    const popup = document.createElement('div');
+    popup.className = 'harmony-base-origin-popup';
+
+    const title = document.createElement('div');
+    title.className = 'harmony-base-origin-title';
+    title.textContent = 'Pick base from locked origins:';
+    popup.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'harmony-base-origin-grid';
+
+    for (const { idx: oi, color } of origins) {
+        const swatch = document.createElement('div');
+        swatch.className = 'harmony-base-origin-swatch';
+        swatch.style.background = `rgb(${color[0]},${color[1]},${color[2]})`;
+        if (_harmonyBaseOriginIdx === oi) swatch.classList.add('selected');
+        swatch.title = rgbToHex(...color);
+        swatch.onclick = (e) => {
+            e.stopPropagation();
+            selectHarmonyBaseFromOrigin(colIdx, oi, color);
+        };
+        grid.appendChild(swatch);
+    }
+
+    popup.appendChild(grid);
+
+    // Position below the anchor element
+    const rect = anchorEl.getBoundingClientRect();
+    const list = document.getElementById('harmonyBasePickerList');
+    const listRect = list.getBoundingClientRect();
+    popup.style.position = 'absolute';
+    popup.style.left = (rect.left - listRect.left) + 'px';
+    popup.style.top = (rect.bottom - listRect.top + 4) + 'px';
+    list.style.position = 'relative';
+    list.appendChild(popup);
+
+    _harmonyBaseOriginPopup = popup;
+
+    // Close on outside click
+    setTimeout(() => {
+        document.addEventListener('click', _closeHarmonyBaseOriginOnOutside, { once: true });
+    }, 0);
+}
+
+function _closeHarmonyBaseOriginOnOutside(e) {
+    if (_harmonyBaseOriginPopup && !_harmonyBaseOriginPopup.contains(e.target)) {
+        closeHarmonyBaseOriginPopup();
+    }
+}
+
+function closeHarmonyBaseOriginPopup() {
+    if (_harmonyBaseOriginPopup) {
+        _harmonyBaseOriginPopup.remove();
+        _harmonyBaseOriginPopup = null;
+    }
+}
+
+function selectHarmonyBaseFromOrigin(colIdx, originIdx, color) {
+    // Set this locked column as the base, with the specific origin color
+    harmonyBaseSlot = colIdx;
+    _harmonyBaseOriginIdx = originIdx;
+
+    // Sync the hue slider to this origin's hue
+    const [h] = rgbToHsl(...color);
+    const hueSlider = document.getElementById('harmonyBaseHue');
+    if (hueSlider) {
+        hueSlider.value = Math.round(h);
+        updateHarmonyBaseHueDisplay(Math.round(h));
+    }
+
+    // Sync brightness slider to this origin's lightness
+    const [, , l] = rgbToHsl(...color);
+    const brightSlider = document.getElementById('harmonyBrightness');
+    if (brightSlider) {
+        brightSlider.value = Math.round(l);
+        updateHarmonyBrightnessDisplay(Math.round(l));
+    }
+
+    closeHarmonyBaseOriginPopup();
+    populateHarmonyBasePicker();
+    updateHarmonyPreview();
+    updateHarmonyWheel();
+}
+
+function selectHarmonyBaseSlot(idx) {
+    harmonyBaseSlot = idx;
+    _harmonyBaseOriginIdx = null; // clear specific origin when selecting unlocked slot
+    populateHarmonyBasePicker();
+    updateHarmonyPreview();
+}
+
+function toggleHarmonyIncludeLocked() {
+    harmonyIncludeLocked = document.getElementById('harmonyIncludeLocked')?.checked || false;
+    updateHarmonyWheel();
+    updateHarmonyPreview();
 }
 
 // Harmony Tutorial slide navigation
@@ -5890,59 +6987,46 @@ function harmonyTutorialNav(dir) {
     document.getElementById('harmonyTutorialNext').disabled = _harmonyTutorialSlide === slides.length - 1;
 }
 
-// Generate palette from the harmony controls (base hue, sat range, lit range)
+// Generate palette from the harmony controls (base hue + brightness)
 function generateHarmonyFromControls() {
     if (targetPalette.length === 0) {
         setStatus('Load an image first');
         return;
     }
+    targetConflict = null; // clear conflict when generating harmony
 
     const harmonyType = _currentHarmonyType;
     const n = targetPalette.length;
 
     const baseHue = parseInt(document.getElementById('harmonyBaseHue').value);
-    const satMin = parseInt(document.getElementById('harmonySatMin').value);
-    const satMax = parseInt(document.getElementById('harmonySatMax').value);
-    const litMin = parseInt(document.getElementById('harmonyLitMin').value);
-    const litMax = parseInt(document.getElementById('harmonyLitMax').value);
+    const baseBrightness = parseInt(document.getElementById('harmonyBrightness').value);
 
-    let hues = [];
-    switch (harmonyType) {
-        case 'complementary':
-            hues = Array(n).fill(0).map((_, i) => i % 2 === 0 ? baseHue : (baseHue + 180) % 360);
-            break;
-        case 'analogous':
-            const spread = 30;
-            hues = Array(n).fill(0).map((_, i) => (baseHue + (i - Math.floor(n/2)) * spread + 360) % 360);
-            break;
-        case 'triadic':
-            hues = Array(n).fill(0).map((_, i) => (baseHue + (i % 3) * 120) % 360);
-            break;
-        case 'split':
-            hues = Array(n).fill(0).map((_, i) => {
-                const angles = [0, 150, 210];
-                return (baseHue + angles[i % 3]) % 360;
-            });
-            break;
-        case 'tetradic':
-            hues = Array(n).fill(0).map((_, i) => (baseHue + (i % 4) * 90) % 360);
-            break;
+    const baseSlot = getHarmonyBaseSlot(n);
+    let hues = buildHarmonyHues(n, baseHue, harmonyType, baseSlot);
+
+    // When "Consider locked colors" is on, nudge unlocked hues away from locked origin hues
+    if (harmonyIncludeLocked) {
+        hues = adjustHuesForLockedColors(hues, n);
     }
+
+    // Use base brightness with ±12 margin, sat randomized 45–90
+    const litMargin = 12;
+    const litMin = Math.max(5, baseBrightness - litMargin);
+    const litMax = Math.min(95, baseBrightness + litMargin);
 
     targetPalette.forEach((color, i) => {
         if (columnBypass[i]) return;
-        const effectiveSatMin = Math.min(satMin, satMax);
-        const effectiveSatMax = Math.max(satMin, satMax);
-        const effectiveLitMin = Math.min(litMin, litMax);
-        const effectiveLitMax = Math.max(litMin, litMax);
-        const sat = effectiveSatMin + Math.random() * (effectiveSatMax - effectiveSatMin);
-        const lit = effectiveLitMin + Math.random() * (effectiveLitMax - effectiveLitMin);
+        const sat = 45 + Math.random() * 45;
+        const lit = litMin + Math.random() * (litMax - litMin);
         targetPalette[i] = hslToRgb(hues[i], sat, lit);
     });
 
+    reseedHarmonyPreview();
     renderColumnMapping();
-    setStatus('Generated ' + harmonyType + ' harmony (base hue ' + baseHue + '°)');
+    populateHarmonyBasePicker();
+    setStatus('Generated ' + harmonyType + ' harmony (hue ' + baseHue + '°, brightness ' + baseBrightness + ')');
     updateHarmonyWheel();
+    updateHarmonyPreview();
     autoRecolorImage();
 }
 
@@ -5951,6 +7035,7 @@ function randomizeHarmony() {
         setStatus('Load an image first');
         return;
     }
+    targetConflict = null; // clear conflict when randomizing
 
     const harmonyType = _currentHarmonyType;
     const n = targetPalette.length;
@@ -5963,52 +7048,29 @@ function randomizeHarmony() {
         updateHarmonyBaseHueDisplay(Math.round(baseHue));
     }
 
-    // Generate hues from the selected harmony model
-    let hues = [];
-    switch (harmonyType) {
-        case 'complementary':
-            hues = Array(n).fill(0).map((_, i) => {
-                return i % 2 === 0 ? baseHue : (baseHue + 180) % 360;
-            });
-            break;
-        case 'analogous':
-            const spread = 30;
-            hues = Array(n).fill(0).map((_, i) => {
-                const offset = (i - Math.floor(n / 2)) * spread;
-                return (baseHue + offset + 360) % 360;
-            });
-            break;
-        case 'triadic':
-            hues = Array(n).fill(0).map((_, i) => {
-                return (baseHue + (i % 3) * 120) % 360;
-            });
-            break;
-        case 'split':
-            hues = Array(n).fill(0).map((_, i) => {
-                const angles = [0, 150, 210];
-                return (baseHue + angles[i % 3]) % 360;
-            });
-            break;
-        case 'tetradic':
-            hues = Array(n).fill(0).map((_, i) => {
-                return (baseHue + (i % 4) * 90) % 360;
-            });
-            break;
+    const baseSlot = getHarmonyBaseSlot(n);
+    let hues = buildHarmonyHues(n, baseHue, harmonyType, baseSlot);
+
+    // When "Consider locked colors" is on, nudge unlocked hues away from locked origin hues
+    if (harmonyIncludeLocked) {
+        hues = adjustHuesForLockedColors(hues, n);
     }
 
     // Generate varied but pleasing saturation/lightness per slot
     targetPalette.forEach((color, i) => {
-        if (columnBypass[i]) return;       // respect locked/bypassed columns
+        if (columnBypass[i]) return;
 
-        // Vary saturation 45–90, lightness 35–65 for a balanced palette
         const sat = 45 + Math.random() * 45;
         const lit = 35 + Math.random() * 30;
         targetPalette[i] = hslToRgb(hues[i], sat, lit);
     });
 
     renderColumnMapping();
+    reseedHarmonyPreview();
+    populateHarmonyBasePicker();
     setStatus('Randomized ' + harmonyType + ' harmony (base hue ' + Math.round(baseHue) + '°)');
     updateHarmonyWheel();
+    updateHarmonyPreview();
     autoRecolorImage();
 }
 
@@ -6048,16 +7110,27 @@ function setHarmonyMode(mode) {
     // Restore harmony type dropdowns from cached value (CSS hidden/show can reset selects in some browsers)
     const sidebar = document.getElementById('harmonyType');
     const quick = document.getElementById('quickHarmonyType');
+    const lockColor = document.getElementById('lockColorHarmonyType');
+    const quickLockColor = document.getElementById('quickLockColorHarmonyType');
     if (sidebar) sidebar.value = _currentHarmonyType;
     if (quick) quick.value = _currentHarmonyType;
+    if (lockColor) lockColor.value = _currentHarmonyType;
+    if (quickLockColor) quickLockColor.value = _currentHarmonyType;
     updateHarmonyRandomizeLabel();
 
-    // Show nudge hint only in Harmony mode
+    // Hide nudge hint (nudge now on Lock a Color side, no separate hint needed)
     const nudgeHint = document.getElementById('harmonyNudgeHint');
-    if (nudgeHint) nudgeHint.classList.toggle('hidden', isColor);
+    if (nudgeHint) nudgeHint.classList.add('hidden');
 
     // Populate the lock-a-color dropdowns when switching to color mode
     if (isColor) populateLockColorDropdowns();
+
+    // Update preview strip and base picker when switching to harmony mode
+    if (!isColor) {
+        updateHarmonyBrightnessGradient(document.getElementById('harmonyBaseHue')?.value ?? 180);
+        populateHarmonyBasePicker();
+        updateHarmonyPreview();
+    }
 }
 
 function toggleHarmonyMode() {
@@ -6069,10 +7142,15 @@ function syncHarmonySelects(value) {
     _currentHarmonyType = value;
     const sidebar = document.getElementById('harmonyType');
     const quick = document.getElementById('quickHarmonyType');
+    const lockColor = document.getElementById('lockColorHarmonyType');
+    const quickLockColor = document.getElementById('quickLockColorHarmonyType');
     if (sidebar) sidebar.value = value;
     if (quick) quick.value = value;
+    if (lockColor) lockColor.value = value;
+    if (quickLockColor) quickLockColor.value = value;
     updateHarmonyWheel();
     updateHarmonyRandomizeLabel();
+    updateHarmonyPreview();
 }
 
 function updateHarmonyRandomizeLabel() {
@@ -6083,18 +7161,48 @@ function updateHarmonyRandomizeLabel() {
     label.textContent = names[_currentHarmonyType] || _currentHarmonyType;
 }
 
+// Get the effective rendered color for a column — for bypassed columns, returns
+// the dominant origin color (highest %). For normal columns, returns the target color.
+function getEffectiveColumnColor(colIdx) {
+    if (columnBypass[colIdx]) {
+        // Find the dominant origin in this bypassed column
+        let bestOrigin = null;
+        let bestPct = -1;
+        for (let i = 0; i < originToColumn.length; i++) {
+            if (originToColumn[i] === colIdx && originalPalette[i]) {
+                const pct = colorPercentages[i] || 0;
+                if (pct > bestPct) {
+                    bestPct = pct;
+                    bestOrigin = originalPalette[i];
+                }
+            }
+        }
+        return bestOrigin;
+    }
+    return targetPalette[colIdx] || null;
+}
+
 function updateHarmonyNudgeSwatch() {
     const swatches = [
         document.getElementById('harmonyNudgeSwatch'),
         document.getElementById('quickNudgeSwatch')
     ];
-    const color = targetPalette[selectedSlotIndex];
+    // Resolve color from Lock a Color selection
+    const selIdx = lockColorSelectedIdx;
+    let color;
+    if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
+        const oi = parseInt(selIdx.replace('origin_', ''));
+        color = originalPalette[oi] ? [...originalPalette[oi]] : null;
+    } else {
+        color = getEffectiveColumnColor(selIdx);
+    }
     swatches.forEach(swatch => {
         if (!swatch) return;
         if (color) {
             swatch.style.background = rgbToHex(...color);
             swatch.style.display = 'inline-block';
-            swatch.title = 'Based on selected target: ' + rgbToHex(...color);
+            const label = typeof selIdx === 'string' ? 'Based on selected origin' : (columnBypass[selIdx] ? 'Based on dominant origin in locked column' : 'Based on selected color');
+            swatch.title = label + ': ' + rgbToHex(...color);
         } else {
             swatch.style.display = 'none';
         }
@@ -6138,13 +7246,23 @@ function populateLockColorDropdowns() {
 
     // Separate unlocked and locked/bypassed targets
     const unlocked = [];
-    const lockedTargets = [];
+    const bypassedColumns = [];
     for (let i = 0; i < targetCount; i++) {
         if (!targetPalette[i]) continue;
         if (columnBypass[i]) {
-            lockedTargets.push(i);
+            bypassedColumns.push(i);
         } else {
             unlocked.push(i);
+        }
+    }
+
+    // Gather origins in bypassed columns — each origin is individually selectable
+    const bypassedOrigins = [];
+    for (const col of bypassedColumns) {
+        for (let i = 0; i < originToColumn.length; i++) {
+            if (originToColumn[i] === col && originalPalette[i]) {
+                bypassedOrigins.push(i);
+            }
         }
     }
 
@@ -6156,29 +7274,25 @@ function populateLockColorDropdowns() {
         }
     }
 
-    // Combine bypassed targets + bank origins into the "locked" section
-    // Use string keys for bank origins: 'origin_5', numeric for target columns
-    const allSelectable = [...unlocked.map(i => i), ...lockedTargets.map(i => i), ...bankOrigins.map(i => 'origin_' + i)];
+    // Combine: unlocked targets + bypassed origins + bank origins
+    // All origin-based items use string keys: 'origin_N'
+    const allSelectable = [
+        ...unlocked.map(i => i),
+        ...bypassedOrigins.map(i => 'origin_' + i),
+        ...bankOrigins.map(i => 'origin_' + i)
+    ];
 
     // Default selection to first selectable if current selection is invalid
     if (!allSelectable.includes(lockColorSelectedIdx) && allSelectable.length > 0) {
         lockColorSelectedIdx = allSelectable[0];
     }
 
-    // Helper: get color for any selectable index (target column or bank origin)
+    // Helper: get color for any selectable index (target column or origin)
     function getSelectableColor(selIdx) {
         if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
             const oi = parseInt(selIdx.replace('origin_', ''));
             return originalPalette[oi] ? rgbToHex(...originalPalette[oi]) : '#888888';
         } else {
-            // Target column - for bypassed, show the original color mapped to that column
-            if (columnBypass[selIdx]) {
-                for (let j = 0; j < originToColumn.length; j++) {
-                    if (originToColumn[j] === selIdx && originalPalette[j]) {
-                        return rgbToHex(...originalPalette[j]);
-                    }
-                }
-            }
             return targetPalette[selIdx] ? rgbToHex(...targetPalette[selIdx]) : '#888888';
         }
     }
@@ -6187,15 +7301,21 @@ function populateLockColorDropdowns() {
     function getSelectableLabel(selIdx, short = false) {
         if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
             const oi = parseInt(selIdx.replace('origin_', ''));
+            // Determine if this origin is from a bypassed column or the bank
+            const col = originToColumn[oi];
+            if (typeof col === 'number' && columnBypass[col]) {
+                const catLabel = getTargetCategoryLabel(col, short);
+                return short ? (catLabel + ':O' + (oi + 1)) : (catLabel + ' Origin ' + (oi + 1));
+            }
             return short ? ('O' + (oi + 1)) : ('Bank Color ' + (oi + 1));
         }
         return getTargetCategoryLabel(selIdx, short);
     }
 
-    // Helper: check if a selectable index is a locked item (bypassed target or bank origin)
+    // Helper: check if a selectable index is a locked item (bypassed origin or bank origin)
     function isLockedItem(selIdx) {
         if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) return true;
-        return lockedTargets.includes(selIdx);
+        return false; // only unlocked targets are numeric now
     }
 
     // Helper: update the quick bar 🔒 button to show the selected locked color's swatch
@@ -6245,11 +7365,13 @@ function populateLockColorDropdowns() {
             // Update the locked button appearance
             updateQuickLockedBtnAppearance(idx);
         }
+        // Update nudge swatch to reflect new selection
+        updateHarmonyNudgeSwatch();
     }
 
-    // Combined "locked" items for the locked section: bypassed targets + bank origins
+    // Combined "locked" items for the locked section: bypassed-column origins + bank origins
     const lockedItems = [
-        ...lockedTargets.map(i => ({ selIdx: i, type: 'target' })),
+        ...bypassedOrigins.map(i => ({ selIdx: 'origin_' + i, type: 'bypassed' })),
         ...bankOrigins.map(i => ({ selIdx: 'origin_' + i, type: 'bank' }))
     ];
 
@@ -6442,7 +7564,13 @@ function randomizeLockColor() {
     if (typeof selIdx === 'string' && selIdx.startsWith('origin_')) {
         const oi = parseInt(selIdx.replace('origin_', ''));
         lockedColor = originalPalette[oi];
-        lockedLabel = 'Bank Color ' + (oi + 1);
+        // Label: check if origin is in a bypassed column or the bank
+        const originCol = originToColumn[oi];
+        if (typeof originCol === 'number' && columnBypass[originCol]) {
+            lockedLabel = getTargetCategoryLabel(originCol) + ' Origin ' + (oi + 1);
+        } else {
+            lockedLabel = 'Bank Color ' + (oi + 1);
+        }
     } else {
         lockedTargetIdx = selIdx;
         lockedColor = targetPalette[selIdx];
@@ -6631,6 +7759,47 @@ function updateHarmonyWheel() {
         }
     }
 
+    // Draw static dots for locked/bypassed origin colors when "Consider locked colors" is on
+    if (harmonyIncludeLocked && targetPalette.length > 0) {
+        const markerDistance = (outerRadius + innerRadius) / 2;
+        for (let i = 0; i < targetPalette.length; i++) {
+            if (!columnBypass[i]) continue;
+
+            // Show ALL origin colors mapped to this locked column
+            for (let oi = 0; oi < originToColumn.length; oi++) {
+                if (originToColumn[oi] !== i) continue;
+                const originColor = originalPalette[oi];
+                if (!originColor) continue;
+
+                const [oh] = rgbToHsl(...originColor);
+                const angle = (oh - 90) * Math.PI / 180;
+                const dotX = centerX + markerDistance * Math.cos(angle);
+                const dotY = centerY + markerDistance * Math.sin(angle);
+
+                // Dashed line from center
+                ctx2.save();
+                ctx2.setLineDash([2, 2]);
+                ctx2.strokeStyle = 'rgba(255,255,255,0.35)';
+                ctx2.lineWidth = 1;
+                ctx2.beginPath();
+                ctx2.moveTo(centerX, centerY);
+                ctx2.lineTo(dotX, dotY);
+                ctx2.stroke();
+                ctx2.restore();
+
+                // Static dot (square to distinguish from round dynamic dots)
+                ctx2.save();
+                const dotSize = 5;
+                ctx2.fillStyle = rgbToHex(...originColor);
+                ctx2.fillRect(dotX - dotSize, dotY - dotSize, dotSize * 2, dotSize * 2);
+                ctx2.strokeStyle = 'rgba(255,255,255,0.7)';
+                ctx2.lineWidth = 1.5;
+                ctx2.strokeRect(dotX - dotSize, dotY - dotSize, dotSize * 2, dotSize * 2);
+                ctx2.restore();
+            }
+        }
+    }
+
     // Draw selected color in center — show locked bank color if that's the selection
     let centerColor = null;
     if (harmonyMode === 'color' && typeof lockColorSelectedIdx === 'string' && lockColorSelectedIdx.startsWith('origin_')) {
@@ -6676,15 +7845,15 @@ function updateHarmonyDots() {
         const angle = (h - 90) * Math.PI / 180;
         const x = centerX + markerDistance * Math.cos(angle);
         const y = centerY + markerDistance * Math.sin(angle);
-        
+
         const dot = document.createElement('div');
         dot.className = 'harmony-dot' + (i === selectedSlotIndex ? ' selected' : '');
         dot.style.left = (canvas.offsetLeft + x) + 'px';
         dot.style.top = (canvas.offsetTop + y) + 'px';
         dot.style.background = rgbToHex(...color);
         dot.dataset.index = i;
-        dot.title = `Target ${i + 1} - Drag to change hue`;
-        
+        dot.title = `New Color ${i + 1} - Drag to change hue`;
+
         dot.addEventListener('mousedown', (e) => {
             e.preventDefault();
             harmonyDragging = i;
@@ -6696,7 +7865,7 @@ function updateHarmonyDots() {
                 d.classList.toggle('selected', parseInt(d.dataset.index) === i);
             });
         });
-        
+
         container.appendChild(dot);
     });
 }
@@ -6795,17 +7964,12 @@ function resetImage() {
     // Invalidate opacity cache
     _opacityCache = null;
 
-    // Uncheck live preview so the original image stays
-    const liveToggle = document.getElementById('livePreviewToggle');
-    if (liveToggle && liveToggle.checked) {
-        liveToggle.checked = false;
-        toggleLivePreview(false);
-    }
+    // Keep live preview checked — it will re-apply once the user sets new colors
 
     // Re-render the mapping to show blank targets
     renderColumnMapping();
 
-    setStatus('Image reset to original — all target colors cleared');
+    setStatus('Image reset to original — all new colors cleared');
 }
 
 function removeImage() {
@@ -6826,6 +7990,13 @@ function removeImage() {
     rawColorDistribution = [];
     originToColumn = [];
     columnBypass = [];
+    targetConflict = null;
+    draggedConflictSwatch = false;
+    harmonyBaseSlot = null;
+    _harmonyBaseOriginIdx = null;
+    harmonyIncludeLocked = false;
+    const incLockedCb = document.getElementById('harmonyIncludeLocked');
+    if (incLockedCb) incLockedCb.checked = false;
 
     // Reset picker state
     pickedColors = [];
@@ -6911,6 +8082,9 @@ function removeImage() {
     if (earlyImport) earlyImport.classList.remove('hidden');
     // Clear demo mode so demo config buttons hide
     _isDemoImage = false;
+    _imageSource = 'none';
+    _paletteSource = 'none';
+    _deferredBgLock = false;
     updateDemoConfigVisibility();
     uiStage = 'initial';
     updateProgressiveInstructions('initial');
@@ -7030,6 +8204,512 @@ function toggleDebugRecording() {
         debugLog(`State: algo=${selectedAlgorithm}, webgl=${webglInitialized}, renderType=${_lastWebGLRenderType}, image=${canvas ? canvas.width + 'x' + canvas.height : 'none'}`);
         debugLog('Trigger a recolor (switch algorithm, change target, etc.) to capture render trace');
     }
+}
+
+function dumpAppState() {
+    // Dump full application state + column layout to the render log.
+    const lines = ['=== APP STATE DUMP ==='];
+
+    // ── Core stage & mode ──
+    lines.push('');
+    lines.push('── Core ──');
+    lines.push(`uiStage: ${uiStage}`);
+    lines.push(`appMode: ${typeof appMode !== 'undefined' ? appMode : 'undefined'}`);
+    lines.push(`selectedAlgorithm: ${selectedAlgorithm}`);
+    lines.push(`livePreviewEnabled: ${livePreviewEnabled}`);
+    lines.push(`_isDemoImage: ${_isDemoImage}`);
+    lines.push(`selectedTheme: ${typeof selectedTheme !== 'undefined' ? selectedTheme : 'undefined'}`);
+
+    // ── Workflow provenance ──
+    lines.push('');
+    lines.push('── Workflow Provenance ──');
+    lines.push(`_imageSource: ${_imageSource}`);
+    lines.push(`_paletteSource: ${_paletteSource}`);
+    lines.push(`_deferredBgLock: ${_deferredBgLock}`);
+    lines.push(`_modeHistory: ${_modeHistory.length === 0 ? '(no switches)' : _modeHistory.map(m => m.mode + '@' + m.time).join(' → ')}`);
+
+    // ── Image state ──
+    lines.push('');
+    lines.push('── Image ──');
+    lines.push(`canvas: ${canvas ? canvas.width + 'x' + canvas.height : 'null'}`);
+    lines.push(`imageData: ${imageData ? imageData.width + 'x' + imageData.height : 'null'}`);
+    lines.push(`originalImageData: ${originalImageData ? originalImageData.width + 'x' + originalImageData.height : 'null'}`);
+    lines.push(`originalFileName: ${typeof originalFileName !== 'undefined' ? originalFileName : 'undefined'}`);
+
+    // ── WebGL ──
+    lines.push('');
+    lines.push('── WebGL ──');
+    lines.push(`webglInitialized: ${webglInitialized}`);
+    lines.push(`_lastWebGLRenderType: ${_lastWebGLRenderType}`);
+    lines.push(`_webglDirty: ${_webglDirty}`);
+
+    // ── Color picker ──
+    lines.push('');
+    lines.push('── Color Picker ──');
+    lines.push(`pickerMode: ${pickerMode}`);
+    lines.push(`pickedColors: [${pickedColors.length}] ${pickedColors.map(c => c ? rgbToHex(...c) : 'null').join(', ')}`);
+    lines.push(`pickedCategories: [${(typeof pickedCategories !== 'undefined' && pickedCategories) ? pickedCategories.join(', ') : 'empty'}]`);
+    lines.push(`pickerTargetCategory: ${pickerTargetCategory}`);
+    lines.push(`harmonyMode: ${typeof harmonyMode !== 'undefined' ? harmonyMode : 'undefined'}`);
+    lines.push(`_currentHarmonyType: ${typeof _currentHarmonyType !== 'undefined' ? _currentHarmonyType : 'undefined'}`);
+
+    // ── Tutorial ──
+    lines.push('');
+    lines.push('── Tutorial ──');
+    lines.push(`tutorialStep: ${typeof tutorialStep !== 'undefined' ? tutorialStep : 'undefined'}`);
+    lines.push(`tutorialCollapsed: ${typeof tutorialCollapsed !== 'undefined' ? tutorialCollapsed : 'undefined'}`);
+    lines.push(`tutorialHasBeenShown: ${typeof tutorialHasBeenShown !== 'undefined' ? tutorialHasBeenShown : 'undefined'}`);
+    lines.push(`tutorialCtrlHidden: ${typeof tutorialCtrlHidden !== 'undefined' ? tutorialCtrlHidden : 'undefined'}`);
+    lines.push(`instructionsCollapsed: ${instructionsCollapsed}`);
+    lines.push(`currentInstructionSlide: ${typeof currentInstructionSlide !== 'undefined' ? currentInstructionSlide : 'undefined'}`);
+
+    // ── Palettes ──
+    lines.push('');
+    lines.push('── Palettes ──');
+    lines.push(`originCount: ${typeof originCount !== 'undefined' ? originCount : 'undefined'}`);
+    lines.push(`targetCount: ${typeof targetCount !== 'undefined' ? targetCount : 'undefined'}`);
+    lines.push(`originalPalette: [${originalPalette.length}] ${originalPalette.map(c => c ? rgbToHex(...c) : 'null').join(', ')}`);
+    lines.push(`targetPalette: [${targetPalette.length}] ${targetPalette.map(c => c ? rgbToHex(...c) : 'null').join(', ')}`);
+    lines.push(`selectedSlotIndex: ${selectedSlotIndex}`);
+
+    // ── Column mapping ──
+    lines.push('');
+    lines.push('── Column Mapping ──');
+    lines.push(`originToColumn: ${JSON.stringify(originToColumn)}`);
+    lines.push(`columnBypass: ${JSON.stringify(columnBypass)}`);
+
+    // ── Opacity ──
+    lines.push('');
+    lines.push('── Opacity ──');
+    lines.push(`targetOpacity: ${JSON.stringify(targetOpacity)}`);
+    lines.push(`originOpacity: ${JSON.stringify(originOpacity)}`);
+
+    // ── Zoom/Pan ──
+    lines.push('');
+    lines.push('── Zoom/Pan ──');
+    lines.push(`zoomLevel: ${typeof zoomLevel !== 'undefined' ? zoomLevel : 'undefined'}`);
+    lines.push(`panX: ${typeof panX !== 'undefined' ? panX : 'undefined'}, panY: ${typeof panY !== 'undefined' ? panY : 'undefined'}`);
+
+    // ── Swatch picker ──
+    lines.push('');
+    lines.push('── Swatch Picker ──');
+    lines.push(`activeSwatchPicker: ${typeof activeSwatchPicker !== 'undefined' ? JSON.stringify(activeSwatchPicker) : 'undefined'}`);
+    lines.push(`_isSwatchGradientDragging: ${typeof _isSwatchGradientDragging !== 'undefined' ? _isSwatchGradientDragging : 'undefined'}`);
+
+    // ── Drag state ──
+    lines.push('');
+    lines.push('── Drag State ──');
+    lines.push(`draggedOriginIndex: ${draggedOriginIndex}`);
+    lines.push(`draggedTargetIndex: ${draggedTargetIndex}`);
+    lines.push(`draggedConflictSwatch: ${draggedConflictSwatch}`);
+    lines.push(`draggingMarker: ${typeof draggingMarker !== 'undefined' ? draggingMarker : 'undefined'}`);
+    lines.push(`targetConflict: ${typeof targetConflict !== 'undefined' ? JSON.stringify(targetConflict) : 'undefined'}`);
+
+    // ── Harmony ──
+    lines.push('');
+    lines.push('── Harmony ──');
+    lines.push(`lockColorSelectedIdx: ${typeof lockColorSelectedIdx !== 'undefined' ? JSON.stringify(lockColorSelectedIdx) : 'undefined'}`);
+    lines.push(`harmonyBaseSlot: ${typeof harmonyBaseSlot !== 'undefined' ? harmonyBaseSlot : 'undefined'}`);
+    lines.push(`_harmonyBaseOriginIdx: ${typeof _harmonyBaseOriginIdx !== 'undefined' ? _harmonyBaseOriginIdx : 'undefined'}`);
+    lines.push(`_harmonyBaseOriginPopup: ${typeof _harmonyBaseOriginPopup !== 'undefined' ? (_harmonyBaseOriginPopup ? 'open' : 'null') : 'undefined'}`);
+    lines.push(`harmonyIncludeLocked: ${typeof harmonyIncludeLocked !== 'undefined' ? harmonyIncludeLocked : 'undefined'}`);
+    lines.push(`_harmonyPreviewSeed: ${typeof _harmonyPreviewSeed !== 'undefined' ? _harmonyPreviewSeed : 'undefined'}`);
+    lines.push(`_harmonyTutorialSlide: ${typeof _harmonyTutorialSlide !== 'undefined' ? _harmonyTutorialSlide : 'undefined'}`);
+    lines.push(`harmonyDragging: ${typeof harmonyDragging !== 'undefined' ? harmonyDragging : 'undefined'}`);
+    lines.push(`dynamicAccentMax: ${typeof dynamicAccentMax !== 'undefined' ? dynamicAccentMax : 'undefined'}`);
+    const basePickerList = document.getElementById('harmonyBasePickerList');
+    lines.push(`harmonyBasePickerList children: ${basePickerList ? basePickerList.children.length : 'NOT IN DOM'}`);
+    const previewStrip = document.getElementById('harmonyPreviewStrip');
+    lines.push(`harmonyPreviewStrip children: ${previewStrip ? previewStrip.children.length : 'NOT IN DOM'}`);
+
+    // ── Color Analysis ──
+    lines.push('');
+    lines.push('── Color Analysis ──');
+    lines.push(`colorPercentages: [${colorPercentages.length}]${colorPercentages.length > 0 ? ' ' + colorPercentages.map(p => (p * 100).toFixed(1) + '%').join(', ') : ''}`);
+    lines.push(`fullColorDistribution: [${fullColorDistribution.length}]`);
+    lines.push(`rawColorDistribution: [${rawColorDistribution.length}]`);
+    lines.push(`colorTolerance: ${typeof colorTolerance !== 'undefined' ? colorTolerance : 'undefined'}`);
+
+    // ── Swatch Picker Internals ──
+    lines.push('');
+    lines.push('── Swatch Picker Internals ──');
+    lines.push(`swatchPickerState: ${typeof swatchPickerState !== 'undefined' ? JSON.stringify(swatchPickerState) : 'undefined'}`);
+    lines.push(`gradientHue: ${typeof gradientHue !== 'undefined' ? gradientHue : 'undefined'}`);
+    lines.push(`gradientSaturation: ${typeof gradientSaturation !== 'undefined' ? gradientSaturation : 'undefined'}`);
+    lines.push(`gradientValue: ${typeof gradientValue !== 'undefined' ? gradientValue : 'undefined'}`);
+    lines.push(`isDraggingGradient: ${typeof isDraggingGradient !== 'undefined' ? isDraggingGradient : 'undefined'}`);
+    lines.push(`_originPickerPopup: ${typeof _originPickerPopup !== 'undefined' ? (_originPickerPopup ? 'open' : 'null') : 'undefined'}`);
+    lines.push(`_originPickerPendingCol: ${typeof _originPickerPendingCol !== 'undefined' ? _originPickerPendingCol : 'undefined'}`);
+
+    // ── Opacity Internals ──
+    lines.push('');
+    lines.push('── Opacity Internals ──');
+    lines.push(`_opacityCache: ${typeof _opacityCache !== 'undefined' ? (_opacityCache ? 'cached' : 'null') : 'undefined'}`);
+    lines.push(`_opacityRafPending: ${typeof _opacityRafPending !== 'undefined' ? _opacityRafPending : 'undefined'}`);
+
+    // ── UI State ──
+    lines.push('');
+    lines.push('── UI State ──');
+    lines.push(`shouldKeepPickedMarkers: ${typeof shouldKeepPickedMarkers !== 'undefined' ? shouldKeepPickedMarkers : 'undefined'}`);
+    lines.push(`altHeld: ${typeof altHeld !== 'undefined' ? altHeld : 'undefined'}`);
+    lines.push(`isVerticallyCropped: ${typeof isVerticallyCropped !== 'undefined' ? isVerticallyCropped : 'undefined'}`);
+    lines.push(`isResizing: ${typeof isResizing !== 'undefined' ? isResizing : 'undefined'}`);
+    lines.push(`resizeType: ${typeof resizeType !== 'undefined' ? resizeType : 'undefined'}`);
+
+    // ── Display & Rendering ──
+    lines.push('');
+    lines.push('── Display & Rendering ──');
+    lines.push(`useHighQualityDisplay: ${typeof useHighQualityDisplay !== 'undefined' ? useHighQualityDisplay : 'undefined'}`);
+    lines.push(`baseDisplayWidth: ${typeof baseDisplayWidth !== 'undefined' ? baseDisplayWidth : 'undefined'}`);
+    lines.push(`baseDisplayHeight: ${typeof baseDisplayHeight !== 'undefined' ? baseDisplayHeight : 'undefined'}`);
+    lines.push(`lastRenderedZoom: ${typeof lastRenderedZoom !== 'undefined' ? lastRenderedZoom : 'undefined'}`);
+    lines.push(`_constrainingPan: ${typeof _constrainingPan !== 'undefined' ? _constrainingPan : 'undefined'}`);
+    lines.push(`displayCanvas: ${displayCanvas ? displayCanvas.width + 'x' + displayCanvas.height : 'null'}`);
+    lines.push(`webglCanvas: ${typeof webglCanvas !== 'undefined' && webglCanvas ? webglCanvas.width + 'x' + webglCanvas.height : 'null'}`);
+    lines.push(`_webglImageTexture: ${typeof _webglImageTexture !== 'undefined' ? (_webglImageTexture ? 'set' : 'null') : 'undefined'}`);
+    lines.push(`_lastSimpleUniforms: ${typeof _lastSimpleUniforms !== 'undefined' ? (_lastSimpleUniforms ? 'cached' : 'null') : 'undefined'}`);
+    lines.push(`_lastRBFUniforms: ${typeof _lastRBFUniforms !== 'undefined' ? (_lastRBFUniforms ? 'cached' : 'null') : 'undefined'}`);
+
+    // ── Config & History ──
+    lines.push('');
+    lines.push('── Config & History ──');
+    lines.push(`savedConfigs: [${typeof savedConfigs !== 'undefined' ? savedConfigs.length : 'undefined'}]`);
+    lines.push(`configCounter: ${typeof configCounter !== 'undefined' ? configCounter : 'undefined'}`);
+    lines.push(`recolorHistory: [${typeof recolorHistory !== 'undefined' ? recolorHistory.length : 'undefined'}]`);
+    lines.push(`currentViewedConfigId: ${typeof currentViewedConfigId !== 'undefined' ? currentViewedConfigId : 'undefined'}`);
+
+    // ── Debug ──
+    lines.push('');
+    lines.push('── Debug ──');
+    lines.push(`_debugLog entries: ${typeof _debugLog !== 'undefined' ? _debugLog.length : 'undefined'}`);
+    lines.push(`_debugRecording: ${typeof _debugRecording !== 'undefined' ? _debugRecording : 'undefined'}`);
+    lines.push(`_debugInspectActive: ${typeof _debugInspectActive !== 'undefined' ? _debugInspectActive : 'undefined'}`);
+    lines.push(`_debugMarkCount: ${typeof _debugMarkCount !== 'undefined' ? _debugMarkCount : 'undefined'}`);
+    lines.push(`_eyedropperActive: ${typeof _eyedropperActive !== 'undefined' ? _eyedropperActive : 'undefined'}`);
+
+    // ── DOM Snapshot — dynamic containers ──
+    lines.push('');
+    lines.push('── DOM Snapshot ──');
+    const domSnapshotTargets = [
+        '#harmonyBasePickerList',
+        '#harmonyPreviewStrip',
+        '#mappingColumns',
+        '#mappingTargetsRow',
+        '#originOverflowBank',
+        '#harmonyWheelCanvas',
+        '#harmonyPanelHarmony',
+        '#harmonyPanelColor',
+        '#lockColorSelectWrapper',
+        '#quickLockColorSelectWrapper',
+        '#quickHarmonyControls',
+        '#quickColorControls',
+        '#themeContainer',
+        '#colorStrip',
+        '#recoloredStrip',
+        '#configList',
+    ];
+    for (const sel of domSnapshotTargets) {
+        const el = document.querySelector(sel);
+        if (!el) {
+            lines.push(`  ${sel}: NOT IN DOM`);
+            continue;
+        }
+        const cs = getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        const flags = [];
+        if (cs.display === 'none') flags.push('display:none');
+        if (el.classList.contains('hidden')) flags.push('.hidden');
+        if (cs.visibility === 'hidden') flags.push('vis:hidden');
+        if (cs.opacity === '0') flags.push('opacity:0');
+        if (rect.width === 0 && rect.height === 0) flags.push('0x0');
+        const vis = flags.length ? flags.join(' ') : 'visible';
+        const dims = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
+        const childCount = el.children.length;
+        // Grab condensed inner content preview
+        let preview = '';
+        if (childCount === 0) {
+            const txt = el.textContent.trim();
+            preview = txt ? ` text="${txt.substring(0, 60)}"` : ' (empty)';
+        } else {
+            // Summarize children: tag.class for first few
+            const childSummary = [];
+            for (let ci = 0; ci < Math.min(childCount, 8); ci++) {
+                const ch = el.children[ci];
+                let desc = ch.tagName.toLowerCase();
+                if (ch.className && typeof ch.className === 'string') {
+                    const cls = ch.className.split(/\s+/).filter(c => c).slice(0, 2).join('.');
+                    if (cls) desc += '.' + cls;
+                }
+                // If it's a colored element, show its bg color
+                const bg = ch.style.background || ch.style.backgroundColor;
+                if (bg) desc += `[${bg}]`;
+                childSummary.push(desc);
+            }
+            preview = ' → ' + childSummary.join(', ');
+            if (childCount > 8) preview += `, ... +${childCount - 8} more`;
+        }
+        lines.push(`  ${sel}: ${vis} ${dims} children=${childCount}${preview}`);
+    }
+
+    // ── Visible panels & sections ──
+    lines.push('');
+    lines.push('── Panel Visibility ──');
+    const panelChecks = [
+        ['#uploadZone', 'Upload Zone'],
+        ['#colorAnalysisPanel', 'Color Analysis'],
+        ['#columnMappingContainer', 'Palette Mapping'],
+        ['#targetControlRow', 'Target Controls'],
+        ['#targetChoicePanel', 'Target Choice'],
+        ['#colorPickerOverlay', 'Color Picker Overlay'],
+        ['#tutorialOverlay', 'Tutorial Overlay'],
+        ['#harmonyTutorialOverlay', 'Harmony Tutorial'],
+        ['#demoImageBtn', 'Demo Image Btn'],
+        ['#originCollapsible', 'Origin Collapsible'],
+        ['#mappingTargetsRow', 'Targets Row'],
+        ['#recoloredStrip', 'Recolored Strip'],
+        ['#colorStrip', 'Original Strip'],
+        ['#debugConsole', 'Debug Console'],
+    ];
+    for (const [sel, label] of panelChecks) {
+        const el = document.querySelector(sel);
+        if (!el) {
+            lines.push(`  ${label}: NOT IN DOM`);
+            continue;
+        }
+        const cs = getComputedStyle(el);
+        const flags = [];
+        if (cs.display === 'none') flags.push('display:none');
+        if (cs.visibility === 'hidden') flags.push('visibility:hidden');
+        if (cs.opacity === '0') flags.push('opacity:0');
+        if (cs.pointerEvents === 'none') flags.push('pointer-events:none');
+        if (el.classList.contains('hidden')) flags.push('.hidden');
+        if (el.classList.contains('collapsed')) flags.push('.collapsed');
+        if (el.hasAttribute('open')) flags.push('[open]');
+        if (el.tagName === 'DETAILS' && !el.hasAttribute('open')) flags.push('[closed]');
+
+        const vis = flags.length === 0 ? 'VISIBLE' : flags.join(', ');
+        lines.push(`  ${label} (${sel}): ${vis}`);
+    }
+
+    // ── Buttons state ──
+    lines.push('');
+    lines.push('── Key Buttons ──');
+    const btnChecks = [
+        ['#confirmPickerBtn', 'Confirm Picker'],
+        ['#shuffleBtn', 'Shuffle'],
+        ['#addTargetBtn', 'Add Target'],
+        ['#removeTargetBtn', 'Remove Target'],
+        ['#recolorBtn', 'Recolor'],
+        ['#exportBtn', 'Export'],
+    ];
+    for (const [sel, label] of btnChecks) {
+        const el = document.querySelector(sel);
+        if (!el) {
+            lines.push(`  ${label}: NOT IN DOM`);
+            continue;
+        }
+        const cs = getComputedStyle(el);
+        const flags = [];
+        if (el.disabled) flags.push('disabled');
+        if (cs.display === 'none') flags.push('display:none');
+        if (cs.visibility === 'hidden') flags.push('visibility:hidden');
+        if (cs.pointerEvents === 'none') flags.push('pointer-events:none');
+        if (el.classList.contains('hidden')) flags.push('.hidden');
+        lines.push(`  ${label} (${sel}): ${flags.length ? flags.join(', ') : 'ACTIVE'}`);
+    }
+
+    // ── Column Layout (merged from dumpColumnLayout) ──
+    const originCols = document.querySelectorAll('#mappingColumns .mapping-column');
+    const targetCols = document.querySelectorAll('#mappingTargetsRow .mapping-targets-column');
+    const originsRow = document.getElementById('mappingColumns');
+    const tRow = document.getElementById('mappingTargetsRow');
+
+    if (originCols.length || targetCols.length) {
+        lines.push('');
+        lines.push('── Column Layout ──');
+        if (originsRow) {
+            const r = originsRow.getBoundingClientRect();
+            const cs = getComputedStyle(originsRow);
+            lines.push(`Origins row: left=${r.left.toFixed(1)} right=${r.right.toFixed(1)} w=${r.width.toFixed(1)} pad=[${cs.paddingLeft} ${cs.paddingRight}]`);
+        }
+        const toolContent = originsRow ? originsRow.closest('.target-tool-content') : null;
+        if (toolContent) {
+            const r = toolContent.getBoundingClientRect();
+            const cs = getComputedStyle(toolContent);
+            lines.push(`  parent .target-tool-content: left=${r.left.toFixed(1)} right=${r.right.toFixed(1)} w=${r.width.toFixed(1)} pad=[${cs.paddingLeft} ${cs.paddingRight}]`);
+        }
+        if (tRow) {
+            const r = tRow.getBoundingClientRect();
+            const cs = getComputedStyle(tRow);
+            lines.push(`Targets row: left=${r.left.toFixed(1)} right=${r.right.toFixed(1)} w=${r.width.toFixed(1)} pad=[${cs.paddingLeft} ${cs.paddingRight}]`);
+        }
+        lines.push('Origin cols:');
+        originCols.forEach((col, i) => {
+            const r = col.getBoundingClientRect();
+            lines.push(`  [${i}] left=${r.left.toFixed(1)} right=${r.right.toFixed(1)} w=${r.width.toFixed(1)}`);
+        });
+        lines.push('Target cols:');
+        targetCols.forEach((col, i) => {
+            const r = col.getBoundingClientRect();
+            lines.push(`  [${i}] left=${r.left.toFixed(1)} right=${r.right.toFixed(1)} w=${r.width.toFixed(1)}`);
+        });
+        if (originCols.length === targetCols.length) {
+            lines.push('Right-edge delta (origin − target):');
+            for (let i = 0; i < originCols.length; i++) {
+                const oR = originCols[i].getBoundingClientRect().right;
+                const tR = targetCols[i].getBoundingClientRect().right;
+                const delta = oR - tR;
+                lines.push(`  [${i}]: ${delta.toFixed(2)}px ${Math.abs(delta) < 0.5 ? '✓' : '✗ MISALIGNED'}`);
+            }
+        }
+    } else {
+        lines.push('');
+        lines.push('── Column Layout ──');
+        lines.push('(no columns rendered)');
+    }
+
+    // Log everything
+    const wasRecording = _debugRecording;
+    _debugRecording = true;
+    lines.forEach(l => debugLog(l));
+    _debugRecording = wasRecording;
+}
+
+let _debugMarkCount = 0;
+function addDebugMark() {
+    _debugMarkCount++;
+    const wasRecording = _debugRecording;
+    _debugRecording = true;
+    debugLog(`════════════════ MARK ${_debugMarkCount} ════════════════`, 'warn');
+    _debugRecording = wasRecording;
+}
+
+// ── Debug Inspect Mode ──
+// Click any element to dump its full state (HTML, styles, rect, ancestry, listeners) to clipboard.
+let _debugInspectActive = false;
+
+function toggleDebugInspect() {
+    _debugInspectActive = !_debugInspectActive;
+    const btn = document.getElementById('debugInspectBtn');
+    if (btn) {
+        btn.classList.toggle('active', _debugInspectActive);
+        btn.style.background = _debugInspectActive ? '#ef4444' : '';
+        btn.style.color = _debugInspectActive ? '#fff' : '';
+    }
+    if (_debugInspectActive) {
+        document.addEventListener('click', _debugInspectClick, true);
+        document.body.style.cursor = 'crosshair';
+        const wasRecording = _debugRecording;
+        _debugRecording = true;
+        debugLog('[inspect] Click any element to dump its state. Click Inspect again to cancel.', 'info');
+        _debugRecording = wasRecording;
+    } else {
+        document.removeEventListener('click', _debugInspectClick, true);
+        document.body.style.cursor = '';
+    }
+}
+
+function _debugInspectClick(e) {
+    // Don't inspect clicks on the debug console itself
+    if (e.target.closest('.debug-console')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    const el = e.target;
+    const lines = ['=== ELEMENT INSPECT ==='];
+
+    // Tag + ID + classes
+    const tag = el.tagName.toLowerCase();
+    const id = el.id ? `#${el.id}` : '';
+    const classes = el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : '';
+    lines.push(`Element: ${tag}${id}${classes}`);
+
+    // Bounding rect
+    const r = el.getBoundingClientRect();
+    lines.push(`Rect: ${r.width.toFixed(1)}x${r.height.toFixed(1)} at (${r.left.toFixed(1)}, ${r.top.toFixed(1)})`);
+
+    // Key computed styles
+    const cs = getComputedStyle(el);
+    const styleProps = ['display', 'visibility', 'opacity', 'pointerEvents', 'position',
+        'overflow', 'zIndex', 'padding', 'margin', 'border', 'width', 'height',
+        'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'flex', 'cursor', 'disabled'];
+    lines.push('');
+    lines.push('Computed styles:');
+    for (const prop of styleProps) {
+        const val = cs[prop];
+        if (val && val !== 'none' && val !== 'auto' && val !== 'normal' && val !== '0px' && val !== 'visible') {
+            lines.push(`  ${prop}: ${val}`);
+        }
+    }
+
+    // Inline style if any
+    if (el.style.cssText) {
+        lines.push(`Inline style: ${el.style.cssText}`);
+    }
+
+    // Disabled / aria attributes
+    if (el.disabled) lines.push('DISABLED: true');
+    if (el.getAttribute('aria-disabled')) lines.push(`aria-disabled: ${el.getAttribute('aria-disabled')}`);
+    if (el.getAttribute('aria-hidden')) lines.push(`aria-hidden: ${el.getAttribute('aria-hidden')}`);
+
+    // Dataset attributes
+    const dataKeys = Object.keys(el.dataset);
+    if (dataKeys.length) {
+        lines.push('');
+        lines.push('Dataset:');
+        dataKeys.forEach(k => lines.push(`  data-${k}: ${el.dataset[k]}`));
+    }
+
+    // Ancestry (up to 6 levels)
+    lines.push('');
+    lines.push('Ancestry:');
+    let ancestor = el.parentElement;
+    let depth = 0;
+    while (ancestor && depth < 6) {
+        const aTag = ancestor.tagName.toLowerCase();
+        const aId = ancestor.id ? `#${ancestor.id}` : '';
+        const aCls = ancestor.className && typeof ancestor.className === 'string'
+            ? '.' + ancestor.className.trim().split(/\s+/).slice(0, 3).join('.')
+            : '';
+        const aCs = getComputedStyle(ancestor);
+        const hidden = aCs.display === 'none' ? ' [display:none]'
+            : aCs.visibility === 'hidden' ? ' [visibility:hidden]'
+            : aCs.opacity === '0' ? ' [opacity:0]'
+            : aCs.pointerEvents === 'none' ? ' [pointer-events:none]'
+            : '';
+        lines.push(`  ${'  '.repeat(depth)}${aTag}${aId}${aCls}${hidden}`);
+        ancestor = ancestor.parentElement;
+        depth++;
+    }
+
+    // Outer HTML (truncated)
+    lines.push('');
+    lines.push('Outer HTML (truncated):');
+    const html = el.outerHTML;
+    if (html.length > 800) {
+        lines.push(html.slice(0, 800) + '...');
+    } else {
+        lines.push(html);
+    }
+
+    // onclick attribute
+    const onclick = el.getAttribute('onclick');
+    if (onclick) {
+        lines.push('');
+        lines.push(`onclick attribute: ${onclick}`);
+    }
+
+    // Log it
+    const wasRecording = _debugRecording;
+    _debugRecording = true;
+    debugLog('─── INSPECT DUMP ───');
+    lines.forEach(l => debugLog(l));
+    _debugRecording = wasRecording;
+
+    // Deactivate inspect mode
+    toggleDebugInspect();
 }
 
 function clearDebugLog() {
@@ -7724,6 +9404,8 @@ function loadConfig(configId) {
         return;
     }
     currentViewedConfigId = configId;
+    _paletteSource = 'config-import';
+    targetConflict = null; // clear any conflict when loading a config
 
     // Validate and repair config data from potentially older versions
     const warnings = validateAndRepairConfig(config);
@@ -7775,16 +9457,21 @@ function loadConfig(configId) {
     // target swatches get correct selectability/opacity classes (not `.not-selectable`)
     revealFullUI();
 
-    renderColumnMapping();
-    autoRecolorImage();
-    renderConfigList();
-
-    // Enable live preview when loading a config (user expects to see the recolor)
+    // Enable live preview BEFORE recolor so autoRecolorImage doesn't skip
     const liveToggle = document.getElementById('livePreviewToggle');
     if (liveToggle && !liveToggle.checked) {
         liveToggle.checked = true;
+    }
+    if (!livePreviewEnabled) {
         toggleLivePreview(true);
     }
+
+    renderColumnMapping();
+    populateHarmonyBasePicker();
+    updateHarmonyPreview();
+    updateHarmonyWheel();
+    autoRecolorImage();
+    renderConfigList();
     // Expand origin section when loading a config so user can see the mapping
     const originCollapsible = document.getElementById('originCollapsible');
     if (originCollapsible) originCollapsible.setAttribute('open', '');
@@ -7880,6 +9567,21 @@ function updateSaveButtonState() {
     const alreadySaved = currentEntry && currentEntry.savedForExport;
     btn.disabled = !!alreadySaved;
     btn.classList.toggle('btn-disabled', !!alreadySaved);
+
+    // Update pre-recolor faded state on save/download/export buttons
+    updatePreRecolorFadedState();
+}
+
+function updatePreRecolorFadedState() {
+    const hasRecolor = recolorHistory.length > 0;
+    const saveBtn = document.querySelector('.btn-save-config');
+    const downloadBtn = document.getElementById('downloadRecolorBtn');
+    const exportBtn = document.getElementById('exportSavedBtn');
+    const importBtn = exportBtn ? exportBtn.nextElementSibling : null; // Import button next to export
+
+    if (saveBtn) saveBtn.classList.toggle('btn-pre-recolor-faded', !hasRecolor);
+    if (downloadBtn) downloadBtn.classList.toggle('btn-pre-recolor-faded', !hasRecolor);
+    if (exportBtn) exportBtn.classList.toggle('btn-pre-recolor-faded', !hasRecolor);
 }
 
 function exportAllConfigs() {
@@ -8016,14 +9718,14 @@ const tutorialSteps = [
     {
         category: 0, // CATEGORY_BACKGROUND
         title: 'Select Background:',
-        subtitle: 'Click your mouse on the Background of your image.',
+        subtitle: 'Click your mouse on the background color of your image, then hit "Next Color".',
         italic: null,
         highlightClass: 'highlight-bg',
         highlightWord: 'Background'
     },
     {
         category: -1, // CATEGORY_LOCKED
-        title: 'Select Locked Colors:',
+        title: 'Select Other Locked Colors:',
         subtitle: "Click your mouse on all the colors you DON'T want recolored.",
         italic: "The background should be separate from this, you can individually lock it later if you want.",
         highlightClass: 'highlight-locked',
@@ -8047,7 +9749,7 @@ function getAccentStep(accentNum) {
         category: accentNum,
         title: `Select Accent Color ${accentNum}:`,
         subtitle: `Select all the colors you want consolidated as your ${getOrdinal(accentNum)} accent color.`,
-        italic: 'If you select a blue spot and a red spot, and set it to recode to green, all blue and red spots will be green.',
+        italic: 'If you select a blue spot and a red spot, and later set it to recolor to green, all blue and red spots will look green.',
         greenReminder: 'Click the green button when you have categorized all your colors.',
         highlightClass: 'highlight-accent',
         highlightWord: `Accent Color ${accentNum}`
@@ -8073,6 +9775,10 @@ function renderTutorialText() {
 
     let html = `<div class="tutorial-title">${titleHTML}</div>`;
     html += `<div class="tutorial-subtitle">${stepData.subtitle}</div>`;
+    // Add "Lock the Background Color" button on the background step (step 0)
+    if (tutorialStep === 0) {
+        html += `<button class="btn btn-lock-bg-tutorial" onclick="lockBackgroundFromTutorial()">🔒 Lock the Background Color</button>`;
+    }
     if (stepData.greenReminder) {
         html += `<div class="tutorial-green-reminder">${stepData.greenReminder}</div>`;
     }
@@ -8119,6 +9825,12 @@ function renderTutorialRight() {
             clonedSelect.id = 'tutorialCategorySelect';
             clonedSelect.value = pickerTargetCategory;
             clonedSelect.onchange = function() {
+                if (this.value === '__add_accent__') {
+                    handlePickerCategoryChange(this.value);
+                    renderTutorialText();
+                    renderTutorialRight();
+                    return;
+                }
                 const newCategory = parseInt(this.value);
                 updatePickerCategory(newCategory);
                 // Sync the tutorial step to match the selected category

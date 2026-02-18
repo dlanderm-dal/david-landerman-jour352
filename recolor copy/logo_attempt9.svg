@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 300 200">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #f5427b;
+      }
+
+      .st1 {
+        fill: #1b8aad;
+      }
+
+      .st2 {
+        fill: #3dc8ff;
+      }
+
+      .st3 {
+        fill: none;
+        stroke: #c8d6df;
+        stroke-linecap: round;
+        stroke-width: 1.5px;
+      }
+
+      .st4 {
+        letter-spacing: -.02em;
+      }
+
+      .st4, .st5 {
+        fill: #2b9eb3;
+        font-family: Helvetica-Light, Helvetica;
+        font-weight: 300;
+      }
+
+      .st4, .st5, .st6, .st7, .st8 {
+        isolation: isolate;
+      }
+
+      .st4, .st5, .st7 {
+        font-size: 26.84px;
+      }
+
+      .st5, .st7 {
+        letter-spacing: -.02em;
+      }
+
+      .st9 {
+        fill: #0f4c81;
+      }
+
+      .st10 {
+        fill: #ff6b35;
+      }
+
+      .st7 {
+        fill: #1e3a4f;
+        font-family: Helvetica-Bold, Helvetica;
+        font-weight: 700;
+      }
+
+      .st11 {
+        fill: #ffe44d;
+      }
+
+      .st12 {
+        fill: #e23d6e;
+      }
+
+      .st13 {
+        fill: #c8d6df;
+      }
+
+      .st8 {
+        fill: #a0b4c4;
+        font-family: Helvetica, Helvetica;
+        font-size: 11.35px;
+      }
+    </style>
+  </defs>
+  <g class="st6">
+    <g class="st6">
+      <text class="st7" transform="translate(7.8 36.37)"><tspan x="0" y="0">Recolor</tspan></text>
+    </g>
+  </g>
+  <rect class="st10" x="109.82" y="13.74" width="24.77" height="24.77" rx="5" ry="5"/>
+  <rect class="st0" x="20.02" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
+  <rect class="st12" x="49.96" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
+  <rect class="st11" x="79.89" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
+  <rect class="st2" x="109.82" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
+  <line class="st3" x1="139.75" y1="26.12" x2="172.56" y2="26.12"/>
+  <line class="st3" x1="139.75" y1="59.16" x2="172.56" y2="59.16"/>
+  <polygon class="st13" points="164.33 53.07 174.98 59.28 164.33 65.5 164.33 53.07"/>
+  <rect class="st9" x="176.91" y="13.74" width="24.77" height="24.77" rx="5" ry="5"/>
+  <rect class="st1" x="176.91" y="46.77" width="24.77" height="24.77" rx="5" ry="5"/>
+  <g class="st6">
+    <g class="st6">
+      <text class="st5" transform="translate(204.58 36.37)"><tspan x="0" y="0">Preview</tspan></text>
+    </g>
+  </g>
+  <g class="st6">
+    <g class="st6">
+      <text class="st4" transform="translate(206.67 68.86)"><tspan x="0" y="0">Tool</tspan></text>
+    </g>
+  </g>
+  <g class="st6">
+    <g class="st6">
+      <text class="st8" transform="translate(20.02 86.01)"><tspan x="0" y="0">Ineptly vibe-coded by David Landerman</tspan></text>
+    </g>
+  </g>
+  <polygon class="st13" points="164.33 19.91 174.98 26.12 164.33 32.34 164.33 19.91"/>
+</svg>

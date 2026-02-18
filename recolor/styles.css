@@ -15,7 +15,7 @@
     --text-muted: #7a94a8;
     --accent: #2b9eb3;
     --accent-dim: #1f8a9d;
-    --column-line: rgba(120, 150, 175, 0.12);
+    --column-line: rgba(120, 150, 175, 0.45);
 }
 
 body {
@@ -198,8 +198,11 @@ body.mode-beginner #shuffleBtn { display: none !important; }
 /* Hide the picker OVERLAY (feature 7) — but keep sidebar button (feature 10) */
 body.mode-beginner #pickerOverlay { display: none !important; }
 
-/* In Color Harmony: hide base hue, min/max sliders */
+/* In Color Harmony: hide base hue, min/max sliders, base picker, preview strip, locked toggle */
 body.mode-beginner .harmony-control-row { display: none !important; }
+body.mode-beginner .harmony-base-picker { display: none !important; }
+body.mode-beginner .harmony-preview-strip { display: none !important; }
+body.mode-beginner .harmony-include-locked-label { display: none !important; }
 
 /* Hide "Generate Palette based on selections" button (sidebar + quick overlay) */
 body.mode-beginner .harmony-btn-half:last-child { display: none !important; }
@@ -215,11 +218,29 @@ body.mode-beginner #applyRecolorBtn { display: none !important; }
 /* Hide the Color Adjust box */
 body.mode-beginner .color-adjust-box { display: none !important; }
 
+/* Hide "Choose your target colors" description in beginner mode */
+body.mode-beginner .target-choice-description { display: none !important; }
+
+/* Hide +/- target count control in beginner mode */
+body.mode-beginner #targetControlRow .palette-count-control { display: none !important; }
+
 /* Hide Tool Reference panel (feature 9) */
 body.mode-beginner #toolLegendPanel { display: none !important; }
 
 /* Hide "Fancy Stuff" section in instructions */
 body.mode-beginner .instruction-hint-fancy { display: none !important; }
+
+/* Beginner mode: slideshow for steps 4-6 */
+body.mode-beginner .instruction-slide-advanced-only { display: none !important; }
+body.mode-beginner .instruction-slide-beginner-only.active { display: flex; }
+
+/* Advanced mode: hide beginner-only slides and nav */
+body.mode-advanced .instruction-slide-beginner-only { display: none !important; }
+body.mode-advanced .instruction-slide-nav { display: none !important; }
+
+/* Beginner mode: hide slides not matching current index */
+body.mode-beginner .instruction-slide.active { display: flex; }
+body.mode-beginner .instruction-slide.slide-hidden { display: none !important; }
 
 /* Hide target swatch opacity row in the color picker popup */
 body.mode-beginner .swatch-picker-opacity-row { display: none !important; }
@@ -283,29 +304,19 @@ body.mode-beginner .swatch-buttons button:first-child {
 body.mode-beginner .instruction-hint-advanced { display: none !important; }
 
 /* ============================================ */
-/* GLOBAL: prevent text selection (except instructions) */
+/* Prevent text selection only on drag-interactive elements */
 /* ============================================ */
-body {
+.color-gradient-container,
+.swatch-picker-gradient,
+.hue-slider-track,
+.canvas-wrapper,
+.resize-handle,
+.resize-handle-h,
+.resize-handle-corner {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-}
-.progressive-instructions,
-.progressive-instructions * {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
-/* Allow text selection in input fields and textareas */
-input[type="text"],
-input[type="number"],
-textarea {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
 }
 
 .progressive-instructions {
@@ -374,6 +385,12 @@ textarea {
     font-weight: 650;
 }
 
+/* Photograph warning in step 1 */
+.photo-warning {
+    color: #d9534f;
+    font-style: italic;
+}
+
 /* Highlighted button names in accent blue */
 .btn-highlight {
     color: var(--accent);
@@ -420,7 +437,7 @@ textarea {
     display: inline;
 }
 
-/* Inline + icon for Add Color */
+/* Inline + icon for Add Color — mini text box style */
 .hint-icon-inline {
     display: inline-flex;
     align-items: center;
@@ -435,6 +452,24 @@ textarea {
     vertical-align: -2px;
     line-height: 1;
 }
+.add-color-icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dotted #b0b8c0;
+    color: #b0b8c0;
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 0px 3px;
+    margin: 0;
+    border-radius: 3px;
+    vertical-align: -1px;
+    line-height: 1.1;
+}
+.add-color-label-faded {
+    color: #b0b8c0;
+    margin-left: 3px;
+}
 
 /* (Advanced) tag */
 .advanced-tag {
@@ -442,6 +477,57 @@ textarea {
     opacity: 0.6;
     font-size: 0.7rem;
     font-style: italic;
+}
+
+/* Instruction slide navigation (beginner mode) */
+.instruction-slide-nav {
+    display: none; /* Hidden by default, shown via JS */
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.4rem 0;
+}
+.instruction-slide-prev,
+.instruction-slide-next {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.instruction-slide-prev:hover,
+.instruction-slide-next:hover {
+    background: var(--surface-2);
+}
+.instruction-slide-prev:disabled,
+.instruction-slide-next:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+.instruction-slide-indicator {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Download button inline styling */
+.btn-download-inline {
+    display: inline-block;
+    background: #28a745;
+    color: #fff;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+}
+
+/* Instruction slides wrapper */
+.instruction-slides-wrapper {
+    display: contents;
 }
 
 /* Reassurance message */
@@ -512,7 +598,7 @@ textarea {
 }
 
 .canvas-header {
-    display: flex;
+    display: none; /* Content moved below image preview */
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
@@ -566,7 +652,7 @@ textarea {
 }
 
 .key-action {
-    font-size: 7px;
+    font-size: 0.8rem;
     color: var(--text-muted);
     letter-spacing: 0.03em;
     line-height: 1;
@@ -577,7 +663,7 @@ textarea {
     display: inline-block;
     padding: 2px 5px;
     font-family: system-ui, -apple-system, sans-serif;
-    font-size: 9px;
+    font-size: 0.85rem;
     font-weight: 600;
     line-height: 1.2;
     color: #333;
@@ -592,9 +678,9 @@ textarea {
 }
 
 .key-hint > span {
-    font-size: 8px;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    line-height: 1.2;
+    line-height: 1.3;
     white-space: nowrap;
     text-align: center;
 }
@@ -853,9 +939,16 @@ textarea {
     justify-content: center;
 }
 
-.upload-zone:hover {
+.upload-zone:hover,
+.upload-zone.drag-over {
     border-color: var(--accent);
     background: rgba(43, 158, 179, 0.05);
+}
+
+.upload-zone.drag-over {
+    border-color: var(--accent);
+    border-style: solid;
+    background: rgba(43, 158, 179, 0.1);
 }
 
 .upload-zone.hidden {
@@ -1085,13 +1178,13 @@ textarea {
     flex: 1;
 }
 
-.mapping-column:not(.locked-column)::after {
+.mapping-column:not(:last-child)::after {
     content: '';
     position: absolute;
-    right: -1px;
+    right: -2px;
     top: 0;
     bottom: 0;
-    width: 1px;
+    width: 3px;
     background: var(--column-line);
     z-index: 1;
 }
@@ -1105,6 +1198,9 @@ textarea {
     align-items: stretch;
     flex-wrap: nowrap;
     position: relative;
+    /* Match the horizontal padding of .origin-collapsible .target-tool-content */
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
 }
 
 .mapping-targets-column {
@@ -1120,10 +1216,10 @@ textarea {
 .mapping-targets-column:not(:last-child)::after {
     content: '';
     position: absolute;
-    right: -1px;
+    right: -2px;
     top: 0;
     bottom: 0;
-    width: 1px;
+    width: 3px;
     background: var(--column-line);
     z-index: 1;
 }
@@ -1209,6 +1305,29 @@ textarea {
     outline-offset: -2px;
 }
 
+/* Conflict state — two swatches stacked in one column */
+.column-target.has-conflict {
+    border: 2px dashed #f59e0b;
+    background: rgba(245, 158, 11, 0.06);
+    border-radius: 6px;
+    gap: 4px;
+}
+
+.column-target.has-conflict .color-slot {
+    width: 40px;
+    height: 40px;
+}
+
+.column-target.has-conflict .color-slot.conflict-swatch {
+    opacity: 0.85;
+    border: 2px dashed rgba(245, 158, 11, 0.6);
+}
+
+/* X buttons always visible on conflict swatches (not hover-only) */
+.column-target.has-conflict .color-slot .target-delete-btn {
+    opacity: 1;
+}
+
 .column-percentage {
     font-size: 10px;
     color: var(--accent);
@@ -1268,6 +1387,19 @@ textarea {
 .origin-swatch.dragging {
     opacity: 0.5;
     cursor: grabbing;
+}
+
+/* Duplicate origin — wrapper gets background pad like target conflict */
+.origin-swatch-wrapper.duplicate-origin {
+    background: rgba(239, 68, 68, 0.12);
+    border-radius: 8px;
+    padding: 5px;
+    transition: background 0.15s;
+}
+
+/* Hover state — yellow highlight for the whole duplicate group */
+.origin-swatch-wrapper.duplicate-origin.dup-hover {
+    background: rgba(234, 179, 8, 0.22);
 }
 
 .origin-swatch-number {
@@ -1951,6 +2083,50 @@ textarea {
     margin-top: 4px;
 }
 
+/* Origin picker popup — shows origins in a target's column, pick one to set target */
+.origin-picker-popup {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px;
+    z-index: 300;
+    max-height: 250px;
+    overflow-y: auto;
+    min-width: 140px;
+    box-shadow: 0 4px 12px rgba(120, 150, 175, 0.15);
+}
+
+.origin-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.origin-picker-option:hover {
+    background: var(--bg);
+}
+
+.origin-picker-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.origin-picker-info {
+    font-size: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
 .btn-icon {
     display: inline-flex;
     align-items: center;
@@ -2427,6 +2603,30 @@ textarea {
     margin-bottom: 0.5rem;
 }
 
+.theme-list-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 8px;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+}
+.theme-list-header span {
+    white-space: nowrap;
+}
+.theme-list-header .theme-header-name {
+    min-width: 90px;
+    flex: 1;
+}
+.theme-list-header .theme-header-match {
+    min-width: 32px;
+    text-align: center;
+}
+
 .theme-item {
     display: flex;
     align-items: center;
@@ -2759,6 +2959,39 @@ textarea {
 .picker-marker.dragging {
     cursor: grabbing;
     transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Hover marker shown when hovering over an origin swatch */
+.origin-hover-marker {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.4);
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    pointer-events: none;
+    animation: hover-marker-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.origin-hover-marker-label {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(0,0,0,0.7);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+@keyframes hover-marker-pulse {
+    from { box-shadow: 0 0 0 2px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.4); }
+    to { box-shadow: 0 0 0 4px rgba(255,255,255,0.6), 0 4px 20px rgba(0,0,0,0.5); }
 }
 
 .picker-marker-label {
@@ -3410,6 +3643,28 @@ textarea {
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
+.harmony-brightness-slider {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 3px;
+    background: linear-gradient(to right, hsl(180,70%,5%), hsl(180,70%,50%), hsl(180,70%,95%));
+    outline: none;
+    cursor: pointer;
+}
+
+.harmony-brightness-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--text);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
 .harmony-range-slider {
     flex: 1;
     height: 4px;
@@ -3508,6 +3763,162 @@ textarea {
 }
 
 /* Side-by-side Generate + Randomize row */
+/* Live preview strip */
+/* Base slot picker */
+.harmony-base-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0.3rem 0 0.1rem;
+    flex-wrap: wrap;
+}
+.harmony-base-picker-label {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.harmony-base-picker-list {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+}
+.harmony-base-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.55rem;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    background: var(--surface-alt);
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+}
+.harmony-base-picker-item:hover {
+    background: var(--surface);
+    border-color: var(--border);
+}
+.harmony-base-picker-item.selected {
+    border-color: var(--accent);
+    background: rgba(56, 189, 248, 0.08);
+}
+.harmony-base-picker-item.is-locked {
+    opacity: 0.6;
+    border-style: dashed;
+    border-color: rgba(120, 150, 175, 0.3);
+}
+.harmony-base-picker-item.is-locked:hover {
+    opacity: 0.85;
+    border-color: var(--text-muted);
+}
+.harmony-base-picker-item.is-locked.selected {
+    opacity: 0.85;
+    border-color: var(--accent);
+    border-style: dashed;
+}
+.harmony-base-picker-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    border: 1px solid rgba(120, 150, 175, 0.3);
+    flex-shrink: 0;
+}
+
+/* Locked origin color popup */
+.harmony-base-origin-popup {
+    z-index: 100;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    min-width: 80px;
+}
+.harmony-base-origin-title {
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+.harmony-base-origin-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.harmony-base-origin-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(120, 150, 175, 0.3);
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+}
+.harmony-base-origin-swatch:hover {
+    border-color: #fff;
+    transform: scale(1.15);
+}
+.harmony-base-origin-swatch.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Include locked colors toggle */
+.harmony-include-locked-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin: 0.25rem 0 0.15rem;
+    user-select: none;
+}
+.harmony-include-locked-label input[type="checkbox"] {
+    width: 13px;
+    height: 13px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.harmony-preview-strip {
+    display: flex;
+    gap: 3px;
+    margin: 0.4rem 0 0.15rem;
+    min-height: 28px;
+    align-items: flex-end;
+}
+.harmony-preview-swatch {
+    flex: 1;
+    height: 24px;
+    border-radius: 3px;
+    border: 1px solid rgba(120, 150, 175, 0.2);
+    position: relative;
+    transition: background 0.1s;
+}
+.harmony-preview-swatch.is-base {
+    height: 28px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--accent);
+}
+.harmony-preview-swatch.is-base::after {
+    content: 'base';
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.harmony-preview-swatch.is-locked {
+    opacity: 0.35;
+    height: 18px;
+}
+
 .harmony-btn-row {
     display: flex;
     gap: 6px;
@@ -3580,6 +3991,7 @@ textarea {
     z-index: 15;
 }
 
+
 /* Config export/load section */
 .config-section {
     margin-top: 0.75rem;
@@ -3613,6 +4025,14 @@ textarea {
     opacity: 0.45;
     pointer-events: none;
     cursor: default;
+}
+
+/* Faded state for save/download/export buttons before any recolor exists */
+.btn-pre-recolor-faded {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: default;
+    filter: grayscale(0.5);
 }
 
 .btn-download-recolor {
@@ -3671,6 +4091,79 @@ textarea {
     color: var(--text-muted);
     font-size: 11px;
     font-style: italic;
+}
+
+/* "What is this?" collapsible under recolor history */
+/* "What is this?" collapsible — styled card */
+.what-is-this-collapsible {
+    margin-top: 0.6rem;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+    transition: border-color 0.15s;
+}
+.what-is-this-collapsible[open] {
+    border-style: solid;
+    border-color: var(--accent);
+}
+.what-is-this-summary {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 7px 12px;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: color 0.15s;
+}
+.what-is-this-collapsible[open] .what-is-this-summary {
+    color: var(--accent);
+}
+.what-is-this-summary:hover {
+    color: var(--accent);
+}
+.what-is-this-summary::-webkit-details-marker {
+    display: none;
+}
+.what-is-this-summary::before {
+    content: '▸ ';
+    font-size: 0.6rem;
+    margin-right: 2px;
+}
+.what-is-this-collapsible[open] .what-is-this-summary::before {
+    content: '▾ ';
+}
+.what-is-this-content {
+    padding: 10px 14px;
+    font-size: 0.72rem;
+    color: var(--text);
+    line-height: 1.6;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+}
+.what-is-this-content .witi-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+}
+.what-is-this-content .witi-step:last-child {
+    margin-bottom: 0;
+}
+.what-is-this-content .witi-icon {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+.what-is-this-content .witi-text {
+    font-size: 0.72rem;
+    color: var(--text);
+    line-height: 1.55;
+}
+.what-is-this-content .witi-text strong {
+    color: var(--accent);
+    font-weight: 600;
 }
 
 .config-item {
@@ -4240,24 +4733,16 @@ textarea {
     display: none;
 }
 
-/* Blank target swatch placeholder */
+/* Blank target swatch placeholder — bucket replaces the dashed box */
 .color-slot.blank-target {
-    border-style: dashed;
-    background: var(--bg);
+    border: 2px dashed var(--text-muted);
+    background: transparent;
     position: relative;
-}
-
-/* Grey X indicator for blank/unassigned target swatches */
-.color-slot.blank-target::after {
-    content: '✕';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 20px;
-    color: var(--text-muted);
-    opacity: 0.5;
-    pointer-events: none;
+    background-image: url('bucket.svg');
+    background-size: 28px 28px;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.35;
 }
 
 /* Targets that are not yet selectable (before target selector is engaged) */
@@ -4451,6 +4936,31 @@ textarea {
     display: flex;
     justify-content: center;
     margin-left: 0;
+}
+
+/* Action row below image: keyboard hints left, buttons right */
+.image-action-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+.image-action-row.hidden {
+    display: none;
+}
+.image-action-row .keyboard-hints {
+    margin: 0;
+}
+.image-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+.image-action-buttons .btn {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.8rem;
+    line-height: 1.3;
 }
 
 .tool-legend-panel {
@@ -4845,23 +5355,45 @@ body.mode-beginner .debug-console {
 
 .tutorial-text {
     color: #ffffff;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    font-size: 1.0rem;
+    line-height: 1.55;
 }
 
 .tutorial-text .tutorial-title {
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     font-weight: 600;
     margin-bottom: 4px;
 }
 
 .tutorial-text .tutorial-subtitle {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.85);
 }
 
+.btn-lock-bg-tutorial {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-lock-bg-tutorial:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+.btn-lock-bg-tutorial.active {
+    background: rgba(255, 200, 50, 0.45);
+    border-color: rgba(255, 200, 50, 0.7);
+    box-shadow: 0 0 8px rgba(255, 200, 50, 0.4);
+}
+
 .tutorial-text .tutorial-italic {
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     font-style: italic;
     margin-top: 4px;
@@ -4997,7 +5529,7 @@ body.mode-beginner .debug-console {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.25);
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     padding: 3px 10px;
     border-radius: 4px;
     cursor: pointer;
@@ -5019,7 +5551,7 @@ body.mode-beginner .debug-console {
     background: var(--accent);
     border: none;
     color: #ffffff;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
     padding: 5px 14px;
     border-radius: 6px;
@@ -5035,7 +5567,7 @@ body.mode-beginner .debug-console {
     background: #28a745;
     border: none;
     color: #ffffff;
-    font-size: 0.7rem;
+    font-size: 0.82rem;
     font-weight: 600;
     padding: 5px 12px;
     border-radius: 6px;
@@ -5049,7 +5581,7 @@ body.mode-beginner .debug-console {
 
 .tutorial-next-btn-warn {
     background: #dc3545 !important;
-    font-size: 0.65rem !important;
+    font-size: 0.78rem !important;
 }
 .tutorial-next-btn-warn:hover {
     background: #c82333 !important;
@@ -5137,12 +5669,19 @@ body.mode-beginner .apply-recolor-group {
 body.mode-beginner .live-preview-toggle-below {
     padding: 10px 14px;
     border-radius: 8px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #fff;
+}
+body.mode-beginner .live-preview-toggle-below .live-preview-label {
+    color: #fff;
 }
 body.mode-beginner .live-preview-toggle-below:has(input:checked) {
     background: rgba(43, 158, 179, 0.08);
     border-color: var(--accent);
+}
+body.mode-beginner .live-preview-toggle-below:has(input:checked) .live-preview-label {
+    color: var(--text);
 }
 body.mode-beginner .live-preview-toggle-below .live-preview-label {
     font-size: 0.8rem;
@@ -5156,6 +5695,11 @@ body.mode-beginner .live-step-num {
     font-size: 0.7rem;
     margin-right: 6px;
     vertical-align: middle;
+    background: #ffffff;
+    color: var(--accent);
+}
+/* When checked (live is on), revert step circle to normal accent style */
+body.mode-beginner .live-preview-toggle-below:has(input:checked) .live-step-num {
     background: var(--accent);
-    color: white;
+    color: #ffffff;
 }
