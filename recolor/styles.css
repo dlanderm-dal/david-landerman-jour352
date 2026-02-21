@@ -202,7 +202,7 @@ body.mode-beginner #pickerOverlay { display: none !important; }
 body.mode-beginner .harmony-control-row { display: none !important; }
 body.mode-beginner .harmony-base-picker { display: none !important; }
 body.mode-beginner .harmony-preview-strip { display: none !important; }
-body.mode-beginner .harmony-include-locked-label { display: none !important; }
+body.mode-beginner .harmony-locked-checklist { display: none !important; }
 
 /* Hide "Generate Palette based on selections" button (sidebar + quick overlay) */
 body.mode-beginner .harmony-btn-half:last-child { display: none !important; }
@@ -3864,27 +3864,71 @@ body.mode-beginner .instruction-hint-advanced { display: none !important; }
 }
 
 /* Include locked colors toggle */
-.harmony-include-locked-label {
+/* Locked colors checklist dropdown */
+.harmony-locked-checklist {
+    margin: 0.25rem 0 0.15rem;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+.harmony-locked-checklist summary {
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    list-style: revert;
+}
+.harmony-locked-checklist summary:hover {
+    color: var(--text);
+}
+.harmony-locked-checklist[open] summary {
+    margin-bottom: 4px;
+    color: var(--accent);
+}
+.harmony-locked-checklist-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px 0 2px 4px;
+}
+.harmony-locked-check-row {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.6rem;
-    color: var(--text-muted);
     cursor: pointer;
-    margin: 0.25rem 0 0.15rem;
     user-select: none;
+    font-size: 0.55rem;
 }
-.harmony-include-locked-label input[type="checkbox"] {
-    width: 13px;
-    height: 13px;
+.harmony-locked-check-row input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
     margin: 0;
     accent-color: var(--accent);
+}
+.harmony-locked-check-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(120, 150, 175, 0.3);
+    flex-shrink: 0;
+}
+.harmony-locked-check-hex {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+}
+.harmony-locked-empty {
+    font-size: 0.55rem;
+    font-style: italic;
+    color: var(--text-muted);
+    padding: 2px 0;
 }
 
 .harmony-preview-strip {
     display: flex;
     gap: 3px;
-    margin: 0.4rem 0 0.15rem;
+    margin: 0.15rem 0;
+    padding-top: 14px;
     min-height: 28px;
     align-items: flex-end;
 }

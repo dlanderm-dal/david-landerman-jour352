@@ -605,11 +605,13 @@
                                         <!-- Populated dynamically -->
                                     </div>
 
-                                    <!-- Include locked colors toggle -->
-                                    <label class="harmony-include-locked-label" id="harmonyIncludeLockedRow">
-                                        <input type="checkbox" id="harmonyIncludeLocked" onchange="toggleHarmonyIncludeLocked()">
-                                        <span>Consider locked colors on wheel</span>
-                                    </label>
+                                    <!-- Locked colors on wheel checklist -->
+                                    <details class="harmony-locked-checklist" id="harmonyLockedChecklist">
+                                        <summary>Consider locked colors on wheel</summary>
+                                        <div class="harmony-locked-checklist-body" id="harmonyLockedChecklistBody">
+                                            <!-- Populated dynamically -->
+                                        </div>
+                                    </details>
 
                                     <div class="harmony-btn-row">
                                         <button class="btn btn-randomize-harmony harmony-btn-half" onclick="randomizeHarmony()" id="harmonyRandomizeBtn">🎲 Randomize within <span id="harmonyRandomizeLabel">Complementary</span></button>

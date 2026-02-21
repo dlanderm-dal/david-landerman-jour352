@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Carousel Arrow Options</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f0f0; padding: 2rem; font-family: system-ui, sans-serif; }
+        h1 { text-align: center; margin-bottom: 2rem; color: #003459; }
+        .option-label { text-align: center; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: #003459; }
+        .option-desc { text-align: center; font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+        .demo-carousel {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+        .demo-carousel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .arrow-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            z-index: 2;
+        }
+        .arrow-left { left: 12px; }
+        .arrow-right { right: 12px; }
+
+        /* Option A: Dark circle with white arrow */
+        .arrow-a {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(0, 52, 89, 0.85);
+            color: white;
+            font-size: 1.4rem;
+        }
+        .arrow-a:hover { background: rgba(0, 52, 89, 1); }
+
+        /* Option B: Rounded rectangle with blur backdrop */
+        .arrow-b {
+            width: 44px; height: 64px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-size: 1.5rem;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+        .arrow-b:hover { background: rgba(255, 255, 255, 0.45); }
+
+        /* Option C: Orange accent circle */
+        .arrow-c {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: #ff6b35;
+            color: white;
+            font-size: 1.4rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .arrow-c:hover { background: #e85a25; }
+
+        /* Option D: Outlined circle */
+        .arrow-d {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid white !important;
+            color: white;
+            font-size: 1.3rem;
+        }
+        .arrow-d:hover { background: rgba(0, 0, 0, 0.7); }
+
+        /* Option E: Square with dark background */
+        .arrow-e {
+            width: 44px; height: 44px;
+            border-radius: 6px;
+            background: rgba(0, 52, 89, 0.9);
+            color: #ff6b35;
+            font-size: 1.4rem;
+        }
+        .arrow-e:hover { background: rgba(0, 52, 89, 1); }
+
+        /* Option F: Pill shape */
+        .arrow-f {
+            width: 40px; height: 72px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            color: white;
+            font-size: 1.5rem;
+        }
+        .arrow-f:hover { background: rgba(0, 0, 0, 0.8); }
+    </style>
+</head>
+<body>
+    <h1>Carousel Arrow Style Options</h1>
+
+    <!-- Option A -->
+    <p class="option-label">Option A: Dark Navy Circle</p>
+    <p class="option-desc">Solid dark circle matching your site's navy (#003459). High contrast on any photo.</p>
+    <div class="demo-carousel">
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168d9c?w=900&q=80" alt="demo">
+        <button class="arrow-btn arrow-left arrow-a"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn arrow-right arrow-a"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <!-- Option B -->
+    <p class="option-label">Option B: Frosted Glass</p>
+    <p class="option-desc">Blurred backdrop with semi-transparent white. Modern, subtle look.</p>
+    <div class="demo-carousel">
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168d9c?w=900&q=80" alt="demo">
+        <button class="arrow-btn arrow-left arrow-b"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn arrow-right arrow-b"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <!-- Option C -->
+    <p class="option-label">Option C: Orange Accent Circle</p>
+    <p class="option-desc">Uses your site's orange accent (#ff6b35). Bold and eye-catching.</p>
+    <div class="demo-carousel">
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168d9c?w=900&q=80" alt="demo">
+        <button class="arrow-btn arrow-left arrow-c"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn arrow-right arrow-c"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <!-- Option D -->
+    <p class="option-label">Option D: White-Outlined Circle</p>
+    <p class="option-desc">Dark semi-transparent fill with a white border. Clean and visible.</p>
+    <div class="demo-carousel">
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168d9c?w=900&q=80" alt="demo">
+        <button class="arrow-btn arrow-left arrow-d"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn arrow-right arrow-d"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <!-- Option E -->
+    <p class="option-label">Option E: Navy Square, Orange Arrow</p>
+    <p class="option-desc">Rounded square in navy with orange arrow icons. Matches both brand colors.</p>
+    <div class="demo-carousel">
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168d9c?w=900&q=80" alt="demo">
+        <button class="arrow-btn arrow-left arrow-e"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn arrow-right arrow-e"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <!-- Option F -->
+    <p class="option-label">Option F: Dark Pill</p>
+    <p class="option-desc">Tall pill shape with dark background. Large hit target, easy to spot.</p>
+    <div class="demo-carousel">
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168d9c?w=900&q=80" alt="demo">
+        <button class="arrow-btn arrow-left arrow-f"><i class="bi bi-chevron-left"></i></button>
+        <button class="arrow-btn arrow-right arrow-f"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+</body>
+</html>

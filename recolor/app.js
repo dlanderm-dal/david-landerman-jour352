@@ -614,7 +614,7 @@ let harmonyMode = 'harmony'; // 'harmony' or 'color'
 let _currentHarmonyType = 'complementary'; // cached harmony type, survives DOM hidden/show resets
 let lockColorSelectedIdx = 0; // Which target is selected in Lock a Color mode
 let harmonyBaseSlot = null; // Which target column gets the base hue in Lock a Harmony (null = first unlocked)
-let harmonyIncludeLocked = false; // Whether locked origin colors appear on wheel and factor into generation
+let harmonyIncludedOrigins = new Set(); // Set of origin indices selected to appear on wheel and factor into generation
 let canvas, ctx;
 let displayCanvas, displayCtx; // For high-quality scaled display
 let useHighQualityDisplay = true; // Toggle for high-quality rendering
@@ -2747,8 +2747,9 @@ function renderColumnMapping() {
     updateHarmonyNudgeSwatch();
     // Update palette icon visibility for beginner mode Direct Picker
     if (typeof updatePaletteIconVisibility === 'function') updatePaletteIconVisibility();
-    // Keep harmony base picker and preview in sync with column state
+    // Keep harmony base picker, locked checklist, and preview in sync with column state
     if (typeof populateHarmonyBasePicker === 'function') populateHarmonyBasePicker();
+    if (typeof populateHarmonyLockedChecklist === 'function') populateHarmonyLockedChecklist();
 }
 
 function toggleColumnBypass(colIdx) {
@@ -2756,8 +2757,9 @@ function toggleColumnBypass(colIdx) {
     debugLog(`[bypass-toggle] col=${colIdx} → ${columnBypass[colIdx] ? 'LOCKED' : 'unlocked'}`);
     renderColumnMapping();
     populateHarmonyBasePicker();
+    populateHarmonyLockedChecklist();
     updateHarmonyPreview();
-    if (harmonyIncludeLocked) updateHarmonyWheel();
+    if (harmonyIncludedOrigins.size > 0) updateHarmonyWheel();
     if (livePreviewEnabled) {
         autoRecolorImage();
     }
@@ -6701,16 +6703,12 @@ function buildHarmonyHues(n, baseHue, harmonyType, baseSlot) {
 // For each unlocked slot, if its hue is within 20° of any locked origin hue,
 // nudge it to the midpoint of the largest gap between locked hues.
 function adjustHuesForLockedColors(hues, n) {
-    // Collect ALL origin hues from locked columns
+    // Collect hues only from the user-selected locked/bank origins
     const lockedHues = [];
-    for (let i = 0; i < n; i++) {
-        if (!columnBypass[i]) continue;
-        for (let oi = 0; oi < originToColumn.length; oi++) {
-            if (originToColumn[oi] !== i) continue;
-            const originColor = originalPalette[oi];
-            if (!originColor) continue;
-            lockedHues.push(rgbToHsl(...originColor)[0]);
-        }
+    for (const oi of harmonyIncludedOrigins) {
+        const originColor = originalPalette[oi];
+        if (!originColor) continue;
+        lockedHues.push(rgbToHsl(...originColor)[0]);
     }
     if (lockedHues.length === 0) return hues;
 
@@ -6770,7 +6768,7 @@ function updateHarmonyPreview() {
     const baseSlot = getHarmonyBaseSlot(n);
     let hues = buildHarmonyHues(n, baseHue, harmonyType, baseSlot);
 
-    if (harmonyIncludeLocked) {
+    if (harmonyIncludedOrigins.size > 0) {
         hues = adjustHuesForLockedColors(hues, n);
     }
 
@@ -6970,10 +6968,68 @@ function selectHarmonyBaseSlot(idx) {
     updateHarmonyPreview();
 }
 
-function toggleHarmonyIncludeLocked() {
-    harmonyIncludeLocked = document.getElementById('harmonyIncludeLocked')?.checked || false;
-    updateHarmonyWheel();
-    updateHarmonyPreview();
+// Populate the locked colors checklist inside the <details> dropdown
+function populateHarmonyLockedChecklist() {
+    const body = document.getElementById('harmonyLockedChecklistBody');
+    if (!body) return;
+    body.innerHTML = '';
+
+    // Gather all locked/bank origin indices
+    const lockedOrigins = [];
+    for (let oi = 0; oi < originToColumn.length; oi++) {
+        const col = originToColumn[oi];
+        if (col === 'bank' || (typeof col === 'number' && columnBypass[col])) {
+            lockedOrigins.push(oi);
+        }
+    }
+
+    if (lockedOrigins.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'harmony-locked-empty';
+        empty.textContent = 'No locked or banked colors';
+        body.appendChild(empty);
+        return;
+    }
+
+    // Prune stale selections (origins that are no longer locked/banked)
+    for (const oi of harmonyIncludedOrigins) {
+        if (!lockedOrigins.includes(oi)) harmonyIncludedOrigins.delete(oi);
+    }
+
+    lockedOrigins.forEach(oi => {
+        const color = originalPalette[oi];
+        if (!color) return;
+        const hex = rgbToHex(...color);
+
+        const row = document.createElement('label');
+        row.className = 'harmony-locked-check-row';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = harmonyIncludedOrigins.has(oi);
+        cb.onchange = () => {
+            if (cb.checked) {
+                harmonyIncludedOrigins.add(oi);
+            } else {
+                harmonyIncludedOrigins.delete(oi);
+            }
+            updateHarmonyWheel();
+            updateHarmonyPreview();
+        };
+
+        const swatch = document.createElement('span');
+        swatch.className = 'harmony-locked-check-swatch';
+        swatch.style.background = hex;
+
+        const label = document.createElement('span');
+        label.className = 'harmony-locked-check-hex';
+        label.textContent = hex;
+
+        row.appendChild(cb);
+        row.appendChild(swatch);
+        row.appendChild(label);
+        body.appendChild(row);
+    });
 }
 
 // Harmony Tutorial slide navigation
@@ -7005,7 +7061,7 @@ function generateHarmonyFromControls() {
     let hues = buildHarmonyHues(n, baseHue, harmonyType, baseSlot);
 
     // When "Consider locked colors" is on, nudge unlocked hues away from locked origin hues
-    if (harmonyIncludeLocked) {
+    if (harmonyIncludedOrigins.size > 0) {
         hues = adjustHuesForLockedColors(hues, n);
     }
 
@@ -7052,7 +7108,7 @@ function randomizeHarmony() {
     let hues = buildHarmonyHues(n, baseHue, harmonyType, baseSlot);
 
     // When "Consider locked colors" is on, nudge unlocked hues away from locked origin hues
-    if (harmonyIncludeLocked) {
+    if (harmonyIncludedOrigins.size > 0) {
         hues = adjustHuesForLockedColors(hues, n);
     }
 
@@ -7759,44 +7815,39 @@ function updateHarmonyWheel() {
         }
     }
 
-    // Draw static dots for locked/bypassed origin colors when "Consider locked colors" is on
-    if (harmonyIncludeLocked && targetPalette.length > 0) {
+    // Draw static dots for selected locked/bank origin colors
+    if (harmonyIncludedOrigins.size > 0 && targetPalette.length > 0) {
         const markerDistance = (outerRadius + innerRadius) / 2;
-        for (let i = 0; i < targetPalette.length; i++) {
-            if (!columnBypass[i]) continue;
 
-            // Show ALL origin colors mapped to this locked column
-            for (let oi = 0; oi < originToColumn.length; oi++) {
-                if (originToColumn[oi] !== i) continue;
-                const originColor = originalPalette[oi];
-                if (!originColor) continue;
+        for (const oi of harmonyIncludedOrigins) {
+            const originColor = originalPalette[oi];
+            if (!originColor) continue;
 
-                const [oh] = rgbToHsl(...originColor);
-                const angle = (oh - 90) * Math.PI / 180;
-                const dotX = centerX + markerDistance * Math.cos(angle);
-                const dotY = centerY + markerDistance * Math.sin(angle);
+            const [oh] = rgbToHsl(...originColor);
+            const angle = (oh - 90) * Math.PI / 180;
+            const dotX = centerX + markerDistance * Math.cos(angle);
+            const dotY = centerY + markerDistance * Math.sin(angle);
 
-                // Dashed line from center
-                ctx2.save();
-                ctx2.setLineDash([2, 2]);
-                ctx2.strokeStyle = 'rgba(255,255,255,0.35)';
-                ctx2.lineWidth = 1;
-                ctx2.beginPath();
-                ctx2.moveTo(centerX, centerY);
-                ctx2.lineTo(dotX, dotY);
-                ctx2.stroke();
-                ctx2.restore();
+            // Dashed line from center
+            ctx2.save();
+            ctx2.setLineDash([2, 2]);
+            ctx2.strokeStyle = 'rgba(255,255,255,0.35)';
+            ctx2.lineWidth = 1;
+            ctx2.beginPath();
+            ctx2.moveTo(centerX, centerY);
+            ctx2.lineTo(dotX, dotY);
+            ctx2.stroke();
+            ctx2.restore();
 
-                // Static dot (square to distinguish from round dynamic dots)
-                ctx2.save();
-                const dotSize = 5;
-                ctx2.fillStyle = rgbToHex(...originColor);
-                ctx2.fillRect(dotX - dotSize, dotY - dotSize, dotSize * 2, dotSize * 2);
-                ctx2.strokeStyle = 'rgba(255,255,255,0.7)';
-                ctx2.lineWidth = 1.5;
-                ctx2.strokeRect(dotX - dotSize, dotY - dotSize, dotSize * 2, dotSize * 2);
-                ctx2.restore();
-            }
+            // Static dot (square to distinguish from round dynamic dots)
+            ctx2.save();
+            const dotSize = 5;
+            ctx2.fillStyle = rgbToHex(...originColor);
+            ctx2.fillRect(dotX - dotSize, dotY - dotSize, dotSize * 2, dotSize * 2);
+            ctx2.strokeStyle = 'rgba(255,255,255,0.7)';
+            ctx2.lineWidth = 1.5;
+            ctx2.strokeRect(dotX - dotSize, dotY - dotSize, dotSize * 2, dotSize * 2);
+            ctx2.restore();
         }
     }
 
@@ -7994,9 +8045,9 @@ function removeImage() {
     draggedConflictSwatch = false;
     harmonyBaseSlot = null;
     _harmonyBaseOriginIdx = null;
-    harmonyIncludeLocked = false;
-    const incLockedCb = document.getElementById('harmonyIncludeLocked');
-    if (incLockedCb) incLockedCb.checked = false;
+    harmonyIncludedOrigins = new Set();
+    const lockedChecklist = document.getElementById('harmonyLockedChecklist');
+    if (lockedChecklist) lockedChecklist.removeAttribute('open');
 
     // Reset picker state
     pickedColors = [];
@@ -8312,7 +8363,7 @@ function dumpAppState() {
     lines.push(`harmonyBaseSlot: ${typeof harmonyBaseSlot !== 'undefined' ? harmonyBaseSlot : 'undefined'}`);
     lines.push(`_harmonyBaseOriginIdx: ${typeof _harmonyBaseOriginIdx !== 'undefined' ? _harmonyBaseOriginIdx : 'undefined'}`);
     lines.push(`_harmonyBaseOriginPopup: ${typeof _harmonyBaseOriginPopup !== 'undefined' ? (_harmonyBaseOriginPopup ? 'open' : 'null') : 'undefined'}`);
-    lines.push(`harmonyIncludeLocked: ${typeof harmonyIncludeLocked !== 'undefined' ? harmonyIncludeLocked : 'undefined'}`);
+    lines.push(`harmonyIncludedOrigins: [${[...harmonyIncludedOrigins].join(',')}] (${harmonyIncludedOrigins.size} selected)`);
     lines.push(`_harmonyPreviewSeed: ${typeof _harmonyPreviewSeed !== 'undefined' ? _harmonyPreviewSeed : 'undefined'}`);
     lines.push(`_harmonyTutorialSlide: ${typeof _harmonyTutorialSlide !== 'undefined' ? _harmonyTutorialSlide : 'undefined'}`);
     lines.push(`harmonyDragging: ${typeof harmonyDragging !== 'undefined' ? harmonyDragging : 'undefined'}`);
@@ -9468,6 +9519,7 @@ function loadConfig(configId) {
 
     renderColumnMapping();
     populateHarmonyBasePicker();
+    populateHarmonyLockedChecklist();
     updateHarmonyPreview();
     updateHarmonyWheel();
     autoRecolorImage();

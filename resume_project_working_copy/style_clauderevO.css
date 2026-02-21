@@ -403,6 +403,25 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.6;
 }
 
+.project-link-btn {
+    display: inline-block;
+    margin: 0 1.5rem 1rem;
+    padding: 0.5rem 1.25rem;
+    background-color: #004e89;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.project-link-btn:hover {
+    background-color: #ff6b35;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
 .employment-dates {
     background-color: #e9ecef;
     padding: 0.75rem 1.5rem;
@@ -421,7 +440,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0;
     border-radius: 4px;
     height: 100%;
-    border-top: 3px solid #ff6b35;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -686,6 +704,33 @@ h1, h2, h3, h4, h5, h6 {
     background-color: rgba(0, 0, 0, 0.7);
     padding: 1rem;
     border-radius: 4px;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    opacity: 1;
+    width: 48px;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+}
+
+.carousel-control-prev { left: 12px; }
+.carousel-control-next { right: 12px; }
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #ff6b35;
+    background-size: 40%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-control-prev-icon:hover,
+.carousel-control-next-icon:hover {
+    background-color: #e85a25;
 }
 
 /* Thumbnail Navigation */
