@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Options — Heat Map Palettes</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 2rem 2.5rem; background: #0a0a0a; color: #fff; }
+        h1 { text-align: center; margin-bottom: 0.3rem; font-size: 2.2rem; letter-spacing: -0.5px; }
+        .subtitle { color: #777; text-align: center; margin-bottom: 0.5rem; font-size: 0.85rem; }
+        .philosophy { color: #999; text-align: center; margin-bottom: 2.5rem; font-size: 0.72rem; line-height: 1.7; max-width: 700px; margin-left: auto; margin-right: auto; border: 1px solid #333; border-radius: 8px; padding: 1rem 1.5rem; background: #141414; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .option-wrapper { display: flex; flex-direction: column; }
+        .option-label { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.15rem; }
+        .option-desc { color: #888; font-size: 0.72rem; margin-bottom: 0.4rem; line-height: 1.5; }
+        .gradient-bar {
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 0.5rem;
+        }
+
+        .mode-pair {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+        }
+        .mode-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .mode-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 0.25rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .theme-preview {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 380px;
+        }
+
+        .preview-layout { display: flex; flex: 1; }
+
+        .preview-sidebar {
+            width: 78px;
+            padding: 0.5rem 0.4rem;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.08rem;
+        }
+        .sidebar-link {
+            font-size: 0.5rem;
+            padding: 0.25rem 0.35rem;
+            border-radius: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-link.active-link {
+            font-weight: 700;
+        }
+        .sidebar-divider {
+            height: 1px;
+            margin: 0.3rem 0.2rem;
+        }
+
+        .preview-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: 0.4rem 0.6rem;
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.3px;
+        }
+
+        .preview-content {
+            padding: 0.55rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            flex: 1;
+        }
+
+        .card {
+            border-radius: 5px;
+            padding: 0.55rem 0.6rem;
+        }
+        .card-title {
+            font-size: 0.64rem;
+            font-weight: 700;
+            margin-bottom: 0.12rem;
+        }
+        .card-text {
+            font-size: 0.53rem;
+            line-height: 1.45;
+        }
+        .card-tag {
+            display: inline-block;
+            padding: 0.08rem 0.35rem;
+            border-radius: 8px;
+            font-size: 0.44rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+            margin-right: 0.15rem;
+        }
+        .card-btn {
+            display: inline-block;
+            padding: 0.14rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.46rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
+            text-decoration: none;
+        }
+        .card-date {
+            font-size: 0.42rem;
+            margin-top: 0.2rem;
+            font-style: italic;
+        }
+
+        .swatch-row {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.4rem 0.5rem;
+            justify-content: center;
+            border-top: 1px solid rgba(128,128,128,0.15);
+        }
+        .swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(128,128,128,0.25);
+        }
+        .swatch-label {
+            font-size: 0.38rem;
+            text-align: center;
+            margin-top: 0.1rem;
+            opacity: 0.6;
+        }
+        .swatch-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .options-grid { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Heat Map Themes</h1>
+<p class="subtitle">Thermal imaging palettes applied to a resume site</p>
+<p class="philosophy">
+    Heat maps use color gradients to show intensity — cool blues for low values, warm reds/yellows for high.<br>
+    These themes borrow those associations: the accent color is the "hot spot" that draws your eye,<br>
+    while the rest stays cool and neutral. Each interprets the heat map concept differently.
+</p>
+
+<div class="options-grid">
+
+    <!-- ===================== THEME 1: Classic Thermal ===================== -->
+    <div class="option-wrapper">
+        <div class="option-label" style="color: #e63946;">1 — Classic Thermal</div>
+        <div class="option-desc">The standard infrared camera look: deep navy cool zone, hot red accent, amber/yellow for highlights. Section headers glow hot.</div>
+        <div class="gradient-bar" style="background: linear-gradient(90deg, #1d3557, #457b9d, #e9c46a, #f4a261, #e63946);"></div>
+        <div class="mode-pair">
+            <div class="mode-half">
+                <div class="mode-label">Light</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #f0f4f8; border-right: 1px solid #d8e2ec;">
+                            <div class="sidebar-link" style="color: #1d3557;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #e63946; background: rgba(230,57,70,0.07);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #457b9d;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #457b9d;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #457b9d;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #457b9d;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #457b9d;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #d0dae5;"></div>
+                            <div class="sidebar-link" style="color: #a0b0c0; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #ffffff;">
+                            <div class="preview-header" style="background: #e63946; color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #f7f9fb;">
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8e2ec;">
+                                    <div class="card-title" style="color: #1d3557;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #444;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #fef3e2; color: #b5700a; border: 1px solid #f4d6a0;">Engineering</span>
+                                    <span class="card-tag" style="background: #edf2f8; color: #1d3557; border: 1px solid #c8d8e8;">Testing</span>
+                                    <div class="card-date" style="color: #999;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8e2ec;">
+                                    <div class="card-title" style="color: #1d3557;">Howard Center</div>
+                                    <div class="card-text" style="color: #444;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #1d3557; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #f8fafb;">
+                        <div class="swatch-group"><div class="swatch" style="background: #1d3557;"></div><div class="swatch-label" style="color:#666;">Cold</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #457b9d;"></div><div class="swatch-label" style="color:#666;">Cool</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #e9c46a;"></div><div class="swatch-label" style="color:#666;">Warm</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #f4a261;"></div><div class="swatch-label" style="color:#666;">Hot</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #e63946;"></div><div class="swatch-label" style="color:#666;">Peak</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mode-half">
+                <div class="mode-label">Dark</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #0c1929; border-right: 1px solid #1a2e45;">
+                            <div class="sidebar-link" style="color: #8ca8c8;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #f06070; background: rgba(240,96,112,0.1);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #6a98b8;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #6a98b8;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #6a98b8;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #6a98b8;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #6a98b8;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #1a2e45;"></div>
+                            <div class="sidebar-link" style="color: #3a5570; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #070e18;">
+                            <div class="preview-header" style="background: #e63946; color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #070e18;">
+                                <div class="card" style="background: #0f1a2a; border: 1px solid #1a2e45;">
+                                    <div class="card-title" style="color: #d8e8f0;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #8ca8c8;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #2a2210; color: #e9c46a; border: 1px solid #3a3218;">Engineering</span>
+                                    <span class="card-tag" style="background: #0e1828; color: #6a98b8; border: 1px solid #1a2e45;">Testing</span>
+                                    <div class="card-date" style="color: #4a6580;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #0f1a2a; border: 1px solid #1a2e45;">
+                                    <div class="card-title" style="color: #d8e8f0;">Howard Center</div>
+                                    <div class="card-text" style="color: #8ca8c8;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #457b9d; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #0a1220;">
+                        <div class="swatch-group"><div class="swatch" style="background: #1d3557;"></div><div class="swatch-label" style="color:#6a98b8;">Cold</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #457b9d;"></div><div class="swatch-label" style="color:#6a98b8;">Cool</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #e9c46a;"></div><div class="swatch-label" style="color:#6a98b8;">Warm</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #f4a261;"></div><div class="swatch-label" style="color:#6a98b8;">Hot</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #e63946;"></div><div class="swatch-label" style="color:#6a98b8;">Peak</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== THEME 2: Magma ===================== -->
+    <div class="option-wrapper">
+        <div class="option-label" style="color: #fb8b24;">2 — Magma</div>
+        <div class="option-desc">Like the matplotlib "inferno" colormap. Black-body radiation: deep purple base, through red/orange to bright yellow highlights.</div>
+        <div class="gradient-bar" style="background: linear-gradient(90deg, #0d0628, #420a5c, #932b80, #e65a34, #fb8b24, #fcffa4);"></div>
+        <div class="mode-pair">
+            <div class="mode-half">
+                <div class="mode-label">Light</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #f5f3f7; border-right: 1px solid #e0dae6;">
+                            <div class="sidebar-link" style="color: #2a1a3a;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #932b80; background: rgba(147,43,128,0.07);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #d8d0e0;"></div>
+                            <div class="sidebar-link" style="color: #999; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #ffffff;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #420a5c, #932b80, #e65a34); color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #f8f6fa;">
+                                <div class="card" style="background: #ffffff; border: 1px solid #e0dae6;">
+                                    <div class="card-title" style="color: #1a1020;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #444;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #fef4e8; color: #b06a10; border: 1px solid #f5d8a0;">Engineering</span>
+                                    <span class="card-tag" style="background: #f5eef8; color: #6a2060; border: 1px solid #d8c0e0;">Testing</span>
+                                    <div class="card-date" style="color: #999;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #ffffff; border: 1px solid #e0dae6;">
+                                    <div class="card-title" style="color: #1a1020;">Howard Center</div>
+                                    <div class="card-text" style="color: #444;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #420a5c; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #faf8fc;">
+                        <div class="swatch-group"><div class="swatch" style="background: #0d0628;"></div><div class="swatch-label" style="color:#666;">Void</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #420a5c;"></div><div class="swatch-label" style="color:#666;">Deep</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #932b80;"></div><div class="swatch-label" style="color:#666;">Glow</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #e65a34;"></div><div class="swatch-label" style="color:#666;">Flame</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #fb8b24;"></div><div class="swatch-label" style="color:#666;">Core</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mode-half">
+                <div class="mode-label">Dark</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #0d0628; border-right: 1px solid #1e0e40;">
+                            <div class="sidebar-link" style="color: #c0a8d0;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #e65a34; background: rgba(230,90,52,0.1);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #9878a8;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #9878a8;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #9878a8;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #9878a8;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #9878a8;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #1e0e40;"></div>
+                            <div class="sidebar-link" style="color: #4a3060; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #080414;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #420a5c, #932b80, #e65a34); color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #080414;">
+                                <div class="card" style="background: #120824; border: 1px solid #1e0e40;">
+                                    <div class="card-title" style="color: #e8d8f0;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #9878a8;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #2a1a0a; color: #fb8b24; border: 1px solid #3a2810;">Engineering</span>
+                                    <span class="card-tag" style="background: #1a0830; color: #b870a0; border: 1px solid #2a1848;">Testing</span>
+                                    <div class="card-date" style="color: #5a3870;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #120824; border: 1px solid #1e0e40;">
+                                    <div class="card-title" style="color: #e8d8f0;">Howard Center</div>
+                                    <div class="card-text" style="color: #9878a8;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #932b80; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #0a0618;">
+                        <div class="swatch-group"><div class="swatch" style="background: #0d0628;"></div><div class="swatch-label" style="color:#9878a8;">Void</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #420a5c;"></div><div class="swatch-label" style="color:#9878a8;">Deep</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #932b80;"></div><div class="swatch-label" style="color:#9878a8;">Glow</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #e65a34;"></div><div class="swatch-label" style="color:#9878a8;">Flame</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #fb8b24;"></div><div class="swatch-label" style="color:#9878a8;">Core</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== THEME 3: Viridis ===================== -->
+    <div class="option-wrapper">
+        <div class="option-label" style="color: #21918c;">3 — Viridis</div>
+        <div class="option-desc">The famous scientific colormap — perceptually uniform. Deep purple through teal to bright yellow. Feels like data science meets editorial.</div>
+        <div class="gradient-bar" style="background: linear-gradient(90deg, #440154, #443a83, #31688e, #21918c, #35b779, #90d743, #fde725);"></div>
+        <div class="mode-pair">
+            <div class="mode-half">
+                <div class="mode-label">Light</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #f3f6f6; border-right: 1px solid #d8e2e2;">
+                            <div class="sidebar-link" style="color: #1a2a2a;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #21918c; background: rgba(33,145,140,0.07);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #d0dede;"></div>
+                            <div class="sidebar-link" style="color: #999; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #ffffff;">
+                            <div class="preview-header" style="background: #31688e; color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #f5f8f8;">
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8e2e2;">
+                                    <div class="card-title" style="color: #1a1a2e;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #444;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #edf8f0; color: #1a7a4a; border: 1px solid #b8e8c8;">Engineering</span>
+                                    <span class="card-tag" style="background: #f0eff8; color: #443a83; border: 1px solid #c8c4e0;">Testing</span>
+                                    <div class="card-date" style="color: #999;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8e2e2;">
+                                    <div class="card-title" style="color: #1a1a2e;">Howard Center</div>
+                                    <div class="card-text" style="color: #444;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #440154; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #f8fafa;">
+                        <div class="swatch-group"><div class="swatch" style="background: #440154;"></div><div class="swatch-label" style="color:#666;">Purple</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #31688e;"></div><div class="swatch-label" style="color:#666;">Blue</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #21918c;"></div><div class="swatch-label" style="color:#666;">Teal</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #35b779;"></div><div class="swatch-label" style="color:#666;">Green</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #fde725;"></div><div class="swatch-label" style="color:#666;">Yellow</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mode-half">
+                <div class="mode-label">Dark</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #0e0a18; border-right: 1px solid #201838;">
+                            <div class="sidebar-link" style="color: #b0c8d0;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #35b779; background: rgba(53,183,121,0.08);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #7898a8;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #7898a8;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #7898a8;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #7898a8;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #7898a8;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #201838;"></div>
+                            <div class="sidebar-link" style="color: #3a2850; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #080610;">
+                            <div class="preview-header" style="background: #31688e; color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #080610;">
+                                <div class="card" style="background: #100e1a; border: 1px solid #201838;">
+                                    <div class="card-title" style="color: #d8e8ee;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #8098a8;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #0a2018; color: #60d898; border: 1px solid #143028;">Engineering</span>
+                                    <span class="card-tag" style="background: #180e30; color: #8878b0; border: 1px solid #2a1848;">Testing</span>
+                                    <div class="card-date" style="color: #4a3860;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #100e1a; border: 1px solid #201838;">
+                                    <div class="card-title" style="color: #d8e8ee;">Howard Center</div>
+                                    <div class="card-text" style="color: #8098a8;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #21918c; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #0a0812;">
+                        <div class="swatch-group"><div class="swatch" style="background: #440154;"></div><div class="swatch-label" style="color:#7898a8;">Purple</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #31688e;"></div><div class="swatch-label" style="color:#7898a8;">Blue</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #21918c;"></div><div class="swatch-label" style="color:#7898a8;">Teal</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #35b779;"></div><div class="swatch-label" style="color:#7898a8;">Green</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #fde725;"></div><div class="swatch-label" style="color:#7898a8;">Yellow</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== THEME 4: Plasma ===================== -->
+    <div class="option-wrapper">
+        <div class="option-label" style="color: #cc4778;">4 — Plasma</div>
+        <div class="option-desc">Another matplotlib classic. Indigo through magenta and orange to bright yellow. More personality than Viridis, same scientific roots.</div>
+        <div class="gradient-bar" style="background: linear-gradient(90deg, #0d0887, #5c01a6, #9c179e, #cc4778, #ed7953, #fdb42f, #f0f921);"></div>
+        <div class="mode-pair">
+            <div class="mode-half">
+                <div class="mode-label">Light</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #f5f3f8; border-right: 1px solid #ddd6e8;">
+                            <div class="sidebar-link" style="color: #1a1040;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #cc4778; background: rgba(204,71,120,0.07);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #d5cce0;"></div>
+                            <div class="sidebar-link" style="color: #999; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #ffffff;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #5c01a6, #cc4778); color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #f8f6fa;">
+                                <div class="card" style="background: #ffffff; border: 1px solid #ddd6e8;">
+                                    <div class="card-title" style="color: #1a1040;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #444;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #fef5ea; color: #b07820; border: 1px solid #f8dca0;">Engineering</span>
+                                    <span class="card-tag" style="background: #faeef4; color: #9c179e; border: 1px solid #e8c8e0;">Testing</span>
+                                    <div class="card-date" style="color: #999;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #ffffff; border: 1px solid #ddd6e8;">
+                                    <div class="card-title" style="color: #1a1040;">Howard Center</div>
+                                    <div class="card-text" style="color: #444;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #0d0887; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #faf8fc;">
+                        <div class="swatch-group"><div class="swatch" style="background: #0d0887;"></div><div class="swatch-label" style="color:#666;">Indigo</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #9c179e;"></div><div class="swatch-label" style="color:#666;">Magenta</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #cc4778;"></div><div class="swatch-label" style="color:#666;">Rose</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ed7953;"></div><div class="swatch-label" style="color:#666;">Coral</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #fdb42f;"></div><div class="swatch-label" style="color:#666;">Gold</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mode-half">
+                <div class="mode-label">Dark</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #08042a; border-right: 1px solid #180a50;">
+                            <div class="sidebar-link" style="color: #b8a0d0;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #ed7953; background: rgba(237,121,83,0.1);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #8870a8;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #8870a8;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #8870a8;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #8870a8;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #8870a8;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #180a50;"></div>
+                            <div class="sidebar-link" style="color: #3a2060; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #050218;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #5c01a6, #cc4778); color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #050218;">
+                                <div class="card" style="background: #0c0628; border: 1px solid #180a50;">
+                                    <div class="card-title" style="color: #e0d0f0;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #8870a8;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #2a1a0a; color: #fdb42f; border: 1px solid #3a2810;">Engineering</span>
+                                    <span class="card-tag" style="background: #200a28; color: #cc4778; border: 1px solid #301840;">Testing</span>
+                                    <div class="card-date" style="color: #4a3060;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #0c0628; border: 1px solid #180a50;">
+                                    <div class="card-title" style="color: #e0d0f0;">Howard Center</div>
+                                    <div class="card-text" style="color: #8870a8;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #cc4778; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #06031a;">
+                        <div class="swatch-group"><div class="swatch" style="background: #0d0887;"></div><div class="swatch-label" style="color:#8870a8;">Indigo</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #9c179e;"></div><div class="swatch-label" style="color:#8870a8;">Magenta</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #cc4778;"></div><div class="swatch-label" style="color:#8870a8;">Rose</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ed7953;"></div><div class="swatch-label" style="color:#8870a8;">Coral</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #fdb42f;"></div><div class="swatch-label" style="color:#8870a8;">Gold</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== THEME 5: Turbo ===================== -->
+    <div class="option-wrapper">
+        <div class="option-label" style="color: #a82296;">5 — Turbo</div>
+        <div class="option-desc">The full-spectrum rainbow heat map. Red peak, cyan cool zone, the whole gradient in between. Maximum visual range, tastefully applied.</div>
+        <div class="gradient-bar" style="background: linear-gradient(90deg, #30123b, #4662d7, #36aaf9, #1ae4b6, #72fe5e, #c8ef34, #faba39, #f66b19, #ca2a04);"></div>
+        <div class="mode-pair">
+            <div class="mode-half">
+                <div class="mode-label">Light</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #f3f5f8; border-right: 1px solid #d8dfe8;">
+                            <div class="sidebar-link" style="color: #1a1a30;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #ca2a04; background: rgba(202,42,4,0.06);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #4662d7;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #d0d8e4;"></div>
+                            <div class="sidebar-link" style="color: #999; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #ffffff;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #4662d7, #36aaf9, #1ae4b6, #c8ef34, #faba39, #ca2a04); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.4);">Work Experience</div>
+                            <div class="preview-content" style="background: #f5f6f8;">
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8dfe8;">
+                                    <div class="card-title" style="color: #1a1a30;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #444;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #e8f8f4; color: #0a7860; border: 1px solid #a8e8d8;">Engineering</span>
+                                    <span class="card-tag" style="background: #eceefa; color: #3a50b0; border: 1px solid #c0c8e8;">Testing</span>
+                                    <div class="card-date" style="color: #999;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8dfe8;">
+                                    <div class="card-title" style="color: #1a1a30;">Howard Center</div>
+                                    <div class="card-text" style="color: #444;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #30123b; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #f8f9fb;">
+                        <div class="swatch-group"><div class="swatch" style="background: #30123b;"></div><div class="swatch-label" style="color:#666;">Deep</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #4662d7;"></div><div class="swatch-label" style="color:#666;">Blue</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #1ae4b6;"></div><div class="swatch-label" style="color:#666;">Cyan</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #faba39;"></div><div class="swatch-label" style="color:#666;">Amber</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ca2a04;"></div><div class="swatch-label" style="color:#666;">Peak</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mode-half">
+                <div class="mode-label">Dark</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #0a0614; border-right: 1px solid #1a1030;">
+                            <div class="sidebar-link" style="color: #b0b8d0;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #faba39; background: rgba(250,186,57,0.08);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #6878a0;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #6878a0;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #6878a0;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #6878a0;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #6878a0;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #1a1030;"></div>
+                            <div class="sidebar-link" style="color: #302050; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #060410;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #4662d7, #36aaf9, #1ae4b6, #c8ef34, #faba39, #ca2a04); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.4);">Work Experience</div>
+                            <div class="preview-content" style="background: #060410;">
+                                <div class="card" style="background: #0e0a1a; border: 1px solid #1a1030;">
+                                    <div class="card-title" style="color: #d8e0f0;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #7880a0;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #0a1e18; color: #1ae4b6; border: 1px solid #142e28;">Engineering</span>
+                                    <span class="card-tag" style="background: #0e1030; color: #6880d0; border: 1px solid #1a1848;">Testing</span>
+                                    <div class="card-date" style="color: #403060;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #0e0a1a; border: 1px solid #1a1030;">
+                                    <div class="card-title" style="color: #d8e0f0;">Howard Center</div>
+                                    <div class="card-text" style="color: #7880a0;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #f66b19; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #080612;">
+                        <div class="swatch-group"><div class="swatch" style="background: #30123b;"></div><div class="swatch-label" style="color:#6878a0;">Deep</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #4662d7;"></div><div class="swatch-label" style="color:#6878a0;">Blue</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #1ae4b6;"></div><div class="swatch-label" style="color:#6878a0;">Cyan</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #faba39;"></div><div class="swatch-label" style="color:#6878a0;">Amber</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ca2a04;"></div><div class="swatch-label" style="color:#6878a0;">Peak</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== THEME 6: Thermal Camera ===================== -->
+    <div class="option-wrapper">
+        <div class="option-label" style="color: #ff6b00;">6 — FLIR</div>
+        <div class="option-desc">Actual FLIR thermal camera palette. Black/dark blue cold zone, through purple and red to white-hot. Your engineering background, literally.</div>
+        <div class="gradient-bar" style="background: linear-gradient(90deg, #000033, #1a0060, #6600aa, #cc0044, #ff4400, #ff8800, #ffcc00, #ffffff);"></div>
+        <div class="mode-pair">
+            <div class="mode-half">
+                <div class="mode-label">Light</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #f2f2f6; border-right: 1px solid #d8d8e4;">
+                            <div class="sidebar-link" style="color: #1a1a30;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #cc0044; background: rgba(204,0,68,0.06);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #555;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #d0d0de;"></div>
+                            <div class="sidebar-link" style="color: #999; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #ffffff;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #1a0060, #cc0044, #ff6b00); color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #f5f5f8;">
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8d8e4;">
+                                    <div class="card-title" style="color: #1a1a30;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #444;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #fff4e8; color: #b05a00; border: 1px solid #f8d8a8;">Engineering</span>
+                                    <span class="card-tag" style="background: #f0eafa; color: #5500aa; border: 1px solid #d0c0e8;">Testing</span>
+                                    <div class="card-date" style="color: #999;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #ffffff; border: 1px solid #d8d8e4;">
+                                    <div class="card-title" style="color: #1a1a30;">Howard Center</div>
+                                    <div class="card-text" style="color: #444;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #000033; color: #8888cc;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #f8f8fa;">
+                        <div class="swatch-group"><div class="swatch" style="background: #000033;"></div><div class="swatch-label" style="color:#666;">Cold</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #6600aa;"></div><div class="swatch-label" style="color:#666;">Cool</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #cc0044;"></div><div class="swatch-label" style="color:#666;">Warm</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ff6b00;"></div><div class="swatch-label" style="color:#666;">Hot</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ffcc00;"></div><div class="swatch-label" style="color:#666;">Peak</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mode-half">
+                <div class="mode-label">Dark</div>
+                <div class="theme-preview">
+                    <div class="preview-layout">
+                        <div class="preview-sidebar" style="background: #000020; border-right: 1px solid #0a0a40;">
+                            <div class="sidebar-link" style="color: #8888bb;">☰ Top</div>
+                            <div class="sidebar-link active-link" style="color: #ff6b00; background: rgba(255,107,0,0.08);">◆ Articles</div>
+                            <div class="sidebar-link" style="color: #6666aa;">◇ Design</div>
+                            <div class="sidebar-link" style="color: #6666aa;">◇ Experience</div>
+                            <div class="sidebar-link" style="color: #6666aa;">◇ Education</div>
+                            <div class="sidebar-link" style="color: #6666aa;">◇ Challenges</div>
+                            <div class="sidebar-link" style="color: #6666aa;">◇ Contact</div>
+                            <div class="sidebar-divider" style="background: #0a0a40;"></div>
+                            <div class="sidebar-link" style="color: #333366; font-size: 0.42rem;">☀ / ☽</div>
+                        </div>
+                        <div class="preview-main" style="background: #000018;">
+                            <div class="preview-header" style="background: linear-gradient(90deg, #1a0060, #cc0044, #ff6b00); color: #fff;">Work Experience</div>
+                            <div class="preview-content" style="background: #000018;">
+                                <div class="card" style="background: #050530; border: 1px solid #0a0a50;">
+                                    <div class="card-title" style="color: #ccccee;">ASML — Test Engineer</div>
+                                    <div class="card-text" style="color: #7777aa;">Lab operations, vacuum systems, and helium leak checking for semiconductor lithography.</div>
+                                    <span class="card-tag" style="background: #2a1a08; color: #ff8800; border: 1px solid #3a2a10;">Engineering</span>
+                                    <span class="card-tag" style="background: #140830; color: #aa66cc; border: 1px solid #1e1048;">Testing</span>
+                                    <div class="card-date" style="color: #444488;">Sep 2021 – Jun 2025</div>
+                                </div>
+                                <div class="card" style="background: #050530; border: 1px solid #0a0a50;">
+                                    <div class="card-title" style="color: #ccccee;">Howard Center</div>
+                                    <div class="card-text" style="color: #7777aa;">Investigative journalism fellowship at the University of Maryland.</div>
+                                    <div class="card-btn" style="background: #cc0044; color: #fff;">View Projects →</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swatch-row" style="background: #00001a;">
+                        <div class="swatch-group"><div class="swatch" style="background: #000033;"></div><div class="swatch-label" style="color:#6666aa;">Cold</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #6600aa;"></div><div class="swatch-label" style="color:#6666aa;">Cool</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #cc0044;"></div><div class="swatch-label" style="color:#6666aa;">Warm</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ff6b00;"></div><div class="swatch-label" style="color:#6666aa;">Hot</div></div>
+                        <div class="swatch-group"><div class="swatch" style="background: #ffcc00;"></div><div class="swatch-label" style="color:#6666aa;">Peak</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,287 +1,1711 @@
-/*Color Theme Library
-    Find/Replace All
-    Color 1:orange
-    Color 2:blue
-    color 3:green
-    color accent: grey*
-    
-    font main body: georgia serif*/
+/* ============================================
+   DAVID LANDERMAN RESUME WEBSITE - RevN.1
+   Professional Portfolio CSS
+   ============================================
 
-.container_one{
-    max-width:100%;
-    overflow:hidden;
-    
+   CHANGELOG - RevN.1:
+   - Added .card-col class to column wrappers for unified stacking margins
+   - Replaced education-specific media query with universal .card-col rule
+
+   CHANGELOG - RevO:
+   - Added .site-card class for unified card border styling
+   - Applied .site-card to all cards (experience, education, challenge, mindset)
+
+   CHANGELOG - RevN:
+   - Moved Articles section between About and Work Experience
+   - Updated navbar/sidebar order to reflect new section order
+   - Added margin-bottom to education columns for mobile stacking
+     * Targets .col-md-6:first-child (parent) not .education-card (child)
+   - Changed mindset cards to full-width (col-12) for vertical flow
+   - Fixed STEM Schooling icons: removed math, astronomy, nuclear - only gear on left
+   - Fixed People Skills icons: removed left pedicab, moved flipped pedicab to left
+   - Fixed Business Minor icons: removed transaction icon on right
+   - Unified mindset-icon-row styling for consistent spacing
+
+   TABLE OF CONTENTS:
+   1. Color Theme Variables
+      1.1 CSS Custom Properties (Theme Variables)
+   2. Base Styles & Typography
+   3. Layout System
+      3.1 Sidebar Navigation (Desktop)
+      3.2 Mobile Navigation
+      3.3 Main Content Area
+   4. Hero Section
+   5. Content Sections
+   6. Card Components
+      6.1 Experience Cards
+      6.2 Education Cards
+      6.3 Challenge Cards
+      6.4 Mindset Diversity Cards
+   7. Carousel Component
+   8. Contact & Resume Components
+   9. Responsive Media Queries
+   10. Utility Classes
+   11. Dark Mode Overrides
+   12. Theme Toggle Switch
+   ============================================ */
+
+/* ============================================
+   1. COLOR THEME - EASY CUSTOMIZATION
+   ============================================
+   LIGHT THEME PALETTE:
+
+   PRIMARY/ACCENT (Orange) - Section headers, accents, highlights
+   #ff6b35
+
+   SECONDARY (Dark gray) - Supporting accents, buttons
+   #333333
+
+   TEXT DARK (Near-black) - Primary headings, nav links
+   #1a1a1a
+
+   TEXT BODY (Dark gray) - Body text
+   #333333
+
+   TEXT SECONDARY (Mid gray) - Descriptions
+   #666666
+
+   BORDER (Light gray) - Card borders, dividers
+   #dee2e6
+
+   BACKGROUND LIGHT (Off-white) - Sidebar, navbar background
+   #f8f9fa
+
+   BACKGROUND MAIN (White) - Main content background
+   #ffffff
+
+   CARD BACKGROUND (White) - Card surfaces
+   #ffffff
+   ============================================ */
+
+/* ============================================
+   1.1 CSS CUSTOM PROPERTIES (Theme Variables)
+   ============================================ */
+:root {
+    /* Original orange/navy theme */
+    --bg-main: #ffffff;
+    --bg-light: #f8f9fa;
+    --bs-body-bg: #ffffff; /* override Bootstrap's body background */
+    --bg-card: #ffffff;
+    --bg-card-alt: #e9ecef;
+    --bg-card-image: #f0f2f5;
+    /* Text */
+    --text-primary: #1a1a1a;
+    --text-secondary: #444444;
+    --text-tertiary: #777;
+    --text-body: #222;
+    /* Primary/Accent: Orange | Secondary: Dark gray */
+    --color-accent: #ff6b35;
+    --color-accent-hover: #e85a25;
+    --color-secondary: #333333;
+    --color-secondary-fill: rgba(0, 0, 0, 0.06);
+    --color-secondary-light: rgba(0, 0, 0, 0.06);
+    /* Borders & Shadows */
+    --border-color: #dee2e6;
+    --border-light: #e9ecef;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.12);
+    --shadow-accent: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --overlay: rgba(0, 0, 0, 0.7);
 }
 
-.nav{
-    height:100%
-}
-@media (max-width:991px) {
-#mainsection{
-width:100vw !important;
-}
-.titlepanel{
-    top: 56px;
-    position:absolute;
-}
-.fullbox{
-    box-sizing:content-box !important;
-    width:100vw !important;
-}
-.row{
-    width:100%!important;
-}
-.card{
-    margin-left:28px;
-}
-.divider{
-padding-top:100vh!important;
-}
-.title_text{
-    font-size:x-large;
-}
-
+[data-bs-theme="dark"] {
+    /* Background: #161411 warm dark | Secondary: #2E311C dark olive */
+    --bg-main: #161411;
+    --bg-light: #1e1b17;
+    --bg-card: #2c2823;
+    --bg-card-alt: #363230;
+    --bg-card-image: #2E311C;
+    /* Text: #F7F6F5 warm off-white */
+    --text-primary: #F7F6F5;
+    --text-secondary: #b8b5b0;
+    --text-tertiary: #908d88;
+    --text-body: #dddbd8;
+    /* Primary/Accent: #E6BE64 gold | Secondary: #2E311C olive */
+    --color-accent: #E6BE64;
+    --color-accent-hover: #d4a84a;
+    --color-secondary: #a8b06e;
+    --color-secondary-fill: #2E311C;  /* dark olive — for backgrounds and fills */
+    --color-secondary-light: rgba(46, 49, 28, 0.4);
+    /* Borders & Shadows */
+    --border-color: #3e3a35;
+    --border-light: #33302b;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 6px rgba(230, 190, 100, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(230, 190, 100, 0.08);
+    --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(230, 190, 100, 0.07);
+    --shadow-accent: 0 2px 8px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(230, 190, 100, 0.1);
+    --overlay: rgba(22, 20, 17, 0.9);
 }
 
-.titlecontainer{
-    position:relative;
+/* ============================================
+   2. BASE STYLES & TYPOGRAPHY
+   ============================================ */
+
+/* Reset & Box Model */
+* {
+    box-sizing: border-box;
 }
-.titlepanel{
-    position:absolute;
+
+/* Body Styles */
+body {
+    font-family: Helvetica, Arial, sans-serif; /* was: serif (Georgia) */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: var(--bg-main) !important; /* role: background */
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+    font-family: Helvetica, Arial, sans-serif; /* was: sans-serif (Arial) */
+}
+
+/* ============================================
+   3. LAYOUT SYSTEM
+   ============================================ */
+
+/* ------------------------------------
+   3.1 Sidebar Navigation (Desktop)
+   ------------------------------------ */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 0;
+    background-color: var(--bg-light); /* role: background-light */
+}
+
+/* Sidebar Logo */
+.sidebar-logo-link {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Invisible overlay ensures entire logo area is clickable */
+.sidebar-logo-link::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.sidebar-logo {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0;
+}
+
+/* Sidebar Navigation Links */
+.sidebar .nav {
+    padding: 0 1rem;
+    margin-top: 0.75rem;
+}
+
+.sidebar .nav-link {
+    color: var(--text-primary); /* role: primary-text */
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--color-secondary-light); /* role: secondary-light */
+    color: var(--color-secondary); /* role: secondary */
+}
+
+.sidebar .nav-link i {
+    font-size: 1.1rem;
+}
+
+/* ------------------------------------
+   3.1.1 Light Mode Sidebar — Gray with dark text
+   ------------------------------------ */
+:root .sidebar {
+    background-color: #e0e0e0 !important;
+}
+
+:root .sidebar .nav-link {
+    color: #333;
+}
+
+:root .sidebar .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #111;
+}
+
+:root .sidebar .nav-link i {
+    color: inherit;
+}
+
+/* Light mode: show light logo, hide dark logo */
+:root .sidebar .sidebar-logo-light {
+    display: block !important;
+}
+:root .sidebar .sidebar-logo-dark {
+    display: none !important;
+}
+
+:root .sidebar .theme-toggle-wrapper {
+    color: #666;
+}
+
+/* ------------------------------------
+   3.1.2 Dark Mode Sidebar — Dark with warm tones
+   ------------------------------------ */
+[data-bs-theme="dark"] .sidebar {
+    background-color: #1e1b17 !important;
+}
+
+[data-bs-theme="dark"] .sidebar .nav-link {
+    color: #F7F6F5;
+}
+
+[data-bs-theme="dark"] .sidebar .nav-link:hover {
+    background-color: rgba(46, 49, 28, 0.4);
+    color: #a8b06e;
+}
+
+/* Dark mode: show dark logo, hide light logo */
+[data-bs-theme="dark"] .sidebar .sidebar-logo-light {
+    display: none !important;
+}
+[data-bs-theme="dark"] .sidebar .sidebar-logo-dark {
+    display: block !important;
+}
+
+[data-bs-theme="dark"] .sidebar .theme-toggle-wrapper {
+    color: #908d88;
+}
+
+/* ------------------------------------
+   3.2 Mobile Navigation
+   ------------------------------------ */
+.bg-light:not(.sidebar) {
+    background-color: var(--bg-light) !important; /* override Bootstrap's #f8f9fa */
+}
+
+.navbar-light {
+    background-color: var(--bg-light) !important; /* role: background-light */
+}
+
+.navbar-light .navbar-brand {
+    color: var(--text-primary); /* role: primary-text */
+    font-weight: bold;
+}
+
+.navbar-light .nav-link {
+    color: var(--text-primary); /* role: primary-text */
+}
+
+.navbar-light .nav-link:hover {
+    color: var(--color-secondary); /* role: secondary */
+}
+
+.navbar-light .nav-link i {
+    font-size: 1.1rem;
+}
+
+/* ------------------------------------
+   3.3 Main Content Area
+   ------------------------------------ */
+.main-content {
+    margin-left: 0;
+    width: 100%;
+    background-color: var(--bg-main) !important; /* role: background */
+}
+
+/* ============================================
+   4. HERO SECTION
+   ============================================ */
+
+/* Hero Container */
+.title-container {
+    position: relative;
+    width: 100%;
+    background-color: var(--bg-main); /* role: background */
+}
+
+/* Hero Panel (Wrapper for image and text) */
+.title-panel {
+    position: absolute;
     height: 93vh;
-    overflow:hidden!important;
-    width:100vw;
+    overflow: hidden !important;
+    width: 100%;
+    background-color: var(--bg-main); /* role: background */
 }
 
-.mainimage{
-position:absolute;
-left:20vw;
-z-index:-1;
-height:140vw;
+/* Hero Image */
+.main-image {
+    position: absolute;
+    left: 30vw;
+    z-index: 1;
+    height: 140vw;
 }
 
-
-@media (min-width:991px) {
-
-.mainimage{
-position:absolute;
-right:0vw;
-max-width:60vw;
-height:auto;
-z-index:2;
-}
-.titlepanel{
-    overflow:hidden;
-    height:100vh;
-    width:75vw;
-    position:absolute;
+/* Hero headshot: light/dark variants */
+.main-image-dark {
+    display: none;
 }
 
-.corporation_name {
-    text-align: center!important;
+[data-bs-theme="dark"] .main-image-light {
+    display: none;
 }
 
-.job_title{
-    text-align:right!important;
-}
-.divider{
-padding-top:100vh!important;
-}
+[data-bs-theme="dark"] .main-image-dark {
+    display: block;
 }
 
-
-#titletext{
-    position:absolute;
-    z-index:6;
-    top:10vw;
-    left:2vw;
+/* Hero Text Overlay */
+#titletext {
+    position: absolute;
+    z-index: 6;
+    top: 15vh;
+    left: 1vw;
+    padding: 1.5vw 2vw;
+    border-radius: 0.5vw;
+    width: auto;
+    transform-origin: left top;
 }
 
-.divider{
-padding-top:93vh;
-}
-.section_heading{
-    background:orange;
-    width:100vw;
-}
-
-.section_body_headline{
-    border-left-style:solid;
-    border-left-width:4px;
-    padding-left:5px;
+.title-text {
+    font-weight: bold;
+    line-height: 1.2;
+    color: var(--text-primary); /* role: primary-text */
+    margin: 0;
+    white-space: nowrap;
 }
 
-.card{
-    margin-top:10px;
-    padding-top:15px;
-    box-shadow: -1px 1px .25px grey;
-    margin-bottom:30px;
-}
-.card_heading{
-    padding-bottom:5px;
-    border-bottom-style:solid;
-    border-bottom-width:1px;
+/* Hero Title - Blue text with orange left border (section-subheader style) */
+.title-text.section-subheader {
+    border-left: 4px solid var(--color-accent); /* role: accent */
+    padding-left: 1rem;
+    color: var(--color-secondary); /* role: secondary */
+    white-space: normal;
 }
 
-.card_heading_container{
-    padding-left:30px;
-    padding-right:30px;
+/* Hero Subtitle */
+.hero-subtitle {
+    color: var(--text-primary); /* role: primary-text */
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-top: 1rem;
+    max-width: 42%;
 }
 
-.logo_image{
-    width:80px;
+/* Hero Resume Download Link */
+.hero-resume-link {
+    margin-top: 1rem;
 }
 
-.logo_image2{
-    width:200px;
-    padding-top:15px;
+.hero-resume-link a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--text-primary); /* role: primary-text */
+    font-weight: bold;
+    font-size: 1rem;
+    transition: color 0.3s ease;
 }
 
-.company_description{
-    margin-left:30px;
-    margin-right: 30px;
-    margin-top:10px;
-    font-style:italic;
+.hero-resume-link a:hover {
+    color: var(--color-accent); /* role: accent */
 }
 
-.card_body{
-    margin-left:30px;
-    margin-right: 30px;
+.hero-resume-icon {
+    width: 40px;
+    height: auto;
+    transition: transform 0.3s ease;
 }
 
-.employment_dates{
-    background:rgb(225, 225, 225);
-    margin-bottom:0px;
-    padding-bottom:5px;
-    padding-left:5px;
-    padding-right:5px;
-    padding-top:5px;
-    border-top-style:solid;
-    border-top-width:1px;
+.hero-resume-link a:hover .hero-resume-icon {
+    transform: scale(1.1);
 }
 
-.font_1{
-    font-family:georgia serif;
+/* Hero Divider (spacing element after hero) */
+.divider {
+    padding-top: 93vh;
+    clear: both;
 }
 
-.font_2{
-    font-family: arial, sans-serif;
-    font-size:auto;
+/* ============================================
+   5. CONTENT SECTIONS
+   ============================================ */
+
+/* Section Container */
+.content-section {
+    margin-bottom: 0;
+    background-color: var(--bg-main) !important; /* role: background */
+    position: relative;
+    z-index: 10;
 }
 
-.corporation_name {
+/* Section Header (Orange bar with title) */
+.section-header {
+    background-color: var(--color-accent); /* role: accent */
+    padding: 1rem 2rem;
+    width: 100%;
+}
+
+.section-header h2 {
+    color: white; /* role: text — white on accent bar */
+    margin: 0;
+    font-size: 2rem;
+}
+
+/* Section Content Wrapper (for future background pattern) */
+.section-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--bg-main); /* role: background — matches page, not cards */
+    /* Future: background-image: url('pattern.png'); */
+}
+
+/* Section Subheader (Left border with blue heading) */
+.section-subheader {
+    border-left: 4px solid var(--color-accent); /* role: accent */
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-secondary); /* role: secondary */
+}
+
+/* ============================================
+   6. CARD COMPONENTS
+   ============================================ */
+
+/* ------------------------------------
+   6.0 Universal Card Border (site-card)
+   ------------------------------------ */
+.site-card {
+    border: 1px solid var(--border-color); /* role: border */
+}
+
+/* ------------------------------------
+   6.1 Experience Cards
+   ------------------------------------ */
+.experience-card {
+    background: var(--bg-card); /* role: background */
+    box-shadow: var(--shadow-sm); /* role: shadow */
+    margin-bottom: 2rem;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Card Header (Company logo, name, and job title row) */
+.card-header-row {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color); /* role: border */
+    flex-wrap: wrap;
+}
+
+/* Company Logo Container */
+.company-logo {
+    flex-shrink: 0;
+}
+
+.company-logo img {
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+/* Company Info Container (Name + Job Title) */
+.company-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.company-name {
+    margin: 0 0 0.5rem 0;
+    color: var(--color-secondary); /* role: secondary */
+    font-size: 1.25rem;
+}
+
+/*AI GENERATED - External company link button*/
+.company-visit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #f0a070;
+    font-size: 1.1rem;
+    text-decoration: none;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.company-visit-btn:hover {
+    color: var(--color-accent);
+    transform: translateY(-2px);
+}
+/*END AI GENERATED*/
+
+.job-title {
+    margin: 0;
+    color: var(--text-secondary); /* role: secondary-text */
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+/* Card Content Areas */
+.company-description {
+    padding: 1rem 1.5rem;
+    font-style: italic;
+    color: var(--text-secondary); /* role: secondary-text */
+    background-color: var(--bg-card); /* role: background */
+    margin: 0;
+}
+
+.job-description {
+    padding: 1.5rem;
+    line-height: 1.6;
+}
+
+.project-link-btn {
+    display: inline-block;
+    margin: 0 1.5rem 1rem;
+    padding: 0.5rem 1.25rem;
+    background-color: #f0a070;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.project-link-btn:hover {
+    background-color: var(--color-accent); /* role: accent */
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.employment-dates {
+    background-color: var(--bg-card-alt); /* role: border-light */
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    border-top: 1px solid var(--border-color); /* role: border */
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* ------------------------------------
+   6.2 Education Cards
+   ------------------------------------ */
+.education-card {
+    background: var(--bg-card); /* role: background */
+    box-shadow: var(--shadow-sm); /* role: shadow */
+    padding: 0;
+    border-radius: 4px;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.education-card:hover {
+    /* hover pop removed per user request */
+}
+
+.school-name {
+    text-transform: uppercase;
+    color: var(--color-secondary); /* role: secondary */
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin: 0;
+    padding: 1.25rem 1.5rem 0.75rem;
+    border-bottom: 1px solid var(--border-light); /* role: border-light */
+}
+
+.education-card-body {
+    padding: 1rem 1.5rem 1.25rem;
+}
+
+.school-location {
+    margin: 0 0 0.6rem 0;
+    color: var(--text-tertiary); /* role: secondary-text */
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.school-degree {
+    margin: 0.35rem 0;
+    color: var(--text-body); /* role: primary-text */
+    font-weight: 500;
+}
+
+.school-honors {
+    margin: 0.35rem 0;
+    color: var(--color-accent); /* role: accent */
+    font-weight: 500;
+    font-style: italic;
+}
+
+.school-dates {
+    margin: 0.75rem 0 0 0;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border-light); /* role: border-light */
+    color: var(--text-secondary); /* role: secondary-text */
+    font-size: 0.92rem;
+}
+
+.date-highlight {
+    color: var(--color-accent); /* role: accent */
+    font-weight: 600;
+}
+
+/* ------------------------------------
+   6.3 Challenge Cards
+   ------------------------------------ */
+.challenge-card {
+    background: var(--bg-card); /* role: background */
+    box-shadow: var(--shadow-sm); /* role: shadow */
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.challenge-title {
+    color: var(--color-secondary); /* role: secondary */
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.challenge-description,
+.challenge-result {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: var(--text-secondary); /* role: secondary-text */
+}
+
+.challenge-outcome {
+    margin: 0;
+    color: var(--color-accent); /* role: accent */
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* ------------------------------------
+   6.4 Mindset Diversity Cards
+   ------------------------------------ */
+.mindset-intro {
     text-align: center;
+    margin-bottom: 2rem;
+    color: var(--color-secondary); /* role: secondary */
+    font-size: 1.1rem;
 }
 
-.job_title{
-    text-align:center;
+.mindset-card {
+    background: var(--bg-card); /* role: background */
+    box-shadow: var(--shadow-sm); /* role: shadow */
+    padding: 1.5rem;
+    border-radius: 4px;
+    height: 100%;
 }
 
-
-
-.school_name{
-    font-size:large;
-    text-transform:uppercase;
-    padding-left:5px;
-    color:blue;
+/* Icon Row (Icons + Title) - Updated for consistent left-only icons */
+.mindset-icon-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color); /* role: border */
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
-.city{
-    padding-left:5px;
-    margin-bottom:0px;
+.icon-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
-.honors{
-    padding-left:5px;
-    margin-bottom:2px;
+.mindset-icon {
+    height: 30px;
+    width: auto;
 }
 
-.challenge_name{
-    font-size:large;
-    padding-left:15px;
-    color:blue;
-}
-
-.gridline_container{
-    margin-left:3vw!important;
-    margin-right:3vw;
-    margin-top:1vh;
-    margin-bottom:1vh;
-    display:block;
-    max-width:92%;
-
-}
-
-.bold_text{
-font-weight:bold;
-font-style:normal!important;
-}
-
-.mindset_example{
-    margin-left:10px;
-    margin-right: 10px;
-    
-}
-.mindset_description, .challenge_description, .mindset_example, .challenge_result {
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 10px;
-}
-
-.mindset_title{
-    margin:0 auto;
-    display: inline-block;
-    padding-left:0px!important;
-}
-
-.image_row{
-    display: inline-block;
-    border-bottom-style:solid;
-    border-bottom-width:2px;
-    border-bottom-color:rgb(127, 107, 107);
-    margin:0 auto;
-}
-.image_icon_row{
-    
-    height:30px;
-
-}
-
-.flip_it{
+.mindset-icon-flip {
     transform: scaleX(-1);
 }
 
-.img_in_card{
-    height:200px;
-    object-fit:cover;
+.mindset-title {
+    margin: 0;
+    color: var(--color-secondary); /* role: secondary */
+    font-size: 1.5rem;
+    text-align: left;
+    line-height: 1.3;
 }
 
-.card_img{
-    padding:0!important;
+/* Card Content */
+.mindset-description {
+    margin-bottom: 1rem;
+    line-height: 1.6;
 }
 
-.article_caption{
-    background-color:rgba(0, 0, 0, 0.493);
-   
+.mindset-example {
+    font-size: 0.9rem;
+    color: var(--text-secondary); /* role: secondary-text */
+    line-height: 1.6;
 }
-
-
-
-.carousel_container{
-   /*How do I get the images to scale and crop? I dont know how to modify the bootstarp carousel like that*/
-}
-
-.contact_container{
-    margin:0 auto;
+.mindset-example-header{
+    padding:0;
+    margin:0;
 
 }
 
-.nav_bar_text{
-    color:rgb(3, 58, 58)
+.mindset-example-subhead{
+    color: var(--color-accent); /* role: accent */
+    font-style:italic;
+    padding:0;
+    margin:0;
+    font-weight:bold;
 }
 
-.logo_top_corner{
-    margin:0 auto;
+
+/* ------------------------------------
+            6.5 Design Project Cards
+            ------------------------------------ */
+         .project-card-link {
+             text-decoration: none;
+             color: inherit;
+             display: block;
+             height: 100%;
+         }
+
+         .project-card-link:hover {
+             text-decoration: none;
+             color: inherit;
+         }
+
+         .project-card {
+             background: var(--bg-card); /* role: background */
+             box-shadow: var(--shadow-sm); /* role: shadow */
+             border-radius: 4px;
+             overflow: hidden;
+             height: 100%;
+             transition: transform 0.3s ease, box-shadow 0.3s ease;
+         }
+
+         .project-card:hover {
+             transform: translateY(-4px);
+             box-shadow: var(--shadow-md); /* role: shadow */
+         }
+
+         .project-image {
+             width: 100%;
+             height: auto;
+             display: block;
+             border-bottom: 1px solid var(--border-color); /* role: border */
+         }
+
+         /* Fixed-height image: clips to match the Desperation Tax image's aspect ratio (2614:1491) */
+         .project-image-fixed {
+             height: auto;
+             aspect-ratio: 2614 / 1491;
+             object-fit: cover;
+             object-position: top;
+         }
+
+         .project-content {
+             padding: 1.5rem;
+         }
+
+         .project-title {
+             color: var(--color-secondary); /* role: secondary */
+             margin: 0 0 1rem 0;
+             font-size: 1.25rem;
+         }
+
+         .project-description {
+             color: var(--text-secondary); /* role: secondary-text */
+             line-height: 1.6;
+             margin-bottom: 1rem;
+         }
+
+         .project-skills {
+             display: flex;
+             flex-wrap: wrap;
+             gap: 0.5rem;
+         }
+
+         .skill-tag {
+             background-color: var(--bg-light); /* role: background-light */
+             border: 1px solid var(--border-color); /* role: border */
+             padding: 0.25rem 0.75rem;
+             border-radius: 4px;
+             font-size: 0.85rem;
+             font-weight: bold;
+             color: var(--text-primary); /* role: primary-text */
+         }
+
+
+/* ============================================
+   7. CAROUSEL COMPONENT
+   ============================================ */
+.carousel {
+    max-width: 100%;
 }
 
-/*inspiration https://andrewborstein.com */
+.carousel-inner {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.carousel-item {
+    height: 500px;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.carousel-caption {
+    background-color: var(--overlay); /* role: overlay */
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    opacity: 1;
+    width: 48px;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+}
+
+.carousel-control-prev { left: 12px; }
+.carousel-control-next { right: 12px; }
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #f0a070;
+    background-size: 40%;
+    box-shadow: var(--shadow-accent); /* role: shadow */
+    transition: background-color 0.3s ease;
+}
+
+.carousel-control-prev-icon:hover,
+.carousel-control-next-icon:hover {
+    background-color: var(--color-accent);
+}
+
+/* Thumbnail Navigation */
+.carousel-thumbnails {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.thumbnail-btn {
+    width: 120px;
+    height: 75px;
+    padding: 0;
+    border: 3px solid var(--border-color); /* role: border */
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s ease, border-color 0.3s ease;
+    background: none;
+}
+
+.thumbnail-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-btn:hover {
+    opacity: 0.8;
+    border-color: var(--color-secondary); /* role: secondary */
+}
+
+.thumbnail-btn.active {
+    opacity: 1;
+    border-color: var(--color-accent); /* role: accent */
+}
+
+.article-link {
+    color: white; /* role: background */
+    text-decoration: underline;
+}
+
+.article-link:hover {
+    color: var(--color-accent); /* role: accent */
+}
+
+/* ============================================
+   8. CONTACT & RESUME COMPONENTS
+   ============================================ */
+.contact-item {
+    text-align: center;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.contact-icon {
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.contact-icon:hover {
+    transform: scale(1.1);
+}
+
+.contact-label {
+    margin: 0;
+    color: var(--text-primary); /* role: primary-text */
+    font-weight: bold;
+}
+
+.contact-detail {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-secondary); /* role: secondary-text */
+    font-size: 0.9rem;
+}
+
+/* Resume Section Images */
+.logo_image {
+    max-width: 100px;
+    width: 100px;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.logo_image:hover {
+    transform: scale(1.1);
+}
+
+.centered_image {
+    display: block;
+    margin: 0 auto 1rem auto;
+}
+
+/* ============================================
+   9. RESPONSIVE MEDIA QUERIES
+   ============================================ */
+
+/* ------------------------------------
+   Desktop Layout (768px and up)
+   ------------------------------------ */
+@media (min-width: 991px) {
+    /* Layout - Adjust for sidebar */
+    .main-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+    }
+
+    /* Hero Section - Desktop adjustments */
+    .title-panel {
+        overflow: hidden;
+        height: 100vh;
+        width: 100%;
+        position: absolute;
+        left: 0;
+    }
+
+    .main-image {
+        position: absolute;
+        right: -10vw;
+        left: auto;
+        z-index: 2;
+        object-fit: cover;
+        position:absolute;
+        max-width:60vw;
+        height:auto;
+    }
+
+    #titletext {
+        z-index: 6;
+        transform: scale(1.2);
+    }
+
+    .title-text {
+        font-size: 2.5vw;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1vw;
+    }
+
+    .divider {
+        padding-top: 100vh !important;
+    }
+}
+
+/* ------------------------------------
+   Mid-Desktop Layout (991px to 1300px)
+   ------------------------------------ */
+@media (min-width: 991px) and (max-width: 1300px) {
+    #titletext {
+        top: 15vw;
+        padding: 2vw 2.5vw;
+        border-radius: 0.5vw;
+        left:-2vw;
+    }
+    .title-text{
+        font-size:2.2vw;
+    }
+}
+
+/* ------------------------------------
+   Mobile/Tablet Layout (767px and below)
+   ------------------------------------ */
+@media (max-width: 990px) {
+    /* Hide Desktop Sidebar */
+    .sidebar {
+        display: none !important;
+    }
+
+    /* Layout */
+    .navbar {
+        width: 100%;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    /* Hero Section - Account for mobile navbar */
+    .title-panel {
+        top: 56px;
+        position: absolute;
+    }
+
+    #titletext {
+        transform: scale(1);
+        left:.5vw;
+        top:25vh;
+
+    }
+
+    .title-text {
+        font-size: 3.5vw;
+    }
+
+    .hero-subtitle {
+        font-size: 2.5vw;
+        max-width: 40vw;
+    }
+
+    .hero-resume-link {
+        bottom: 5vw;
+    }
+
+    .hero-resume-link a span {
+        font-size: 2.5vw;
+    }
+
+    .hero-resume-icon {
+        width: 30px;
+    }
+
+    .divider {
+        padding-top: 100vh !important;
+    }
+
+    /* Section Content */
+    .section-content {
+        padding: 1.5rem 1rem;
+    }
+
+    /* Card Headers - Stack vertically on mobile */
+    .card-header-row {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .company-info {
+        text-align: center;
+    }
+
+    /* Carousel - Smaller height on mobile */
+    .carousel-item {
+        height: 300px;
+    }
+
+    /* Thumbnails - Smaller on mobile */
+    .thumbnail-btn {
+        width: 70px;
+        height: 45px;
+    }
+
+    .carousel-thumbnails {
+        gap: 0.5rem;
+    }
+
+}
+
+/* ------------------------------------
+   Medium Screens and below (767px and below)
+   Card columns stack at md breakpoint
+   ------------------------------------ */
+@media (max-width: 767px) {
+    /* Universal card column stacking margin */
+    .card-col {
+        margin-bottom: 2rem;
+    }
+
+    /* Remove margin from last card-col in each row */
+    .card-col:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* ------------------------------------
+   Extra Small Screens (499px and below)
+   ------------------------------------ */
+@media (max-width: 499px) {
+    /* Stack mindset icons vertically */
+    .icon-group {
+        flex-direction: column;
+    }
+}
+
+/* ============================================
+   10. UTILITY CLASSES
+   ============================================ */
+
+/* Bootstrap Grid Gutter Override */
+.g-4 {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 1.5rem;
+}
+
+.row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+}
+
+/* ============================================
+   11. DARK MODE OVERRIDES
+   ============================================ */
+
+/* Dark mode body overrides — force our custom background over Bootstrap's default #212529 */
+[data-bs-theme="dark"] body {
+    color: var(--text-primary);
+    background-color: var(--bg-main) !important;
+}
+
+[data-bs-theme="dark"] .content-section {
+    background-color: var(--bg-main) !important;
+}
+
+[data-bs-theme="dark"] .section-content {
+    background-color: var(--bg-main) !important;
+}
+
+[data-bs-theme="dark"] .experience-card,
+[data-bs-theme="dark"] .education-card,
+[data-bs-theme="dark"] .challenge-card,
+[data-bs-theme="dark"] .mindset-card,
+[data-bs-theme="dark"] .design-project-card {
+    background-color: var(--bg-card) !important;
+}
+
+/* Dark mode: Bootstrap navbar overrides */
+[data-bs-theme="dark"] .navbar-light {
+    background-color: var(--bg-light) !important;
+}
+
+[data-bs-theme="dark"] .navbar-light .navbar-brand,
+[data-bs-theme="dark"] .navbar-light .nav-link {
+    color: var(--text-primary);
+}
+
+[data-bs-theme="dark"] .navbar-toggler-icon {
+    filter: invert(1);
+}
+
+/* Dark mode: Sidebar & navbar Bootstrap bg-light override */
+[data-bs-theme="dark"] .bg-light {
+    background-color: var(--bg-light) !important;
+}
+
+/* Dark mode: Carousel caption text stays white */
+[data-bs-theme="dark"] .carousel-caption,
+[data-bs-theme="dark"] .carousel-caption h5,
+[data-bs-theme="dark"] .carousel-caption p {
+    color: #ffffff;
+}
+
+/* Dark mode: Hero SVG icons */
+[data-bs-theme="dark"] .hero-resume-icon {
+    filter: invert(0.85) brightness(1.5);
+}
+
+/* Dark mode: Company logos get light background padding */
+[data-bs-theme="dark"] .company-logo img {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 6px;
+    border-radius: 6px;
+}
+
+/* Dark mode: Contact icons */
+[data-bs-theme="dark"] .contact-icon,
+[data-bs-theme="dark"] .logo_image {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 6px;
+    border-radius: 6px;
+}
+
+/* Sidebar logo: light/dark variants */
+.sidebar-logo-dark {
+    display: none;
+}
+
+[data-bs-theme="dark"] .sidebar-logo-light {
+    display: none;
+}
+
+[data-bs-theme="dark"] .sidebar-logo-dark {
+    display: block;
+}
+
+/* Dark mode: SVG mindset icons */
+[data-bs-theme="dark"] .mindset-icon {
+    filter: invert(0.8);
+}
+
+/* Dark mode: Smooth transition */
+body, .sidebar, .navbar, .content-section, .section-content,
+.experience-card, .education-card, .challenge-card, .mindset-card,
+.project-card, .employment-dates, .company-description, .section-header {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ============================================
+   12. THEME TOGGLE SWITCH
+   ============================================ */
+.theme-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    margin-top: auto;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.theme-switch .slider {
+    position: absolute;
+    inset: 0;
+    background-color: var(--border-color);
+    border-radius: 24px;
+    transition: background-color 0.3s ease;
+}
+
+.theme-switch .slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.theme-switch input:checked + .slider {
+    background-color: var(--color-accent);
+}
+
+.theme-switch input:checked + .slider::before {
+    transform: translateX(20px);
+}
+
+/* Mobile navbar toggle placement */
+.navbar .theme-toggle-wrapper {
+    padding: 0.5rem 1rem;
+    justify-content: flex-start;
+}
+
+/* ============================================
+   MORE ABOUT ME - CAROUSEL SECTION
+   ============================================ */
+
+/* --- Override main stylesheet carousel rules for #aboutCarousel --- */
+#aboutCarousel .carousel-inner {
+    border-radius: 0 !important;
+    overflow: visible !important;
+}
+
+#aboutCarousel .carousel-item {
+    height: auto !important;
+    padding: 0 0.5rem;
+}
+
+#aboutCarousel.carousel-fade .carousel-item {
+    transition: opacity 0.2s ease !important;
+}
+
+#aboutCarousel .carousel-item img {
+    width: unset !important;
+    height: unset !important;
+    object-fit: unset !important;
+    position: static !important;
+}
+
+/* --- About Card Base --- */
+.about-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0,0,0,0.1));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.about-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid var(--border-color, #dee2e6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 107, 53, 0.04);
+}
+
+.about-card-title-group {
+    flex: 1;
+}
+
+.about-card-title {
+    margin: 0;
+    color: var(--color-secondary, #333333);
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.about-card-category {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.category-challenge,
+.category-mindset {
+    background-color: rgba(255, 107, 53, 0.12);
+    color: var(--color-accent, #ff6b35);
+}
+
+/* --- Card Body --- */
+.about-card-body {
+    display: flex;
+    flex: 1;
+}
+
+.about-card-text {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.about-card-text p {
+    line-height: 1.65;
+    color: var(--text-secondary, #444);
+    margin-bottom: 1rem;
+}
+
+.about-card-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* --- Card Footer --- */
+.about-card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+    background: rgba(255, 107, 53, 0.04);
+}
+
+.about-card-footer p {
+    margin: 0;
+    color: var(--text-secondary, #444);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+/* "How This Helps Today" block — shared by all cards */
+.about-card-example-header {
+    font-weight: 700;
+}
+
+.about-card-example-subhead {
+    color: var(--color-accent, #ff6b35);
+    font-style: italic;
+    font-weight: bold;
+}
+
+/* --- Featured Icon (right side) --- */
+.about-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    min-width: 180px;
+    padding: 1.5rem;
+    background: transparent;
+}
+
+.about-card-icon img {
+    width: 100px !important;
+    height: 100px !important;
+    max-width: 100px !important;
+    max-height: 100px !important;
+    opacity: 0.3;
+    object-fit: contain !important;
+    display: block;
+    /* Tint black SVGs to #ff6b35 orange */
+    filter: invert(46%) sepia(89%) saturate(1479%) hue-rotate(346deg) brightness(101%) contrast(101%);
+}
+
+.about-card-icon .mindset-icon-flip {
+    transform: scaleX(-1);
+}
+
+/* Bootstrap Icon as decorative image */
+.about-card-icon .about-card-bi-icon {
+    font-size: 5rem;
+    color: var(--color-accent, #ff6b35);
+    opacity: 0.2;
+    line-height: 1;
+}
+
+/* --- Carousel Controls --- */
+#aboutCarousel .carousel-control-prev,
+#aboutCarousel .carousel-control-next {
+    width: 44px !important;
+    height: 44px !important;
+    top: 50%;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    opacity: 1 !important;
+    border-radius: 50%;
+    background-color: #f0a070;
+    transition: background-color 0.3s ease;
+}
+
+#aboutCarousel .carousel-control-prev { left: -22px; }
+#aboutCarousel .carousel-control-next { right: -22px; }
+
+#aboutCarousel .carousel-control-prev:hover,
+#aboutCarousel .carousel-control-next:hover {
+    background-color: var(--color-accent, #ff6b35);
+}
+
+#aboutCarousel .carousel-control-prev-icon,
+#aboutCarousel .carousel-control-next-icon {
+    width: 20px !important;
+    height: 20px !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* --- Thumbnail Navigation Strip --- */
+.about-nav-strip {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.about-nav-thumb {
+    flex: 1;
+    max-width: 180px;
+    height: 52px;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid var(--border-color, #dee2e6);
+    background: var(--bg-card, #ffffff);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    align-items: center;
+    padding: 0 0.6rem;
+    gap: 0.5rem;
+}
+
+.about-nav-thumb:hover {
+    border-color: #f0a070;
+}
+
+.about-nav-thumb.active {
+    border-color: var(--color-accent, #ff6b35);
+    box-shadow: 0 0 0 1px var(--color-accent, #ff6b35);
+}
+
+/* Thumbnail icon image */
+.about-nav-thumb-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    opacity: 0.45;
+    filter: invert(46%) sepia(89%) saturate(1479%) hue-rotate(346deg) brightness(101%) contrast(101%);
+    pointer-events: none;
+}
+
+.about-nav-thumb-icon.icon-flip {
+    transform: scaleX(-1);
+}
+
+/* Bootstrap icon variant */
+.about-nav-thumb-bi {
+    flex-shrink: 0;
+    font-size: 1.3rem;
+    color: var(--color-accent, #ff6b35);
+    opacity: 0.45;
+    line-height: 1;
+    pointer-events: none;
+}
+
+/* Title label */
+.about-nav-thumb-label {
+    flex: 1;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary, #444);
+    text-align: left;
+    line-height: 1.25;
+}
+
+.about-nav-thumb.active .about-nav-thumb-label {
+    color: var(--color-accent, #ff6b35);
+}
+
+/* --- More About Me Responsive --- */
+@media (max-width: 767px) {
+    .about-card-body {
+        flex-direction: column;
+    }
+
+    .about-card-icon {
+        width: 100%;
+        min-width: unset;
+        padding: 1.25rem;
+    }
+
+    .about-card-icon img {
+        width: 70px !important;
+        height: 70px !important;
+        max-width: 70px !important;
+        max-height: 70px !important;
+    }
+
+    .about-card-icon .about-card-bi-icon {
+        font-size: 3.5rem;
+    }
+
+    /* --- Mobile: Add margin so circle arrows sit outside the card --- */
+    .about-carousel-wrapper {
+        padding: 0 2rem;
+    }
+
+    /* Thumbnail nav adjustments */
+    .about-nav-strip {
+        gap: 0.35rem;
+    }
+
+    .about-nav-thumb {
+        height: 44px;
+    }
+
+    .about-nav-thumb-label {
+        font-size: 0.6rem;
+    }
+
+    .about-nav-thumb-icon {
+        width: 26px;
+        height: 26px;
+    }
+
+    .about-nav-thumb-bi {
+        font-size: 1.4rem;
+    }
+}
+
+/* --- More About Me Dark Mode --- */
+[data-bs-theme="dark"] .about-card-header {
+    background: rgba(230, 190, 100, 0.06);
+}
+
+[data-bs-theme="dark"] .about-card-footer {
+    background: rgba(230, 190, 100, 0.06);
+}
+
+[data-bs-theme="dark"] .about-card-icon {
+    background: transparent;
+}
+
+[data-bs-theme="dark"] .about-card-icon img {
+    /* Tint to gold #E6BE64 for dark mode */
+    filter: invert(80%) sepia(30%) saturate(600%) hue-rotate(5deg) brightness(105%) contrast(90%);
+    opacity: 0.25;
+}
+
+[data-bs-theme="dark"] .about-card-icon .about-card-bi-icon {
+    filter: none;
+    opacity: 0.15;
+}
+
+[data-bs-theme="dark"] .about-nav-thumb-icon {
+    filter: invert(80%) sepia(30%) saturate(600%) hue-rotate(5deg) brightness(105%) contrast(90%);
+}

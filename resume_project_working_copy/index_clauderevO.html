@@ -20,14 +20,16 @@
         crossorigin="anonymous"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" type="text/css" href="style_clauderevO.css">
+    <link rel="stylesheet" type="text/css" href="style_clauderevO.css?v=10">
+
 </head>
 
 <body>
     <!-- Desktop Sidebar Navigation -->
     <nav class="sidebar d-none d-lg-flex flex-column bg-light">
         <a href="#" class="sidebar-logo-link">
-            <img src="resume_images/landerman_logo.png" class="sidebar-logo" alt="David Landerman Logo">
+            <img src="resume_images/5.png" class="sidebar-logo sidebar-logo-light" alt="David Landerman Logo">
+            <img src="resume_images/logo.dark.png" class="sidebar-logo sidebar-logo-dark" alt="David Landerman Logo">
         </a>
         <ul class="nav nav-pills flex-column">
             <li class="nav-item">
@@ -61,13 +63,8 @@
                 </a>
             </li>
             <li>
-                <a href="#pivotal-challenges" class="nav-link">
-                    <i class="bi bi-lightning me-2"></i>Pivotal Challenges
-                </a>
-            </li>
-            <li>
-                <a href="#mindset-diversity" class="nav-link">
-                    <i class="bi bi-lightbulb me-2"></i>Mindset Diversity
+                <a href="#more-about-me" class="nav-link">
+                    <i class="bi bi-person-circle me-2"></i>More About Me
                 </a>
             </li>
             <li>
@@ -76,6 +73,16 @@
                 </a>
             </li>
         </ul>
+        <!-- DARK MODE TOGGLE DISABLED
+        <div class="theme-toggle-wrapper">
+            <i class="bi bi-sun-fill"></i>
+            <label class="theme-switch">
+                <input type="checkbox" id="darkModeToggle">
+                <span class="slider"></span>
+            </label>
+            <i class="bi bi-moon-fill"></i>
+        </div>
+        -->
     </nav>
 
     <!-- Mobile Navigation -->
@@ -123,15 +130,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#pivotal-challenges" data-bs-toggle="collapse"
+                        <a class="nav-link" href="#more-about-me" data-bs-toggle="collapse"
                             data-bs-target=".navbar-collapse.show">
-                            <i class="bi bi-lightning me-2"></i>Pivotal Challenges
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#mindset-diversity" data-bs-toggle="collapse"
-                            data-bs-target=".navbar-collapse.show">
-                            <i class="bi bi-lightbulb me-2"></i>Mindset Diversity
+                            <i class="bi bi-person-circle me-2"></i>More About Me
                         </a>
                     </li>
                     <li class="nav-item">
@@ -141,6 +142,16 @@
                         </a>
                     </li>
                 </ul>
+                <!-- DARK MODE TOGGLE DISABLED
+                <div class="theme-toggle-wrapper">
+                    <i class="bi bi-sun-fill"></i>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="darkModeToggleMobile">
+                        <span class="slider"></span>
+                    </label>
+                    <i class="bi bi-moon-fill"></i>
+                </div>
+                -->
             </div>
         </div>
     </nav>
@@ -150,7 +161,8 @@
         <!-- Hero Section -->
         <div class="title-container">
             <div class="title-panel">
-                <img class="main-image" src="resume_images/headshot.png" alt="David Landerman">
+                <img class="main-image main-image-light" src="resume_images/headshot.png" alt="David Landerman">
+                <img class="main-image main-image-dark" src="resume_images/headshot.dark.png" alt="David Landerman">
                 <div id="titletext">
                     <h1 class="title-text section-subheader">Former Mechanical Engineer,<br> Current Journalist</h1>
                     <p class="hero-subtitle">A second career professional with a wide range of experiences and the passion to dig deep on opaque bureaucracy. Eager to learn.</p>
@@ -328,9 +340,9 @@
                          </a>
                      </div>
                      <div class="col-md-6 card-col">
-                         <a href="original_resume/index.html" target="_blank" class="project-card-link">
+                         <a href="original_resume/original_index.html" target="_blank" class="project-card-link">
                              <div class="project-card site-card">
-                                 <img src="resume_images/original-resume.png" class="project-image" alt="PROJECT 2 IMAGE DESCRIPTION">
+                                 <img src="resume_images/original-resume.png" class="project-image project-image-fixed" alt="PROJECT 2 IMAGE DESCRIPTION">
                                  <div class="project-content">
                                      <h4 class="project-title">This Resume Website!</h4>
                                      <p class="project-description">
@@ -377,7 +389,7 @@
                     <a href="https://cnsmaryland.org/the-howard-center-for-investigative-journalism/" class="project-link-btn" target="_blank">
                         <i class="bi bi-arrow-right-circle me-2"></i>Howard Center Projects
                     </a>
-                    <p class="employment-dates">July 2025-Present • College Park, Maryland</p>
+                    <p class="employment-dates">July 2025-Present • <em>College Park, Maryland</em></p>
                 </div>
 
                 <!-- ASML -->
@@ -387,7 +399,7 @@
                             <img src="resume_images/ASML_logo.png" alt="ASML">
                         </div>
                         <div class="company-info">
-                            <h3 class="company-name">ASML</h3>
+                            <h3 class="company-name">ASML <a href="https://www.asml.com/en/products/euv-lithography-systems" target="_blank" class="company-visit-btn" title="Visit ASML"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
                             <h4 class="job-title">Test Engineer</h4>
                         </div>
                     </div>
@@ -405,7 +417,7 @@
                         I also researched and advocated for more transparency in our established 401(k) funds and better health insurance
                         benefits.
                     </p>
-                    <p class="employment-dates">September 2021-June 2025 • San Diego, California</p>
+                    <p class="employment-dates">September 2021-June 2025 • <em>San Diego, California</em></p>
                 </div>
 
                 <!-- Smith & Nephew -->
@@ -415,7 +427,7 @@
                             <img src="resume_images/smithnephew.png" alt="Smith & Nephew">
                         </div>
                         <div class="company-info">
-                            <h3 class="company-name">Smith & Nephew</h3>
+                            <h3 class="company-name">Smith & Nephew <a href="https://www.smith-nephew.com/en-us/" target="_blank" class="company-visit-btn" title="Visit Smith & Nephew"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
                             <h4 class="job-title">R&D Co-op, Knee Repair Division</h4>
                         </div>
                     </div>
@@ -441,17 +453,17 @@
                         in test
                         protocol and technical report drafting, as well as executing the tests themselves.
                     </p>
-                    <p class="employment-dates">January 2018-June 2018 • Mansfield, Massachusetts</p>
+                    <p class="employment-dates">January 2018-June 2018 • <em>Mansfield, Massachusetts</em></p>
                 </div>
 
                 <!-- Watts Water -->
                 <div class="experience-card site-card">
                     <div class="card-header-row">
                         <div class="company-logo">
-                            <img src="resume_images/watts.jpeg" alt="Watts Water Technology">
+                            <a href="https://www.watts.com" target="_blank"><img src="resume_images/watts.jpeg" alt="Watts Water Technology"></a>
                         </div>
                         <div class="company-info">
-                            <h3 class="company-name">Watts Water Technology</h3>
+                            <h3 class="company-name">Watts Water Technology <a href="https://www.watts.com" target="_blank" class="company-visit-btn" title="Visit Watts Water Technology"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
                             <h4 class="job-title">Engineering Co-op</h4>
                         </div>
                     </div>
@@ -473,7 +485,7 @@
                         noted properly, assisting with lab set-up and testing, and other miscellaneous engineering
                         projects.
                     </p>
-                    <p class="employment-dates">January 2016-June 2016 • North Andover, Massachusetts</p>
+                    <p class="employment-dates">January 2016-June 2016 • <em>North Andover, Massachusetts</em></p>
                 </div>
 
                 <!-- Massachusetts Clean Energy Center -->
@@ -483,7 +495,7 @@
                             <img src="resume_images/masscec_logo.jpeg" alt="Massachusetts Clean Energy Center">
                         </div>
                         <div class="company-info">
-                            <h3 class="company-name">Massachusetts Clean Energy Center</h3>
+                            <h3 class="company-name">Massachusetts Clean Energy Center <a href="https://www.masscec.com/masscec-focus/offshore-wind/wind-technology-testing-center-wttc" target="_blank" class="company-visit-btn" title="Visit MassCEC"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
                             <h4 class="job-title">Wind Technology Testing Center Fellow</h4>
                         </div>
                     </div>
@@ -493,7 +505,7 @@
                     <p class="job-description">
                         The Wind Technology Testing Center is a lab which structurally tests the integrity of full scale wind turbine blades. The lab floor is around the size of a football field. Companies that make wind turbine blades send them to the WTTC where they are rigged up with equipment that measures the strength and deflection of the blade as it is pulled in different directions by high powered cables. While a fellow there I assisted with day to day lab operations including blade static and fatigue testing, hard-point installation, winch operation, blade instrumentation, and small scale equipment design projects.
                     </p>
-                    <p class="employment-dates">January 2015-June 2015 • Charlestown, Massachusetts</p>
+                    <p class="employment-dates">January 2015-June 2015 • <em>Charlestown, Massachusetts</em></p>
                 </div>
             </div>
         </section>
@@ -512,7 +524,7 @@
                                 <p class="school-location">Boston, Massachusetts</p>
                                 <p class="school-degree">BS: Mechanical Engineering</p>
                                 <p class="school-degree">Minor in Business Administration</p>
-                                <p class="school-dates">Graduated: <span class="date-highlight">July 2018</span>-Cum Laude</p>
+                                <p class="school-dates">Graduated: <span class="date-highlight">July 2018</span>-<i>Cum Laude</i></p>
                             </div>
                         </div>
                     </div>
@@ -531,154 +543,195 @@
             </div>
         </section>
 
-        <!-- Pivotal Challenges Section -->
-        <section id="pivotal-challenges" class="content-section">
+        <!-- ============================================
+             MORE ABOUT ME SECTION
+             ============================================ -->
+        <section id="more-about-me" class="content-section">
             <div class="section-header">
-                <h2>Pivotal Challenges</h2>
-            </div>
-            <div class="section-content">
-                <div class="row g-4">
-                    <div class="col-md-6 card-col">
-                        <div class="challenge-card site-card">
-                            <h4 class="challenge-title">Principled Hiatus</h4>
-                            <p class="challenge-description">
-                                The three years between graduating from Northeastern and landing my first full-time
-                                engineering job I deliberately refused to apply to industries that conflicted with my personal and professional ethics, even though they employed a large percentage of entry level mechanical engineers.
-                            </p>
-                            <p class="challenge-result">
-                                While consistently applying for more competitive engineering jobs and volunteering for
-                                Engineers Without Borders, I supported myself as a restaurant server, a busser, a
-                                food-runner,
-                                an academic coach, and a math tutor.
-                            </p>
-                            <p class="challenge-outcome">This easy decision was the hardest I've ever had to stand by, but by far the most worth it.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6 card-col">
-                        <div class="challenge-card site-card">
-                            <h4 class="challenge-title">Journalism Transition</h4>
-                            <p class="challenge-description">
-                                Employed with a full-time engineering position in San Diego, I found myself unhappy with
-                                where my effort was going day-to-day. In my spare time, I took on projects that had
-                                nothing
-                                to do with engineering with large research and communication components. I was way more
-                                productive and happy working on these projects than my job's actual duties.
-                            </p>
-                            <p class="challenge-result">
-                                After four years, plenty of soul searching, and a great deal of planning, I moved back
-                                to
-                                the east coast to begin a journalism program with no prior experience in humanties.
-                            </p>
-                            <p class="challenge-outcome">I've never worked harder or been happier.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Mindset Diversity Section -->
-        <section id="mindset-diversity" class="content-section">
-            <div class="section-header">
-                <h2>Mindset Diversity</h2>
+                <h2>More About Me</h2>
             </div>
             <div class="section-content">
                 <h4 class="section-subheader">
-                    Someone with a different educational background can be useful in developing new sources, picking out
-                    otherwise overlooked details, and perhaps broadening the appeal of certain stories.
+                    Someone with a different educational background can be useful in developing new sources, picking out otherwise overlooked details, and perhaps broadening the appeal of certain stories.
                 </h4>
-                <!-- First Card: STEM Schooling - Only gear icon on left -->
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="mindset-card site-card">
-                            <div class="mindset-icon-row">
-                                <div class="icon-group">
-                                    <img src="resume_images/gear.svg" alt="Gear icon" class="mindset-icon">
-                                </div>
-                                <h5 class="mindset-title">STEM Schooling</h5>
-                            </div>
-                            <p class="mindset-description">
-                                Coming from a completely different discipline means I was trained in a methodology of
-                                problem solving uncommon to life-long journalists. Among other subjects, I learned
-                                calculus,
-                                fluid mechanics, thermodynamics, measurement science, and control systems. Whether I
-                                held
-                                onto the salient details of those courses or would ever use the Thermal Resistance
-                                Circuits
-                                model in my day-to-day life is immaterial. The point is that all those concepts taught me how to learn and now form the basis for how I approach challenges today.
-                            </p>
-                            <p class="mindset-example">
-                                <strong class="mindset-example-header">Perfect Example: </strong><br><span
-                                    class="mindset-example-subhead">Coding Languages<br></span>
-                                Throughout school I learned the basics of <strong>Ruby, Python, C, VBA and
-                                    Matlab.</strong>
-                                Despite the fact that today I can't write in any of those languages, learning them
-                                taught me
-                                to be deliberate and methodical with coding. This has proven to be a solid
-                                foundation
-                                on which to learn <strong>R, HTML, and CSS.</strong>
-                            </p>
-                        </div>
+                <!-- Thumbnail Navigation Strip -->
+                <div class="about-nav-strip" id="aboutNavStrip">
+                    <div class="about-nav-thumb active" data-slide="0">
+                        <img class="about-nav-thumb-icon" src="resume_images/gear.svg" alt="">
+                        <span class="about-nav-thumb-label">STEM Schooling</span>
+                    </div>
+                    <div class="about-nav-thumb" data-slide="1">
+                        <img class="about-nav-thumb-icon icon-flip" src="resume_images/pedicab_left_small.png" alt="">
+                        <span class="about-nav-thumb-label">People Skills</span>
+                    </div>
+                    <div class="about-nav-thumb" data-slide="2">
+                        <img class="about-nav-thumb-icon" src="resume_images/financial_report.svg" alt="">
+                        <span class="about-nav-thumb-label">Business Minor</span>
+                    </div>
+                    <div class="about-nav-thumb" data-slide="3">
+                        <img class="about-nav-thumb-icon" src="resume_images/waiter.svg" alt="">
+                        <span class="about-nav-thumb-label">Principled Hiatus</span>
+                    </div>
+                    <div class="about-nav-thumb" data-slide="4">
+                        <i class="bi bi-signpost-split-fill about-nav-thumb-bi"></i>
+                        <span class="about-nav-thumb-label">Journalism Transition</span>
                     </div>
                 </div>
-                <!-- Second Card: People Skills - Only flipped pedicab on left -->
-                <div class="row g-4 mt-4">
-                    <div class="col-12">
-                        <div class="mindset-card site-card">
-                            <div class="mindset-icon-row">
-                                <div class="icon-group">
-                                    <img src="resume_images/pedicab_left.svg" alt="Pedicab icon"
-                                        class="mindset-icon mindset-icon-flip">
+
+                <div class="about-carousel-wrapper">
+                    <div id="aboutCarousel" class="carousel carousel-fade slide" data-bs-ride="false" data-bs-wrap="true">
+
+                        <div class="carousel-inner">
+
+                            <!-- Card 1: STEM Schooling (Mindset Diversity) -->
+                            <div class="carousel-item active">
+                                <div class="about-card">
+                                    <div class="about-card-header">
+                                        <div class="about-card-title-group">
+                                            <h4 class="about-card-title">STEM Schooling</h4>
+                                        </div>
+                                        <span class="about-card-category category-mindset">Mindset Diversity</span>
+                                    </div>
+                                    <div class="about-card-body">
+                                        <div class="about-card-text">
+                                            <p>
+                                                Coming from a completely different discipline means I was trained in a methodology of problem solving uncommon to life-long journalists. Among other subjects, I learned calculus, fluid mechanics, thermodynamics, measurement science, and control systems. Whether I held onto the salient details of those courses or would ever use the Thermal Resistance Circuits model in my day-to-day life is immaterial. The point is that all those concepts taught me how to learn and now form the basis for how I approach challenges today.
+                                            </p>
+                                        </div>
+                                        <div class="about-card-icon">
+                                            <img src="resume_images/gear.svg" alt="Gear icon">
+                                        </div>
+                                    </div>
+                                    <div class="about-card-footer">
+                                        <p><strong class="about-card-example-header">How This Helps Today: </strong><span class="about-card-example-subhead">Coding Languages</span><br>
+                                        Throughout school I learned the basics of <strong>Ruby, Python, C, VBA and Matlab.</strong> Despite the fact that today I can't write in any of those languages, learning them taught me to be deliberate and methodical with coding. This has proven to be a solid foundation on which to learn <strong>R, HTML, and CSS.</strong></p>
+                                    </div>
                                 </div>
-                                <h5 class="mindset-title">People Skills  Relatability</h5>
                             </div>
-                            <p class="mindset-description">
-                                Once you've been a Pedicab tour guide, dependent on tips, you develop people skills. For
-                                that job you need to talk to strangers to generate business, and be pleasant while you
-                                spend
-                                the day in the DC summer humidity. I've further developed those same skills working in
-                                restaurants.
-                                As far as exposure to people in different fields, I've been a bike mechanic, academic
-                                coach,
-                                camp counselor, construction worker, and pseudo assistant school teacher.
-                            </p>
-                            <p class="mindset-example">
-                                <strong class="mindset-example-header">Perfect Example:</strong> <br><span
-                                    class="mindset-example-subhead">Department Collaboration</span><br>
-                                My last engineering position was at a company with a complex organizational structure
-                                and
-                                occasionally a lot of siloed expertise and resources. The ease with which I cultivated
-                                relationships became uniquely useful for quickly solving problems for my team by finding
-                                what and who we needed.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Third Card: Business Minor - Only financial report icon on left -->
-                <div class="row g-4 mt-4">
-                    <div class="col-12">
-                        <div class="mindset-card site-card">
-                            <div class="mindset-icon-row">
-                                <div class="icon-group">
-                                    <img src="resume_images/financial_report.svg" alt="Financial report icon" class="mindset-icon">
+
+                            <!-- Card 2: People Skills & Relatability (Mindset Diversity) -->
+                            <div class="carousel-item">
+                                <div class="about-card">
+                                    <div class="about-card-header">
+                                        <div class="about-card-title-group">
+                                            <h4 class="about-card-title">People Skills &amp; Relatability</h4>
+                                        </div>
+                                        <span class="about-card-category category-mindset">Mindset Diversity</span>
+                                    </div>
+                                    <div class="about-card-body">
+                                        <div class="about-card-text">
+                                            <p>
+                                                Once you've been a Pedicab tour guide, dependent on tips, you develop people skills. For that job you need to talk to strangers to generate business, and be pleasant while you spend the day in the DC summer humidity. I've further developed those same skills working in restaurants. As far as exposure to people in different fields, I've been a bike mechanic, academic coach, camp counselor, construction worker, and pseudo assistant school teacher.
+                                            </p>
+                                        </div>
+                                        <div class="about-card-icon">
+                                            <img src="resume_images/pedicab_left_small.png" alt="Pedicab icon" class="mindset-icon-flip">
+                                        </div>
+                                    </div>
+                                    <div class="about-card-footer">
+                                        <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Department Collaboration</span><br>
+                                        My last engineering position was at a company with a complex organizational structure and occasionally a lot of siloed expertise and resources. The ease with which I cultivated relationships became uniquely useful for quickly solving problems for my team by finding what and who we needed.</p>
+                                    </div>
                                 </div>
-                                <h5 class="mindset-title">Business Minor</h5>
                             </div>
-                            <p class="mindset-description">
-                                As a 19-year-old, I thought a business minor would be a good way to give myself the tools to
-                                start my own company if I invented something cool. We all make wrong turns, because
-                                turns
-                                out I wanted the Engineering Entrepreneurship minor.<br>Best. Mistake. Ever.
-                            </p>
-                            <p class="mindset-example">
-                                <strong class="mindset-example-header">Perfect Example:</strong> <br><span
-                                    class="mindset-example-subhead">Interest in Business Reporting</span><br>
-                                Learning the fundamentals of accounting, organizational behavior,
-                                and
-                                marketing have only become more useful since I pivoted to journalism.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+
+                            <!-- Card 3: Business Minor (Mindset Diversity) -->
+                            <div class="carousel-item">
+                                <div class="about-card">
+                                    <div class="about-card-header">
+                                        <div class="about-card-title-group">
+                                            <h4 class="about-card-title">Business Minor</h4>
+                                        </div>
+                                        <span class="about-card-category category-mindset">Mindset Diversity</span>
+                                    </div>
+                                    <div class="about-card-body">
+                                        <div class="about-card-text">
+                                            <p>
+                                                As a 19-year-old, I thought a business minor would be a good way to give myself the tools to start my own company if I invented something cool. We all make wrong turns, because turns out I wanted the Engineering Entrepreneurship minor.<br>Best. Mistake. Ever.
+                                            </p>
+                                        </div>
+                                        <div class="about-card-icon">
+                                            <img src="resume_images/financial_report.svg" alt="Financial report icon">
+                                        </div>
+                                    </div>
+                                    <div class="about-card-footer">
+                                        <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Interest in Business Reporting</span><br>
+                                        Learning the fundamentals of accounting, organizational behavior, and marketing have only become more useful since I pivoted to journalism.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Principled Hiatus (My Pivotal Decisions) -->
+                            <div class="carousel-item">
+                                <div class="about-card">
+                                    <div class="about-card-header">
+                                        <div class="about-card-title-group">
+                                            <h4 class="about-card-title">Principled Hiatus</h4>
+                                        </div>
+                                        <span class="about-card-category category-challenge">My Pivotal Decisions</span>
+                                    </div>
+                                    <div class="about-card-body">
+                                        <div class="about-card-text">
+                                            <p>
+                                                The three years between graduating from Northeastern and landing my first full-time engineering job I deliberately refused to apply to industries that conflicted with my personal and professional ethics, even though they employed a large percentage of entry level mechanical engineers.
+                                            </p>
+                                            <p>
+                                                While consistently applying for more competitive engineering jobs and volunteering for Engineers Without Borders, I supported myself as a restaurant server, a busser, a food-runner, an academic coach, and a math tutor.
+                                            </p>
+                                        </div>
+                                        <div class="about-card-icon">
+                                            <img src="resume_images/waiter.svg" alt="Waiter icon">
+                                        </div>
+                                    </div>
+                                    <div class="about-card-footer">
+                                        <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Resilience and Growth</span><br>This decision was the easiest to make but the hardest to stand by as time went on. It taught me a lot about pride, principles, and who I choose to be when things aren't easy. It was the most worthwhile choice I've ever made.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 5: Journalism Transition (My Pivotal Decisions) -->
+                            <div class="carousel-item">
+                                <div class="about-card">
+                                    <div class="about-card-header">
+                                        <div class="about-card-title-group">
+                                            <h4 class="about-card-title">Journalism Transition</h4>
+                                        </div>
+                                        <span class="about-card-category category-challenge">My Pivotal Decisions</span>
+                                    </div>
+                                    <div class="about-card-body">
+                                        <div class="about-card-text">
+                                            <p>
+                                                Employed with a full-time engineering position in San Diego, I found myself unhappy with where my effort was going day-to-day. In my spare time, I took on projects that had nothing to do with engineering with large research and communication components. I was way more productive and happy working on these projects than my job's actual duties.
+                                            </p>
+                                            <p>
+                                                After four years, plenty of soul searching, and a great deal of planning, I moved back to the east coast to begin a journalism program with no prior experience in humanties.
+                                            </p>
+                                        </div>
+                                        <div class="about-card-icon">
+                                            <i class="bi bi-signpost-split-fill about-card-bi-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="about-card-footer">
+                                        <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Drive and Happiness</span><br>I've never worked harder or been happier.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div><!-- /carousel-inner -->
+
+                        <!-- Prev/Next Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#aboutCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#aboutCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+
+                    </div><!-- /carousel -->
+
+                </div><!-- /about-carousel-wrapper -->
             </div>
         </section>
 
@@ -727,6 +780,108 @@
             var thumbnails = document.querySelectorAll('.thumbnail-btn');
             thumbnails.forEach(function (btn) { btn.classList.remove('active'); });
             thumbnails[event.to].classList.add('active');
+        });
+
+        /* DARK MODE TOGGLE DISABLED
+        // Dark Mode Toggle
+        (function () {
+            var desktopToggle = document.getElementById('darkModeToggle');
+            var mobileToggle = document.getElementById('darkModeToggleMobile');
+            var htmlEl = document.documentElement;
+
+            function setTheme(isDark) {
+                htmlEl.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                if (desktopToggle) desktopToggle.checked = isDark;
+                if (mobileToggle) mobileToggle.checked = isDark;
+            }
+
+            // Load saved preference, fall back to system preference
+            var saved = localStorage.getItem('theme');
+            if (saved) {
+                setTheme(saved === 'dark');
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                setTheme(true);
+            }
+
+            // Listen for toggle changes
+            if (desktopToggle) {
+                desktopToggle.addEventListener('change', function () {
+                    setTheme(this.checked);
+                });
+            }
+            if (mobileToggle) {
+                mobileToggle.addEventListener('change', function () {
+                    setTheme(this.checked);
+                });
+            }
+
+            // Listen for system preference changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+                if (!localStorage.getItem('theme')) {
+                    setTheme(e.matches);
+                }
+            });
+        })();
+        */
+    </script>
+
+    <!-- More About Me Carousel Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var aboutCarousel = document.getElementById('aboutCarousel');
+            var navStrip = document.getElementById('aboutNavStrip');
+            var thumbs = navStrip ? navStrip.querySelectorAll('.about-nav-thumb') : [];
+            var bsCarousel = aboutCarousel ? bootstrap.Carousel.getOrCreateInstance(aboutCarousel) : null;
+
+            // Thumbnail click → slide carousel
+            thumbs.forEach(function(thumb) {
+                thumb.addEventListener('click', function() {
+                    var idx = parseInt(this.getAttribute('data-slide'), 10);
+                    if (bsCarousel) bsCarousel.to(idx);
+                });
+            });
+
+            // Sync active thumbnail when carousel slides
+            if (aboutCarousel) {
+                aboutCarousel.addEventListener('slid.bs.carousel', function(e) {
+                    thumbs.forEach(function(t) { t.classList.remove('active'); });
+                    if (thumbs[e.to]) thumbs[e.to].classList.add('active');
+                });
+            }
+
+            // Lock carousel-inner height and arrow position to tallest card
+            var inner = aboutCarousel ? aboutCarousel.querySelector('.carousel-inner') : null;
+            function sizeCarousel() {
+                if (!inner) return;
+                var items = inner.querySelectorAll('.carousel-item');
+                var maxH = 0;
+                inner.style.minHeight = '';
+                items.forEach(function(item) {
+                    item.style.display = 'block';
+                    item.style.position = 'relative';
+                    var h = item.scrollHeight;
+                    if (h > maxH) maxH = h;
+                    item.style.display = '';
+                    item.style.position = '';
+                });
+                inner.style.minHeight = maxH + 'px';
+
+                var prevBtn = aboutCarousel.querySelector('.carousel-control-prev');
+                var nextBtn = aboutCarousel.querySelector('.carousel-control-next');
+                var arrowCenter = Math.round(maxH / 2) + 'px';
+                if (prevBtn) prevBtn.style.top = arrowCenter;
+                if (nextBtn) nextBtn.style.top = arrowCenter;
+            }
+
+            sizeCarousel();
+
+            var resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(sizeCarousel, 150);
+            });
+
         });
     </script>
 </body>
