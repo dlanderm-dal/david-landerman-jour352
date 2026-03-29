@@ -38,6 +38,7 @@ var CommentSystem = (function () {
 
     var STORAGE_KEY = cfg.storageKey;
     var INSTRUCTIONS_KEY = cfg.instructionsKey;
+    var showImplemented = true;
 
     // ========== BUILD NAVBAR ==========
     var commentCount = getPageComments().length;
@@ -813,7 +814,7 @@ var CommentSystem = (function () {
             container = el.closest(containerSelectors);
           }
 
-          return { y: y, container: container };
+          return { y: y, container: container, textNode: node };
         }
       }
       return null;
@@ -857,12 +858,16 @@ var CommentSystem = (function () {
       var containerMarkerCounts = {};
 
       comments.forEach(function (c) {
+        var status = c.status || 'active';
+
+        // Hide implemented markers when toggle is off
+        if (status === 'implemented' && !showImplemented) return;
+
         var marker = document.createElement('div');
         marker.className = 'lh-comment-marker';
         marker.title = c.note;
         marker.setAttribute('data-id', c.id);
 
-        var status = c.status || 'active';
         var dotClass = 'lh-marker-dot';
         if (status === 'implemented') dotClass += ' lh-marker-implemented';
 
@@ -876,6 +881,15 @@ var CommentSystem = (function () {
 
         // Try to find the text in the DOM for accurate positioning
         var posInfo = findTextPosition(c.highlightedText);
+
+        // Check if text is inside a collapsed <details> element
+        if (posInfo && posInfo.textNode) {
+          var detailsAncestor = posInfo.textNode.parentElement ? posInfo.textNode.parentElement.closest('details') : null;
+          if (detailsAncestor && !detailsAncestor.open) {
+            // Details is collapsed — hide this marker
+            return;
+          }
+        }
 
         if (posInfo && posInfo.container) {
           // Text is inside a dynamic container -- attach marker inside it
@@ -1116,8 +1130,19 @@ var CommentSystem = (function () {
       if (statsEl) {
         statsEl.innerHTML =
           '<span class="lh-stat-dot" style="background:#fbbc04;"></span> ' + counts.active + ' new &nbsp;&nbsp;' +
-          '<span class="lh-stat-dot" style="background:#1e8e3e;"></span> ' + counts.implemented + ' implemented &nbsp;&nbsp;' +
+          '<label class="lh-stat-toggle" style="cursor:pointer;">' +
+            '<input type="checkbox" id="lhToggleImplemented"' + (showImplemented ? ' checked' : '') + ' style="margin:0 4px 0 0;vertical-align:middle;">' +
+            '<span class="lh-stat-dot" style="background:#1e8e3e;"></span> ' + counts.implemented + ' implemented' +
+          '</label> &nbsp;&nbsp;' +
           '<span class="lh-stat-dot" style="background:#9aa0a6;"></span> ' + counts.resolved + ' resolved';
+
+        var toggleCb = document.getElementById('lhToggleImplemented');
+        if (toggleCb) {
+          toggleCb.addEventListener('change', function () {
+            showImplemented = this.checked;
+            renderCommentMarkers();
+          });
+        }
       }
     }
 
@@ -1362,6 +1387,12 @@ var CommentSystem = (function () {
       div.appendChild(document.createTextNode(str));
       return div.innerHTML;
     }
+
+    // ========== DETAILS TOGGLE LISTENER ==========
+    // Re-render markers when <details> elements are opened/closed
+    document.querySelectorAll('details').forEach(function (det) {
+      det.addEventListener('toggle', function () { renderCommentMarkers(); });
+    });
 
     // ========== STARTUP ==========
     renderCommentMarkers();
