@@ -1,0 +1,161 @@
+# GitHub Complete Guide — Prompt Changelog
+
+## Original Creation
+Created via exported prompt from Learning Hub New Topic page.
+Topic: "GitHub, how to use it, icons, architecture, total tech novice, outline fashion"
+8 tabs: Big Picture, The Interface, Core Workflow, Branches & Merging, Local vs Remote, GitHub Pages, Tools & Setup, Best Practices
+
+---
+
+## Edit: 2026-03-28 — Comment Batch (19 comments)
+
+### Big Picture Tab
+1. Added info box explaining Git is a standalone C program, not a language or library
+2. Added info box explaining three ways to use Git (Terminal, GitHub.com, GitHub Desktop)
+3. Added expanded explanation of distributed VCS — how offline work syncs back
+4. Added info box comparing Cursor vs VS Code + AI extensions (Claude/Copilot)
+5. Added note that Codespaces IS VS Code in the browser
+6. Added CSS mockup of VS Code interface layout
+7. Added CSS mockup of Cursor interface layout
+8. Added CSS mockup of Codespaces interface layout
+9. Added note about GitHub Desktop covering 95% of Git operations
+10. Added explanation that GitHub Desktop can't do rebasing/cherry-picking
+
+### Quick Reference Table
+11. Expanded Clone row — distinguished from Fork
+12. Expanded Branch row — distinguished from Fork with examples
+13. Expanded npm row — added examples (React, Express, Lodash)
+14. Expanded node_modules row — added visual description and car engine analogy
+15. Expanded .gitignore row — added file format, example entries, cross-reference
+16. Added collapsible Homebrew history/tips (Max Howell, brew list)
+17. Expanded localhost row — ports explained, common ports listed
+
+### Tools & Setup Tab
+18. Added GitHub Codespaces section with step-by-step launch instructions
+19. Added .gitignore note about API keys with cross-reference to Best Practices
+
+### Best Practices Tab
+20. Added "Protecting Sensitive Information" section — API keys, .env files, .gitignore for secrets
+
+---
+
+## Edit: 2026-03-28 — Follow-up Batch (Comments 20-21, rewrite pass)
+
+### Methodology update
+- Added to ARCHITECTURE.md: never write content that sounds like it's answering an invisible question
+- Added to ARCHITECTURE.md: integrate new content into existing text flow, don't always use callout boxes
+- Added to ARCHITECTURE.md: lh-new-content spans should be inline text highlights, not div wrappers
+
+### Full rewrite of previous additions
+- Removed all Q&A-toned info boxes from Big Picture tab
+- Integrated Git explanation (standalone C program) into existing paragraph
+- Integrated "three ways to use Git" into GitHub description
+- Rewrote distributed VCS expansion to flow naturally ("In practice, this means...")
+- Integrated Cursor vs VS Code comparison into Cursor description
+- Integrated Codespaces explanation into existing bullet point
+- Integrated GitHub Desktop coverage info into existing description
+- Converted block-level lh-new-content spans to div-level or inline-only
+- Added lh-implemented comment for all 21 comment IDs
+
+---
+
+## Edit: 2026-03-28 — Follow-up Batch (Comments mnazfc8a8chfsm, mnazg9y5ea4exr, mnazk0u5024vby + rewrite pass on mnaxl80851ho9g)
+
+### Cleanup pass
+- Removed ALL existing lh-new-content spans and divs (unwrapped, kept inner content)
+- Verified Big Picture tab has no remaining Q&A-toned content (previous rewrite already handled it)
+
+### Quick Reference Table expansions
+- **brew row** (mnazfc8a8chfsm): Added clarification that Homebrew runs in Terminal (Applications > Utilities), brew install is a one-time command per tool, and brew upgrade updates tools later
+- **node_modules row** (mnazg9y5ea4exr): Added clarification that node_modules lives inside the project folder on your computer (not on GitHub), each project has its own, and others recreate it via npm install from package.json
+- **localhost row** (mnazk0u5024vby): Added explanation that localhost points to 127.0.0.1 (loopback address), other computers cannot access it, and the server stops when Terminal closes or Ctrl+C is pressed
+
+---
+
+## Edit: 2026-03-28 — Comment mnb00m061g0kd1
+
+### Quick Reference Table
+- **node_modules row**: Added cross-reference note explaining that package.json is detailed in the Tools & Setup tab
+
+## Edit: 2026-03-28 — SVG diagram replacement + cleanup (Comments mnazo3ivi4uprn, mnazo89xjjrsiw, mnazqjedn52oz5)
+
+### Cleanup pass
+- Removed ALL remaining lh-new-content spans (3 instances in Quick Reference Table: node_modules, brew, localhost rows) — unwrapped, kept inner content
+
+### Big Picture Tab — SVG interface diagrams
+- **VS Code mockup** (mnazo3ivi4uprn): Replaced crude CSS div-based mockup with polished inline SVG diagram (~500px wide). Shows dark title bar labeled "VS Code", activity bar with icon placeholders, file explorer sidebar (#252526), code editor with syntax-highlighted HTML lines, built-in terminal with `git status`, and blue status bar (#0078d4). Labeled regions: Activity Bar, File Explorer, Code Editor, Built-in Terminal.
+- **Cursor mockup** (mnazo89xjjrsiw): Same VS Code layout but with additional right-side AI Chat panel (#1a1625 background, #7c3aed purple accent). Shows chat bubbles with sample conversation. Title bar says "Cursor". Purple status bar. Caption: "Same as VS Code, plus an AI chat panel on the right."
+- **Codespaces mockup** (mnazqjedn52oz5): VS Code interface wrapped in browser chrome with address bar showing "github.dev/username/repo". Green accent (#2ea44f) on VS Code title bar and status bar. Same editor layout inside. Caption: "VS Code running inside your browser -- no installation needed."
+
+---
+
+## Edit: 2026-03-28 — Comment Batch (mnb0szqt19luee, mnb0zh2n3utc55, mnb10dfkl2qgob, mnb155tizy0ynl, mnb19botaiyp4e)
+
+### Cleanup pass
+- Removed all existing lh-new-content spans (unwrapped, kept inner content) — one instance in Local vs Remote tab diagram
+
+### Local vs Remote Tab
+- **mnb0szqt19luee**: Verified "Download commits from other collaborators on GitHub" text is in place in the push/pull/clone diagram. Unwrapped the leftover lh-new-content span.
+- **mnb0zh2n3utc55**: Added new outline item under localhost section explaining live reload/hot reload behavior, how to start a localhost server (Terminal with python3/npm, or VS Code Live Server extension), and that servers run until Ctrl+C or Terminal close.
+- **mnb10dfkl2qgob**: Added step in "Start on GitHub, Then Clone Locally" explaining how to clone via GitHub Desktop (File → Clone Repository, paste URL or search repos, choose location, click Clone).
+
+### GitHub Pages Tab
+- **mnb155tizy0ynl**: Expanded the "Two types of GitHub Pages sites" description with concrete example distinguishing User sites (one per account, yourusername.github.io) from Project sites (unlimited, one per repo, yourusername.github.io/repo-name). Used "front door vs rooms" analogy.
+
+### Other
+- **mnb19botaiyp4e**: Tab-aware markers fix was handled in learning-hub.js; ID included in implementation marker for comment system tracking.
+
+---
+
+## Edit: 2026-03-28 — Comment Batch (mnb1enmg5plw9u, mnb1g89osnlp5s, mnb1gqu2187kh4, mnb1inrn1r82zi, mnb1lq60h8pu5y, mnb1nkkq1wvlno, mnb1qx5ls1h4b9, mnb1sk3znc7oz9, mnb1ud4ikqv3tb)
+
+### Cleanup pass
+- Removed all existing lh-new-content spans (unwrapped, kept inner content) — three instances across Local vs Remote, GitHub Pages, and localhost sections.
+
+### Tools & Setup Tab
+- **mnb1enmg5plw9u**: Expanded Node.js description with runtime environment definition, Ryan Dahl/2009 origin, V8 engine detail, and explanation of the ecosystem it enabled (npm, webpack, Vite, Express, testing tools, VS Code extensions, React).
+- **mnb1g89osnlp5s**: Expanded npm description with GitHub/Microsoft maintainer info, clarified it's the official bundled package manager, added npmjs.com registry stat (2M+ packages), mentioned Yarn/pnpm alternatives.
+- **mnb1gqu2187kh4**: Added inline explanation of "root folder" near the package.json description — top-level project folder, with path example and clarification of "put this in the root" meaning.
+- **mnb1inrn1r82zi**: Added explanation of how/where to run `npm install` — Terminal vs VS Code terminal, folder-awareness, why you `cd` first, each project gets its own node_modules.
+- **mnb1ud4ikqv3tb**: Added explanatory paragraph above the file tree visual explaining it's not code but a folder/file diagram like Finder, with indentation meaning.
+
+### Branches & Merging Tab (CSS)
+- **mnb1nkkq1wvlno**: Removed `.comparison-table tr:hover` CSS rule — table rows are not clickable, so hover highlighting was inappropriate per ARCHITECTURE.md rule 7.
+
+### Local vs Remote Tab
+- **mnb1qx5ls1h4b9**: Added merge conflict section after clone steps — explains what conflicts are, shows the HEAD/=======/>>>>>>> marker format in a code block, reassures conflicts are normal and not dangerous, cross-references Branches & Merging tab.
+
+### GitHub Pages Tab
+- **mnb1sk3znc7oz9**: Replaced confusing "Project site" / "User site" naming with "Personal Site" / "Project Sites." Rewrote description for clarity. Added inline SVG diagram (~500px) showing a house (Personal Site, one per account) with three rooms (Project Sites, one per repo, unlimited).
+
+### Structural
+- **mnb1lq60h8pu5y**: Sticky tabs already handled in learning-hub.css/js. No HTML edit needed; ID included in marker for tracking.
+
+---
+
+## Edit: 2026-03-28 — Comment mnb21o97fqqol4
+
+### Cleanup pass
+- Removed all existing lh-new-content spans (unwrapped, kept inner content) — 14 instances across Local vs Remote, GitHub Pages, Tools & Setup tabs.
+
+### Best Practices Tab
+- **mnb21o97fqqol4**: Added explanatory outline item before the .gitignore table explaining the mechanism — what .gitignore is, where it lives (project root folder), how Git uses it (ignores matching patterns), and how to create one in VS Code. Added a code-block example showing a typical .gitignore file with commented entries (node_modules/, .DS_Store, .env, dist/). Added note explaining that `#` lines are comments.
+
+---
+
+## Edit: 2026-03-28 — Major Restructure (Chapter System)
+
+### Structural changes
+- Merged all 8 tabs (Big Picture, Interface, Core Workflow, Branches, Local vs Remote, Pages, Tools, Best Practices) into a single "Chapter 1: Foundations" tab
+- Added table of contents with anchor links at top of Chapter 1
+- Each former tab's content is now a scrollable section with h2 heading and id anchor
+- Created "Chapter 2: Going Deeper" with 6 new sections:
+  1. Advanced Branching Strategies (Git Flow vs Trunk-Based)
+  2. GitHub Actions & Automation (CI/CD, YAML workflows)
+  3. Code Review (PR review process, CODEOWNERS)
+  4. Organizations & Teams (permissions, team management)
+  5. Advanced Git Commands (rebase, stash, cherry-pick, reflog)
+  6. Contributing to Open Source (fork-and-PR workflow)
+- Chapter 2 includes its own quick reference table
+- Updated comment system to handle orphaned tab references gracefully
+- Added Restructuring Safety Rules to ARCHITECTURE.md

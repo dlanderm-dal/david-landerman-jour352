@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert to Learning Hub — Learning Hub</title>
+  <link rel="stylesheet" href="learning-hub.css">
+</head>
+<body class="topic-page">
+
+  <div class="topic-container">
+    <h1>Convert to Learning Hub Format</h1>
+    <p class="topic-subtitle">Upload an existing HTML study guide and generate a prompt that will add Learning Hub navigation, commenting, and styling.</p>
+
+    <div class="topic-field-group">
+      <label for="convertFile">Select an HTML file</label>
+      <input type="file" accept=".html,.htm" id="convertFile" style="margin-bottom:0.5rem;">
+      <div id="convertFileName" style="font-size:0.82rem;color:#5f6368;"></div>
+    </div>
+
+    <div class="topic-field-group">
+      <label for="convertNotes">Additional instructions (optional)</label>
+      <textarea class="topic-textarea" id="convertNotes" placeholder="e.g. Make it light theme, add tab navigation for each section, keep the existing CSS..."></textarea>
+    </div>
+
+    <button class="topic-build-btn" id="convertBuildBtn">Generate Conversion Prompt</button>
+
+    <div class="topic-output" id="convertOutput">
+      <h3>Your prompt — copy this into Claude Code</h3>
+      <div class="topic-output-text" id="convertOutputText"></div>
+      <button class="topic-copy-btn" id="convertCopyBtn">Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <script>
+    var fileInput = document.getElementById('convertFile');
+    var fileNameEl = document.getElementById('convertFileName');
+    var buildBtn = document.getElementById('convertBuildBtn');
+    var output = document.getElementById('convertOutput');
+    var outputText = document.getElementById('convertOutputText');
+    var copyBtn = document.getElementById('convertCopyBtn');
+    var notesEl = document.getElementById('convertNotes');
+
+    var selectedFileName = '';
+
+    fileInput.addEventListener('change', function () {
+      if (this.files[0]) {
+        selectedFileName = this.files[0].name;
+        fileNameEl.textContent = 'Selected: ' + selectedFileName;
+      }
+    });
+
+    buildBtn.addEventListener('click', function () {
+      if (!selectedFileName) { alert('Select an HTML file first.'); return; }
+
+      var notes = notesEl.value.trim();
+      var customInstructions = (localStorage.getItem('learningHubCustomInstructions') || '').trim();
+
+      var prompt = 'FIRST (if you haven\'t already in this conversation): Read `vibe-code-projects/ARCHITECTURE.md` — it is the single source of truth for this project. Follow its conventions.\n\n';
+      prompt += 'Convert the file `' + selectedFileName + '` to conform to Learning Hub standards.\n\n';
+      prompt += 'Required changes:\n';
+      prompt += '- Move the file to `vibe-code-projects/AI_study_guides/` if it isn\'t there already\n';
+      prompt += '- Add these two lines before </body>:\n';
+      prompt += '  <link rel="stylesheet" href="../learning-hub.css">\n';
+      prompt += '  <script src="../learning-hub.js"></' + 'script>\n';
+      prompt += '- Ensure the page has a proper <title> tag\n';
+      prompt += '- Add a card entry to the guides array in `vibe-code-projects/index.html`\n';
+      prompt += '- Take a screenshot and save to `vibe-code-projects/thumbnails/`\n';
+      prompt += '- If the page has distinct sections, consider adding tab-based navigation\n';
+      prompt += '- Ensure the body has enough top padding for the navbar (56px)\n';
+      prompt += '- Save a prompt file to `vibe-code-projects/AI_study_guides/prompts/`\n';
+
+      if (notes) prompt += '\nAdditional instructions: ' + notes + '\n';
+      if (customInstructions) prompt += '\nMy custom learning instructions: ' + customInstructions + '\n';
+
+      outputText.textContent = prompt;
+      output.classList.add('visible');
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    copyBtn.addEventListener('click', function () {
+      var text = outputText.textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+      }).catch(function () {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+      });
+    });
+  </script>
+
+  <script src="learning-hub.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Topic — Learning Hub</title>
+  <link rel="stylesheet" href="learning-hub.css">
+</head>
+<body class="topic-page">
+
+  <div class="topic-container">
+    <h1>Create a New Study Guide</h1>
+    <p class="topic-subtitle">Tell us what you want to learn, and we'll generate a prompt you can paste into Claude Code to build a new study guide page.</p>
+
+    <div class="topic-field-group">
+      <label for="topicName">Teach me about...</label>
+      <p class="topic-hint">What topic do you want a study guide for? Be as specific or general as you like.</p>
+      <input type="text" class="topic-input" id="topicName" placeholder="e.g. CSS Grid, JavaScript arrays, GitHub pull requests...">
+    </div>
+
+    <div class="topic-field-group">
+      <label for="topicContext">I've heard about these — incorporate them</label>
+      <p class="topic-hint">List any related words, concepts, or tools you've encountered. One per line or comma-separated.</p>
+      <textarea class="topic-textarea" id="topicContext" placeholder="e.g.&#10;flexbox&#10;media queries&#10;responsive design&#10;Bootstrap grid"></textarea>
+    </div>
+
+    <button class="topic-build-btn" id="topicBuildBtn">Build Prompt</button>
+
+    <div id="topicQueueMatches" style="display:none;margin-top:1rem;">
+      <h3 style="font-size:0.9rem;color:#1a73e8;margin-bottom:0.4rem;">Related topics from your queue</h3>
+      <div id="topicQueueMatchesList" style="font-size:0.85rem;color:#5f6368;"></div>
+    </div>
+
+    <div class="topic-output" id="topicOutput">
+      <h3>Your prompt — copy this into Claude Code</h3>
+      <div class="topic-output-text" id="topicOutputText"></div>
+      <button class="topic-copy-btn" id="topicCopyBtn">Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <script>
+    var buildBtn = document.getElementById('topicBuildBtn');
+    var output = document.getElementById('topicOutput');
+    var outputText = document.getElementById('topicOutputText');
+    var copyBtn = document.getElementById('topicCopyBtn');
+    var queueMatchesDiv = document.getElementById('topicQueueMatches');
+    var queueMatchesList = document.getElementById('topicQueueMatchesList');
+
+    // ========== PRE-POPULATE FROM URL PARAMS ==========
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('topic')) {
+      document.getElementById('topicName').value = decodeURIComponent(params.get('topic'));
+    }
+    if (params.get('notes')) {
+      document.getElementById('topicContext').value = decodeURIComponent(params.get('notes'));
+    }
+    if (params.get('links')) {
+      // Append links to context area
+      var existingContext = document.getElementById('topicContext').value;
+      var links = decodeURIComponent(params.get('links'));
+      if (existingContext) existingContext += '\n';
+      document.getElementById('topicContext').value = existingContext + links;
+    }
+
+    // ========== QUEUE SEARCH ==========
+    function getQueue() {
+      try { return JSON.parse(localStorage.getItem('learningHubQueue') || '[]'); }
+      catch (e) { return []; }
+    }
+
+    function searchQueue(topic, context) {
+      var queue = getQueue();
+      if (queue.length === 0) return [];
+
+      var searchTerms = topic.toLowerCase().split(/\s+/);
+      if (context) {
+        context.split(/[,\n]+/).forEach(function(s) {
+          var t = s.trim().toLowerCase();
+          if (t) searchTerms.push(t);
+        });
+      }
+
+      return queue.filter(function(item) {
+        var haystack = (item.title + ' ' + (item.notes || '')).toLowerCase();
+        return searchTerms.some(function(term) {
+          return term.length > 2 && haystack.indexOf(term) !== -1;
+        });
+      });
+    }
+
+    // ========== BUILD PROMPT ==========
+    buildBtn.addEventListener('click', function () {
+      var topic = document.getElementById('topicName').value.trim();
+      var context = document.getElementById('topicContext').value.trim();
+
+      if (!topic) {
+        alert('Please enter a topic first.');
+        return;
+      }
+
+      // Search queue for related topics
+      var matches = searchQueue(topic, context);
+      var queueSection = '';
+      if (matches.length > 0) {
+        queueSection = '\n\nRelated topics from the student\'s queue that may be relevant:\n';
+        var matchHtml = '';
+        matches.forEach(function(m) {
+          queueSection += '- ' + m.title;
+          if (m.notes) queueSection += ' (notes: ' + m.notes + ')';
+          if (m.links && m.links.length > 0) {
+            queueSection += ' [links: ' + m.links.map(function(l) { return l.url; }).join(', ') + ']';
+          }
+          // Backward compat: old queue items have .link not .links
+          if (m.link && !m.links) queueSection += ' [link: ' + m.link + ']';
+          queueSection += '\n';
+          matchHtml += '<div style="margin-bottom:0.3rem;">- <strong>' + escapeHtml(m.title) + '</strong>';
+          if (m.notes) matchHtml += ' <em>(' + escapeHtml(m.notes) + ')</em>';
+          matchHtml += '</div>';
+        });
+        queueMatchesList.innerHTML = matchHtml;
+        queueMatchesDiv.style.display = 'block';
+      } else {
+        queueMatchesDiv.style.display = 'none';
+      }
+
+      var contextList = '';
+      if (context) {
+        var items = context.split(/[,\n]+/).map(function(s) { return s.trim(); }).filter(Boolean);
+        contextList = '\n\nThe student has encountered these related concepts and wants them woven in where relevant:\n' +
+          items.map(function(item) { return '- ' + item; }).join('\n');
+      }
+
+      var customInstructions = (localStorage.getItem('learningHubCustomInstructions') || '').trim();
+
+      var kebabName = topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+      var prompt = 'Create an HTML study guide page about "' + topic + '" for my Learning Hub.\n\n' +
+        'FIRST (if you haven\'t already in this conversation): Read `vibe-code-projects/ARCHITECTURE.md` — it is the single source of truth for this project. Follow its conventions.\n\n' +
+        'Requirements:\n' +
+        '- Single self-contained HTML file with inline CSS and inline JavaScript\n' +
+        '- Light, clean theme (white background, Google Docs adjacent styling)\n' +
+        '- Use Georgia serif for body text, Arial for headings\n' +
+        '- Include interactive examples, visual demonstrations, and tab-based navigation if the topic is large enough\n' +
+        '- Assume the reader knows very little about code — use analogies and plain language\n' +
+        '- Include a "Key Insight" callout box for important concepts\n' +
+        '- Include a quick-reference table at the end\n' +
+        '- At the very end of the file, before </body>, add these two lines:\n' +
+        '  <link rel="stylesheet" href="../learning-hub.css">\n' +
+        '  <script src="../learning-hub.js"></' + 'script>\n' +
+        '- Save the file as `AI_study_guides/' + kebabName + '.html`\n' +
+        '- Save the full text of this prompt as `AI_study_guides/prompts/' + kebabName + '.prompt.txt`\n' +
+        '- After creating the file, add a card entry to the guides array in index.html so it appears on the homepage (include tab names in the tabs property)\n' +
+        '- Take a screenshot of the new page and save it to the thumbnails/ folder for the homepage card\n' +
+        contextList +
+        queueSection + '\n\n' +
+        (customInstructions ? 'My custom learning instructions:\n' + customInstructions + '\n\n' : '') +
+        'Teaching approach:\n' +
+        '- If the student needs to understand something else first, lay it out in order:\n' +
+        '  To understand X, you first need to understand Y, which builds on Z.\n' +
+        '- Use the outline/indentation pattern for prerequisite knowledge.\n' +
+        '- Include before/after code comparisons where helpful.\n' +
+        '- Make it visual — show, don\'t just tell.';
+
+      outputText.textContent = prompt;
+      output.classList.add('visible');
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // ========== COPY ==========
+    copyBtn.addEventListener('click', function () {
+      var text = outputText.textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+      }).catch(function () {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+      });
+    });
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+  </script>
+
+  <script src="learning-hub.js"></script>
+
+</body>
+</html>

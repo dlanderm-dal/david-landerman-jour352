@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning Hub</title>
+  <link rel="stylesheet" href="learning-hub.css">
+</head>
+<body class="hub-page">
+
+  <header class="hub-header">
+    <h1>Learning Hub</h1>
+    <p>Your interactive collection of study guides. Highlight text, ask questions, and build change files for AI-assisted learning.</p>
+  </header>
+
+  <main class="hub-main" id="hubMain"></main>
+
+  <footer class="hub-footer">
+    <p>Learning Hub &mdash; Highlight, annotate, and export your questions.</p>
+  </footer>
+
+  <script>
+    // ========== TOOLS (rendered as a compact list, no thumbnails) ==========
+    var tools = [
+      { href: 'new-topic.html', title: '+ New Topic', desc: 'Create a new study guide on any subject' },
+      { href: 'change-file.html', title: 'View Change File', desc: 'See annotations, custom instructions, export' },
+      { href: 'convert-guide.html', title: 'Convert to Learning Hub', desc: 'Upload an HTML file and add Learning Hub navigation + commenting' },
+    ];
+
+    // ========== STUDY GUIDES (rendered as cards with thumbnails) ==========
+    var guides = [
+      {
+        category: 'Layout Fundamentals',
+        catKey: 'layout',
+        items: [
+          { file: 'box_model_visual.html', title: 'The CSS Box Model', desc: 'Margin, border, padding, and content — visualized.', thumb: 'thumbnails/box_model_visual.png' },
+          { file: 'positioning_study_guide.html', title: 'CSS Positioning: Complete Guide', desc: 'Static, relative, absolute, fixed, and sticky.', thumb: 'thumbnails/positioning_study_guide.png', tabs: ['Normal Flow', 'Position Types', 'Your Hero Problem', 'Quick Reference'] },
+          { file: 'display_flexbox_cards_guide.html', title: 'Display, Flexbox & Card Layouts', desc: 'Display properties, flexbox, and card components.', thumb: 'thumbnails/display_flexbox_cards_guide.png', tabs: ['Display Property', 'Flexbox', 'Building Cards'] },
+          { file: 'whole_page_architecture.html', title: 'Full Page Architecture', desc: 'Header, nav, main, sidebar, footer — assembled.', thumb: 'thumbnails/whole_page_architecture.png', tabs: ['Side-by-Side', 'Step-by-Step', 'Building Cards'] },
+        ]
+      },
+      {
+        category: 'Bootstrap Framework',
+        catKey: 'bootstrap',
+        items: [
+          { file: 'bootstrap_percentage_study_guide.html', title: 'CSS Percentages & Grid Math', desc: 'The 12-column system and width calculations.', thumb: 'thumbnails/bootstrap_percentage_study_guide.png' },
+          { file: 'concept1_bootstrap_version_fixed.html', title: 'Document Structure & Wrappers', desc: 'Containers, wrappers, and HTML structure.', thumb: 'thumbnails/concept1_bootstrap_version_fixed.png', tabs: ['The Problem', 'Real Examples', 'When Do You Need a Wrapper?', 'Questions'] },
+        ]
+      },
+      {
+        category: 'Writing Clean Code',
+        catKey: 'text',
+        items: [
+          { file: 'naming-conventions-guide.html', title: 'Class Naming: Visual Guide', desc: 'How to name CSS classes and IDs clearly.', thumb: 'thumbnails/naming-conventions-guide.png', tabs: ['The Problem', 'The System', 'Nested Elements', 'Quick Reference', 'Practice'] },
+          { file: 'naming-conventions-guide-2.html', title: 'Class Naming: BEM & Patterns', desc: 'BEM methodology and real-world strategies.', thumb: 'thumbnails/naming-conventions-guide-2.png', tabs: ['The Problem', 'The System', 'Nested Elements', 'Quick Reference', 'Practice'] },
+          { file: 'text-layouts-tutorial.html', title: 'Text Styling & Layouts', desc: 'Headings, spacing, and text alignment.', thumb: 'thumbnails/text-layouts-tutorial.png', tabs: ['Playground', 'Three Approaches', 'Background Images'] },
+          { file: 'text-layouts-tutorial-2.html', title: 'Advanced Text Layouts', desc: 'Multi-column text and typographic scales.', thumb: 'thumbnails/text-layouts-tutorial-2.png', tabs: ['Playground', 'Three Approaches', 'Background Images'] },
+          { file: 'layout_debugging_guide.html', title: 'Why Your Layout Broke', desc: 'Fixed positioning + Bootstrap debugging.', thumb: 'thumbnails/layout_debugging_guide.png', tabs: ['Why % Didn\'t Work', 'Fixed+Bootstrap', 'Correct Pattern', 'Quick Reference'] },
+          { file: 'layout_debugging_guide-3.html', title: 'Advanced Layout Debugging', desc: 'Overflow, z-index, and tricky CSS issues.', thumb: 'thumbnails/layout_debugging_guide-3.png', tabs: ['Why % Didn\'t Work', 'Fixed+Bootstrap', 'Correct Pattern', 'Downstream Hacks', 'Quick Reference'] },
+        ]
+      },
+      {
+        category: 'Interactive Demos',
+        catKey: 'demos',
+        items: [
+          { file: 'float-demo.html', title: 'Float Demo: Text Wrapping', desc: 'How CSS floats push text around elements.', thumb: 'thumbnails/float-demo.png' },
+          { file: 'float-demo-2.html', title: 'Float Demo: Clearing & Layouts', desc: 'Clearing floats and why flexbox replaced them.', thumb: 'thumbnails/float-demo-2.png' },
+          { file: 'carousel-text-example.html', title: 'Bootstrap Carousel Example', desc: 'A working text carousel component.', thumb: 'thumbnails/carousel-text-example.png' },
+          { file: 'bootstrap-breakpoints-guide.html', title: 'Media Queries & Breakpoints', desc: 'Responsive breakpoints with interactive examples.', thumb: 'thumbnails/bootstrap-breakpoints-guide.png', tabs: ['Breakpoints', 'Column Builder', 'Show/Hide', 'Custom Media Queries'] },
+        ]
+      },
+      {
+        category: 'R Programming',
+        catKey: 'tools',
+        items: [
+          { file: '../r-study-guide.html', title: 'R Study Guide', desc: 'Socratic Q&A — ask questions, get answers.', thumb: 'thumbnails/r-study-guide.png', direct: true },
+          { file: 'Claude Join page copy.html', title: 'R Tidyverse Joins Example', desc: 'R code examples for join operations.', thumb: 'thumbnails/claude-join-page.png' },
+        ]
+      },
+      {
+        category: 'Developer Tools & Workflow',
+        catKey: 'tools',
+        items: [
+          { file: 'github-complete-guide.html', title: 'GitHub: Complete Beginner Guide', desc: 'Git, repos, branches, Pages, npm, best practices.', thumb: 'thumbnails/github-complete-guide.png', tabs: ['Big Picture', 'Interface', 'Core Workflow', 'Branches', 'Local vs Remote', 'Pages', 'Tools', 'Best Practices'] },
+        ]
+      },
+      {
+        category: 'Reference',
+        catKey: 'reference',
+        items: [
+          { file: 'web_design_study_guide.txt', title: 'Master Reference Guide', desc: 'All 16 study concepts and 8 page blueprints.' },
+        ]
+      }
+    ];
+
+    var main = document.getElementById('hubMain');
+
+    // ========== LAST OPENED ==========
+    var lastOpened = localStorage.getItem('learningHubLastOpened');
+    if (lastOpened) {
+      try {
+        var last = JSON.parse(lastOpened);
+        var lastSection = document.createElement('section');
+        lastSection.className = 'category-section';
+        lastSection.innerHTML = '<h2 class="category-title">Last Opened</h2>' +
+          '<a class="hub-card" href="' + last.href + '" style="max-width:400px;" data-category="layout">' +
+          (last.thumb ? '<div class="card-thumb"><img src="' + last.thumb + '" alt="" loading="lazy"></div>' : '') +
+          '<div class="card-body"><h3>' + last.title + '</h3><p>' + last.desc + '</p></div></a>';
+        main.appendChild(lastSection);
+      } catch (e) {}
+    }
+
+    // ========== TOOLS (compact list) ==========
+    var toolsSection = document.createElement('section');
+    toolsSection.className = 'category-section';
+    toolsSection.innerHTML = '<h2 class="category-title">Tools</h2>';
+    var toolsList = document.createElement('div');
+    toolsList.className = 'tools-list';
+    tools.forEach(function (t) {
+      toolsList.innerHTML += '<a href="' + t.href + '" class="tool-item"><strong>' + t.title + '</strong><span>' + t.desc + '</span></a>';
+    });
+    toolsSection.appendChild(toolsList);
+    main.appendChild(toolsSection);
+
+    // ========== STUDY GUIDE CARDS ==========
+    guides.forEach(function(cat) {
+      var section = document.createElement('section');
+      section.className = 'category-section';
+
+      var title = document.createElement('h2');
+      title.className = 'category-title';
+      title.textContent = cat.category;
+      section.appendChild(title);
+
+      var grid = document.createElement('div');
+      grid.className = 'card-grid';
+
+      cat.items.forEach(function(item) {
+        var a = document.createElement('a');
+        a.className = 'hub-card';
+        a.setAttribute('data-category', cat.catKey);
+
+        if (item.direct) {
+          a.href = item.file.replace('../', '');
+        } else {
+          a.href = 'AI_study_guides/' + item.file;
+        }
+
+        a.title = 'Open ' + item.title;
+        var thumbHtml = item.thumb ? '<div class="card-thumb"><img src="' + item.thumb + '" alt="" loading="lazy"></div>' : '';
+        var tabsHtml = '';
+        if (item.tabs && item.tabs.length > 0) {
+          tabsHtml = '<div class="card-tabs">' + item.tabs.map(function(t) { return '<span class="card-tab-pill">' + t + '</span>'; }).join('') + '</div>';
+        }
+        a.innerHTML = thumbHtml + '<div class="card-body"><h3>' + item.title + '</h3><p>' + item.desc + '</p>' + tabsHtml + '<span class="card-badge">' + cat.category + '</span></div>';
+        grid.appendChild(a);
+      });
+
+      section.appendChild(grid);
+      main.appendChild(section);
+    });
+
+    // ========== QUEUED TOPICS ==========
+    var QUEUE_KEY = 'learningHubQueue';
+
+    function getQueue() {
+      try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); }
+      catch (e) { return []; }
+    }
+
+    function saveQueue(q) {
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    }
+
+    var queueSection = document.createElement('section');
+    queueSection.className = 'category-section';
+    queueSection.innerHTML =
+      '<h2 class="category-title">Queued Topics</h2>' +
+      '<div class="queue-form" id="queueForm">' +
+        '<input type="text" class="queue-input" id="queueTitle" placeholder="Topic name...">' +
+        '<textarea class="queue-notes-input" id="queueNotes" placeholder="Notes (optional) — what you want to learn, context..."></textarea>' +
+        '<div id="queueLinksContainer">' +
+          '<div class="queue-link-row">' +
+            '<input type="text" class="queue-input queue-link-input" placeholder="Link (optional)">' +
+          '</div>' +
+        '</div>' +
+        '<div class="queue-form-actions">' +
+          '<button class="queue-add-link-btn" id="queueAddLinkBtn">+ Add Another Link</button>' +
+          '<button class="queue-save-btn" id="queueSaveBtn">Add to Queue</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="queueList"></div>';
+
+    main.appendChild(queueSection);
+
+    var queueTitleEl = document.getElementById('queueTitle');
+    var queueNotesEl = document.getElementById('queueNotes');
+    var queueLinksContainer = document.getElementById('queueLinksContainer');
+    var queueAddLinkBtn = document.getElementById('queueAddLinkBtn');
+    var queueSaveBtn = document.getElementById('queueSaveBtn');
+    var queueList = document.getElementById('queueList');
+
+    queueAddLinkBtn.addEventListener('click', function () {
+      var row = document.createElement('div');
+      row.className = 'queue-link-row';
+      row.innerHTML = '<input type="text" class="queue-input queue-link-input" placeholder="Another link...">' +
+        '<button class="queue-link-remove" onclick="this.parentNode.remove()">&times;</button>';
+      queueLinksContainer.appendChild(row);
+    });
+
+    queueSaveBtn.addEventListener('click', function () {
+      var title = queueTitleEl.value.trim();
+      if (!title) { queueTitleEl.focus(); return; }
+      var notes = queueNotesEl.value.trim();
+
+      var links = [];
+      queueLinksContainer.querySelectorAll('.queue-link-input').forEach(function (input) {
+        var url = input.value.trim();
+        if (url) links.push({ url: url });
+      });
+
+      var q = getQueue();
+      q.push({
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+        title: title,
+        notes: notes,
+        links: links,
+        added: new Date().toISOString()
+      });
+      saveQueue(q);
+
+      // Reset form
+      queueTitleEl.value = '';
+      queueNotesEl.value = '';
+      queueLinksContainer.innerHTML = '<div class="queue-link-row"><input type="text" class="queue-input queue-link-input" placeholder="Link (optional)"></div>';
+      renderQueue();
+    });
+
+    queueTitleEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') queueSaveBtn.click(); });
+
+    function renderQueue() {
+      var q = getQueue();
+      if (q.length === 0) {
+        queueList.innerHTML = '<p class="queue-empty">No topics queued yet. Add one above!</p>';
+        return;
+      }
+
+      var html = '<ul class="queue-list">';
+      q.forEach(function (item) {
+        var buildParams = '?topic=' + encodeURIComponent(item.title);
+        if (item.notes) buildParams += '&notes=' + encodeURIComponent(item.notes);
+        if (item.links && item.links.length > 0) {
+          buildParams += '&links=' + encodeURIComponent(item.links.map(function(l) { return l.url; }).join('\n'));
+        }
+        // Backward compat
+        if (item.link && !item.links) {
+          buildParams += '&links=' + encodeURIComponent(item.link);
+        }
+
+        html += '<li class="queue-item">';
+        html += '<div class="queue-item-header">';
+        html += '<span class="queue-item-bullet">&#x25CB;</span>';
+        html += '<span class="queue-item-title">' + escapeHtml(item.title) + '</span>';
+        html += '<div class="queue-item-actions">';
+        html += '<a href="new-topic.html' + buildParams + '" class="queue-build-link">Build Topic</a>';
+        html += '<button class="queue-edit" data-id="' + item.id + '" title="Edit">Edit</button>';
+        html += '<button class="queue-delete" data-id="' + item.id + '">&times;</button>';
+        html += '</div>';
+        html += '</div>';
+
+        if (item.notes) {
+          html += '<div class="queue-item-notes">' + escapeHtml(item.notes) + '</div>';
+        }
+
+        // Render links
+        var allLinks = item.links || [];
+        if (item.link && !item.links) allLinks = [{ url: item.link }];
+        if (allLinks.length > 0) {
+          html += '<div class="queue-item-links">';
+          allLinks.forEach(function (l) {
+            html += '<a href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener" class="queue-item-link">' + escapeHtml(l.url) + '</a>';
+          });
+          html += '</div>';
+        }
+
+        html += '</li>';
+      });
+      html += '</ul>';
+
+      queueList.innerHTML = html;
+
+      queueList.querySelectorAll('.queue-delete').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = this.getAttribute('data-id');
+          var q = getQueue().filter(function (item) { return item.id !== id; });
+          saveQueue(q);
+          renderQueue();
+        });
+      });
+
+      queueList.querySelectorAll('.queue-edit').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = this.getAttribute('data-id');
+          var q = getQueue();
+          var item = q.find(function (i) { return i.id === id; });
+          if (!item) return;
+
+          // Populate the form with the item's data
+          queueTitleEl.value = item.title;
+          queueNotesEl.value = item.notes || '';
+
+          // Populate links
+          var links = item.links || [];
+          if (item.link && !item.links) links = [{ url: item.link }];
+          queueLinksContainer.innerHTML = '';
+          if (links.length === 0) {
+            queueLinksContainer.innerHTML = '<div class="queue-link-row"><input type="text" class="queue-input queue-link-input" placeholder="Link (optional)"></div>';
+          } else {
+            links.forEach(function (l) {
+              var row = document.createElement('div');
+              row.className = 'queue-link-row';
+              row.innerHTML = '<input type="text" class="queue-input queue-link-input" value="' + escapeHtml(l.url) + '">' +
+                '<button class="queue-link-remove" onclick="this.parentNode.remove()">&times;</button>';
+              queueLinksContainer.appendChild(row);
+            });
+          }
+
+          // Remove the old item
+          q = q.filter(function (i) { return i.id !== id; });
+          saveQueue(q);
+          renderQueue();
+
+          // Scroll to the form and focus
+          queueTitleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          queueTitleEl.focus();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    renderQueue();
+  </script>
+
+  <script src="learning-hub.js"></script>
+
+<!-- lh-implemented: mnb2pmar95momr, mnb2qbcu1rjthb, mnb2qlwxomgix3, mnb2r84pbeunx2, mnb2sj76wv76p2, mnb2tw57d035yz -->
+<!-- lh-implemented: mnb3kxqthdf8l7, mnb3mp43b0rylx, mnb3uxzjk7imn9, mnb4c001iuylo6 -->
+</body>
+</html>

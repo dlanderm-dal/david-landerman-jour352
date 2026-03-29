@@ -1,0 +1,16 @@
+# index.html — Prompt Changelog
+
+## Edit: 2026-03-28 — Comment Batch (6 comments)
+
+### Reorganization
+- Moved R Study Guide and R Tidyverse Joins into an "R Programming" category
+- Moved Media Queries & Breakpoints from Bootstrap into Interactive Demos
+- Removed thumbnails from tool items; tools now render as a compact stacked list
+- Added "Convert to Learning Hub" tool (convert-guide.html)
+
+### New sections
+- Added "Last Opened" section at top — reads from localStorage, shows the last visited study guide as a card
+- Last Opened tracking added to learning-hub.js (saves page info on visit)
+
+### Implementation IDs
+mnb2pmar95momr, mnb2qbcu1rjthb, mnb2qlwxomgix3, mnb2r84pbeunx2, mnb2sj76wv76p2, mnb2tw57d035yz

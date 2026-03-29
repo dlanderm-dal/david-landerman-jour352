@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Change File — Learning Hub</title>
+  <link rel="stylesheet" href="learning-hub.css">
+  <style>
+    .cf-page { font-family: 'Google Sans', Arial, sans-serif; background: #fff; color: #202124; margin: 0; }
+    .cf-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .cf-container h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .cf-subtitle { color: #5f6368; font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .cf-section { margin-bottom: 2rem; }
+    .cf-section h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; border-bottom: 1px solid #e8eaed; padding-bottom: 0.4rem; }
+    .cf-instructions-box {
+      width: 100%; border: 1px solid #dadce0; border-radius: 8px; padding: 0.75rem 1rem;
+      font-size: 0.9rem; font-family: 'Google Sans', Arial, sans-serif; color: #202124;
+      min-height: 80px; resize: vertical; line-height: 1.6;
+    }
+    .cf-instructions-box:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.15); }
+    .cf-instructions-box::placeholder { color: #9aa0a6; }
+    .cf-save-hint { font-size: 0.78rem; color: #1e8e3e; margin-top: 0.3rem; min-height: 1.2em; }
+    .cf-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .cf-stat { background: #f8f9fa; border: 1px solid #e8eaed; border-radius: 8px; padding: 0.75rem 1rem; flex: 1; min-width: 140px; }
+    .cf-stat-num { font-size: 1.5rem; font-weight: 700; color: #1a73e8; }
+    .cf-stat-label { font-size: 0.78rem; color: #5f6368; }
+    .cf-entry-group { margin-bottom: 1.5rem; }
+    .cf-entry-group h3 { font-size: 0.95rem; font-weight: 600; color: #1a73e8; margin-bottom: 0.5rem; }
+    .cf-entry {
+      background: #f8f9fa; border: 1px solid #e8eaed; border-radius: 8px; padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem; border-left: 3px solid #1a73e8;
+    }
+    .cf-entry-hl { font-size: 0.85rem; color: #202124; margin-bottom: 0.3rem; }
+    .cf-entry-pr { font-size: 0.82rem; color: #5f6368; font-style: italic; }
+    .cf-entry-meta { font-size: 0.7rem; color: #9aa0a6; margin-top: 0.3rem; display: flex; justify-content: space-between; align-items: center; }
+    .cf-entry-del { background: none; border: none; color: #9aa0a6; cursor: pointer; font-size: 0.85rem; }
+    .cf-entry-del:hover { color: #d93025; }
+    .cf-entry-img { color: #e8710a; font-size: 0.7rem; }
+    .cf-empty { text-align: center; color: #9aa0a6; padding: 3rem 0; font-size: 0.95rem; }
+    .cf-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .cf-btn {
+      font-family: Arial, sans-serif; font-size: 0.85rem; font-weight: 600;
+      border: none; border-radius: 6px; padding: 0.5rem 1.25rem; cursor: pointer;
+    }
+    .cf-btn-primary { background: #1a73e8; color: #fff; }
+    .cf-btn-primary:hover { background: #1557b0; }
+    .cf-btn-danger { background: #fff; color: #d93025; border: 1px solid #fce8e6; }
+    .cf-btn-danger:hover { background: #fce8e6; }
+    .cf-screenshot-thumb { max-width: 120px; max-height: 80px; border-radius: 4px; border: 1px solid #dadce0; margin-top: 0.3rem; cursor: pointer; }
+    .cf-screenshot-thumb:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  </style>
+</head>
+<body class="cf-page">
+
+  <div class="cf-container">
+    <h1>Change File</h1>
+    <p class="cf-subtitle">View all your annotations, add custom instructions, and export.</p>
+
+    <!-- Custom Instructions -->
+    <div class="cf-section">
+      <h2>Custom Instructions</h2>
+      <p style="font-size:0.82rem;color:#5f6368;margin-bottom:0.4rem;">These notes will appear at the top of every exported change file. Use this for methodology notes, preferences, or context.</p>
+      <textarea class="cf-instructions-box" id="cfInstructions" placeholder="e.g. I learn best with visual examples. Always include before/after code comparisons. Focus on practical usage, not theory..."></textarea>
+      <div class="cf-save-hint" id="cfSaveHint"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="cf-stats" id="cfStats"></div>
+
+    <!-- Actions -->
+    <div class="cf-actions">
+      <button class="cf-btn cf-btn-primary" id="cfExportBtn">Export Change File</button>
+      <button class="cf-btn cf-btn-danger" id="cfClearAllBtn">Clear All Annotations</button>
+    </div>
+
+    <!-- Entries -->
+    <div class="cf-section">
+      <h2>All Annotations</h2>
+      <div id="cfEntries"></div>
+    </div>
+  </div>
+
+  <script>
+    var STORAGE_KEY = 'learningHubChangeFile';
+    var VERSION_KEY = 'learningHubExportVersion';
+    var INSTRUCTIONS_KEY = 'learningHubCustomInstructions';
+
+    var instructionsBox = document.getElementById('cfInstructions');
+    var saveHint = document.getElementById('cfSaveHint');
+    var statsContainer = document.getElementById('cfStats');
+    var entriesContainer = document.getElementById('cfEntries');
+    var exportBtn = document.getElementById('cfExportBtn');
+    var clearAllBtn = document.getElementById('cfClearAllBtn');
+
+    // Load custom instructions
+    instructionsBox.value = localStorage.getItem(INSTRUCTIONS_KEY) || '';
+
+    // Auto-save instructions on change
+    var saveTimeout;
+    instructionsBox.addEventListener('input', function () {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(function () {
+        localStorage.setItem(INSTRUCTIONS_KEY, instructionsBox.value);
+        saveHint.textContent = 'Saved';
+        setTimeout(function () { saveHint.textContent = ''; }, 1500);
+      }, 500);
+    });
+
+    function getEntries() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch (e) { return []; }
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    function renderStats() {
+      var entries = getEntries();
+      var pages = {};
+      entries.forEach(function (e) { pages[e.pageFile] = true; });
+      var screenshots = entries.filter(function (e) { return !!e.screenshot; }).length;
+
+      statsContainer.innerHTML =
+        '<div class="cf-stat"><div class="cf-stat-num">' + entries.length + '</div><div class="cf-stat-label">Total Annotations</div></div>' +
+        '<div class="cf-stat"><div class="cf-stat-num">' + Object.keys(pages).length + '</div><div class="cf-stat-label">Pages Annotated</div></div>' +
+        '<div class="cf-stat"><div class="cf-stat-num">' + screenshots + '</div><div class="cf-stat-label">Screenshots</div></div>';
+    }
+
+    function renderEntries() {
+      var entries = getEntries();
+      if (entries.length === 0) {
+        entriesContainer.innerHTML = '<div class="cf-empty">No annotations yet. Open a study guide and start highlighting text!</div>';
+        return;
+      }
+
+      // Group by page
+      var grouped = {};
+      entries.forEach(function (e) {
+        var key = e.pageFile || 'Unknown';
+        if (!grouped[key]) grouped[key] = { name: e.pageName || key, entries: [] };
+        grouped[key].entries.push(e);
+      });
+
+      var html = '';
+      Object.keys(grouped).forEach(function (key) {
+        var group = grouped[key];
+        html += '<div class="cf-entry-group"><h3>' + escapeHtml(group.name) + '</h3>';
+
+        group.entries.forEach(function (e) {
+          var time = new Date(e.timestamp).toLocaleString();
+          html += '<div class="cf-entry">';
+          if (e.highlightedText) html += '<div class="cf-entry-hl">"' + escapeHtml(e.highlightedText) + '"</div>';
+          if (e.userPrompt) html += '<div class="cf-entry-pr">' + escapeHtml(e.userPrompt) + '</div>';
+          if (e.screenshot) html += '<img class="cf-screenshot-thumb" src="' + e.screenshot + '" alt="Screenshot" title="Click to view full size" onclick="window.open(this.src)">';
+          html += '<div class="cf-entry-meta"><span>' + time;
+          if (e.screenshot) html += ' <span class="cf-entry-img">has image</span>';
+          html += '</span>';
+          html += '<button class="cf-entry-del" data-id="' + e.id + '" title="Delete">&times;</button>';
+          html += '</div></div>';
+        });
+
+        html += '</div>';
+      });
+
+      entriesContainer.innerHTML = html;
+
+      // Delete handlers
+      entriesContainer.querySelectorAll('.cf-entry-del').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = this.getAttribute('data-id');
+          var entries = getEntries().filter(function (e) { return e.id !== id; });
+          saveEntries(entries);
+          renderStats();
+          renderEntries();
+        });
+      });
+    }
+
+    // Export
+    exportBtn.addEventListener('click', function () {
+      var entries = getEntries();
+      if (entries.length === 0) { alert('No annotations to export.'); return; }
+
+      var version = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10) + 1;
+      localStorage.setItem(VERSION_KEY, String(version));
+
+      var now = new Date();
+      var dateStr = now.toISOString().slice(0, 16).replace('T', ' at ');
+      var fileDate = now.toISOString().slice(0, 10) + '_' + now.toTimeString().slice(0, 5).replace(':', '');
+
+      var customInstructions = localStorage.getItem(INSTRUCTIONS_KEY) || '';
+
+      var grouped = {};
+      entries.forEach(function (e) {
+        var key = e.pageFile || 'Unknown';
+        if (!grouped[key]) grouped[key] = { name: e.pageName || key, entries: [] };
+        grouped[key].entries.push(e);
+      });
+
+      var md = '# LEARNING HUB CHANGE FILE\n';
+      md += '**Generated:** ' + dateStr + '\n';
+      md += '**Version:** v' + version + '\n';
+      md += '**Total entries:** ' + entries.length + '\n\n---\n\n';
+      md += '## Instructions for AI\n\n';
+      md += 'These are changes, corrections, and questions I want addressed on the following study guide pages. ';
+      md += 'Help me learn — be judicious with context. If I need to understand something else first, ';
+      md += 'lay it out in outline format: to understand X, you need to understand Y (indented beneath it). ';
+      md += 'For example, if there\'s something about GitHub but I don\'t understand a terminal command, ';
+      md += 'and you need to explain JavaScript to me, lay it out like:\n\n';
+      md += '- To understand **X**\n  - You first need to understand **Y**\n    - Which builds on **Z**\n\n';
+      md += 'Be patient, assume I know very little about code, and explain things clearly.\n\n';
+
+      if (customInstructions) {
+        md += '## My Custom Instructions\n\n' + customInstructions + '\n\n';
+      }
+
+      md += '---\n\n';
+
+      Object.keys(grouped).forEach(function (key) {
+        var group = grouped[key];
+        md += '## ' + group.name + ' (`' + key + '`)\n\n';
+        group.entries.forEach(function (e, i) {
+          var time = new Date(e.timestamp).toLocaleString();
+          md += '### Entry ' + (i + 1) + ' — ' + time + '\n\n';
+          if (e.highlightedText) md += '**Highlighted text:**\n> ' + e.highlightedText.replace(/\n/g, '\n> ') + '\n\n';
+          if (e.editedText) md += '**Edited to:**\n> ' + e.editedText.replace(/\n/g, '\n> ') + '\n\n';
+          if (e.userPrompt) md += '**My question/note:**\n' + e.userPrompt + '\n\n';
+          if (e.screenshot) md += '![Screenshot](' + e.screenshot + ')\n\n';
+          md += '---\n\n';
+        });
+      });
+
+      var blob = new Blob([md], { type: 'text/markdown' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'learning-hub-changes_v' + version + '_' + fileDate + '.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Clear all
+    var clearPending = false;
+    clearAllBtn.addEventListener('click', function () {
+      if (!clearPending) {
+        clearPending = true;
+        this.textContent = 'Are you sure? Click again to confirm';
+        this.style.background = '#fce8e6';
+        var self = this;
+        setTimeout(function () { clearPending = false; self.textContent = 'Clear All Annotations'; self.style.background = ''; }, 4000);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        renderStats();
+        renderEntries();
+        clearPending = false;
+        this.textContent = 'Clear All Annotations';
+        this.style.background = '';
+      }
+    });
+
+    renderStats();
+    renderEntries();
+  </script>
+
+  <script src="learning-hub.js"></script>
+
+</body>
+</html>

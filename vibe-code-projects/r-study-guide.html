@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R Study Guide — Learning Hub</title>
+  <link rel="stylesheet" href="learning-hub.css">
+</head>
+<body class="r-page">
+
+  <div class="r-container">
+    <h1>R Programming — Socratic Study Guide</h1>
+    <p class="r-subtitle">Ask a question on the left. Copy the prompt, paste it into Claude, then paste the answer on the right. Build your knowledge one question at a time.</p>
+
+    <div id="qaPairs"></div>
+
+    <button class="r-add-pair-btn" id="addPairBtn">+ Add another question</button>
+  </div>
+
+  <script>
+    var pairContainer = document.getElementById('qaPairs');
+    var addBtn = document.getElementById('addPairBtn');
+    var pairCount = 0;
+
+    function createQAPair(prefillQuestion) {
+      pairCount++;
+      var id = 'qa-' + pairCount;
+
+      var pair = document.createElement('div');
+      pair.className = 'r-qa-pair';
+      pair.id = id;
+
+      pair.innerHTML =
+        '<div class="r-question-side">' +
+          '<div class="r-side-label">Your Question</div>' +
+          '<textarea class="r-question-input" id="' + id + '-q" placeholder="e.g. How do I read a CSV file in R?&#10;What does the pipe operator do?&#10;How do I filter rows in a dataframe?">' + (prefillQuestion || '') + '</textarea>' +
+          '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' +
+            '<button class="r-generate-btn" data-pair="' + id + '">Copy Prompt for AI</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="r-answer-side">' +
+          '<div class="r-side-label">AI Answer</div>' +
+          '<div class="r-answer-content r-empty" id="' + id + '-a" contenteditable="true">Paste the AI response here...</div>' +
+          '<div style="margin-top:0.5rem;">' +
+            '<button class="r-paste-answer-btn" data-pair="' + id + '">Paste from Clipboard</button>' +
+          '</div>' +
+          '<div class="r-followup-section">' +
+            '<textarea class="r-question-input" style="min-height:40px;margin-top:0.5rem;" placeholder="Follow-up question..." id="' + id + '-followup"></textarea>' +
+            '<button class="r-generate-btn" data-pair="' + id + '" data-followup="true" style="margin-top:0.3rem;">Copy Follow-up Prompt</button>' +
+          '</div>' +
+        '</div>';
+
+      pairContainer.appendChild(pair);
+
+      // Copy prompt button
+      pair.querySelectorAll('.r-generate-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var pairId = this.getAttribute('data-pair');
+          var isFollowup = this.getAttribute('data-followup') === 'true';
+          var questionEl = document.getElementById(pairId + (isFollowup ? '-followup' : '-q'));
+          var question = questionEl.value.trim();
+
+          if (!question) {
+            alert('Write a question first.');
+            return;
+          }
+
+          var previousAnswer = '';
+          if (isFollowup) {
+            var answerEl = document.getElementById(pairId + '-a');
+            previousAnswer = answerEl.textContent.trim();
+          }
+
+          var prompt = 'I am learning R programming. Answer this question concisely.\n\n';
+          prompt += 'My question: ' + question + '\n\n';
+
+          if (isFollowup && previousAnswer && previousAnswer !== 'Paste the AI response here...') {
+            prompt += 'Context — your previous answer was:\n' + previousAnswer + '\n\n';
+          }
+
+          prompt += 'Format your response like this:\n';
+          prompt += '1. A 1-2 sentence explanation in plain language\n';
+          prompt += '2. The R code to do it (keep it short)\n';
+          prompt += '3. What the output looks like\n';
+          prompt += '4. One "gotcha" or tip to remember\n\n';
+          prompt += 'Keep it extremely concise. I\'m a beginner.';
+
+          copyToClipboard(prompt, this);
+        });
+      });
+
+      // Paste answer button
+      pair.querySelectorAll('.r-paste-answer-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var pairId = this.getAttribute('data-pair');
+          var answerEl = document.getElementById(pairId + '-a');
+          var self = this;
+
+          navigator.clipboard.readText().then(function(text) {
+            answerEl.textContent = text;
+            answerEl.classList.remove('r-empty');
+            self.textContent = 'Pasted!';
+            setTimeout(function() { self.textContent = 'Paste from Clipboard'; }, 1500);
+          }).catch(function() {
+            answerEl.classList.remove('r-empty');
+            answerEl.focus();
+            self.textContent = 'Type or Ctrl+V here';
+            setTimeout(function() { self.textContent = 'Paste from Clipboard'; }, 2000);
+          });
+        });
+      });
+
+      // Clear placeholder on focus
+      var answerEl = document.getElementById(id + '-a');
+      answerEl.addEventListener('focus', function() {
+        if (this.classList.contains('r-empty')) {
+          this.textContent = '';
+          this.classList.remove('r-empty');
+        }
+      });
+    }
+
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+      }).catch(function() {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+      });
+    }
+
+    // Start with 3 empty pairs
+    createQAPair('');
+    createQAPair('');
+    createQAPair('');
+
+    addBtn.addEventListener('click', function() {
+      createQAPair('');
+      var pairs = pairContainer.querySelectorAll('.r-qa-pair');
+      pairs[pairs.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  </script>
+
+  <script src="learning-hub.js"></script>
+
+</body>
+</html>

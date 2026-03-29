@@ -1,0 +1,3114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Complete Guide: From Zero to Confident</title>
+  <style>
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #ffffff;
+      min-height: 100vh;
+      color: #2c2c2c;
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #24292e 0%, #1b1f23 100%);
+      padding: 2.5rem 3rem;
+      border-bottom: 4px solid #2ea44f;
+    }
+
+    header h1 {
+      font-family: 'Arial', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.8);
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+
+    /* ============================================
+       TAB NAVIGATION
+       ============================================ */
+    nav {
+      background-color: #f6f8fa;
+      border-bottom: 1px solid #d0d7de;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.82rem;
+      padding: 0.9rem 1.1rem;
+      background: transparent;
+      color: #57606a;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #24292e;
+      background-color: #eaeef2;
+    }
+
+    .tab-btn.active {
+      color: #24292e;
+      font-weight: 600;
+      border-bottom: 3px solid #fd8c73;
+      background-color: #ffffff;
+    }
+
+    /* ============================================
+       CHAPTER 1 SUB-NAVIGATION
+       ============================================ */
+    .ch1-subnav {
+      position: sticky;
+      top: 112px; /* navbar (56px) + tab bar (~56px) */
+      z-index: 999995;
+      background: #1a73e8;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      margin: 0;
+      padding: 0 1rem;
+    }
+
+    .ch1-subnav-link {
+      font-family: Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 0.55rem 1.1rem;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .ch1-subnav-link:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ch1-subnav-link.active {
+      color: #fff;
+      font-weight: 600;
+      border-bottom-color: #fff;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 3rem 4rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+    h2 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.9rem;
+      color: #24292e;
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #eaeef2;
+    }
+
+    h2:first-child {
+      margin-top: 0;
+    }
+
+    h3 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.4rem;
+      color: #24292e;
+      margin: 1.8rem 0 0.8rem;
+    }
+
+    h4 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.1rem;
+      color: #57606a;
+      margin: 1.2rem 0 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       OUTLINE / INDENTATION SYSTEM
+       ============================================ */
+    .outline {
+      margin: 1rem 0;
+    }
+
+    .outline-item {
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.3rem;
+      border-left: 3px solid #d0d7de;
+      background: #f6f8fa;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .outline-item .label {
+      font-family: 'Arial', sans-serif;
+      font-weight: 600;
+      color: #24292e;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .outline-item .desc {
+      color: #57606a;
+      font-size: 0.95rem;
+    }
+
+    .outline-sub {
+      margin-left: 2rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .outline-sub .outline-item {
+      border-left-color: #a8d8ea;
+      background: #eef6fc;
+    }
+
+    .outline-sub .outline-sub .outline-item {
+      border-left-color: #d4edda;
+      background: #f0faf3;
+    }
+
+    /* ============================================
+       KEY INSIGHT CALLOUT
+       ============================================ */
+    .key-insight {
+      background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+      border: 1px solid #ffc107;
+      border-left: 5px solid #ffc107;
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+      font-style: italic;
+    }
+
+    .key-insight::before {
+      content: "Key Insight";
+      display: block;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      font-style: normal;
+      color: #856404;
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ============================================
+       INFO CALLOUT
+       ============================================ */
+    .info-box {
+      background: #f0f7ff;
+      border: 1px solid #b6d4fe;
+      border-left: 5px solid #0d6efd;
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .info-box .info-label {
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      color: #084298;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       WARNING CALLOUT
+       ============================================ */
+    .warning-box {
+      background: #fff5f5;
+      border: 1px solid #f5c2c7;
+      border-left: 5px solid #dc3545;
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .warning-box .warning-label {
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      color: #842029;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       CODE BLOCKS & TERMINAL
+       ============================================ */
+    .code-block {
+      background: #24292e;
+      color: #e1e4e8;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      padding: 1.2rem 1.5rem;
+      border-radius: 6px;
+      margin: 1rem 0;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    .code-block .comment {
+      color: #6a737d;
+    }
+
+    .code-block .command {
+      color: #79b8ff;
+    }
+
+    .code-block .prompt {
+      color: #85e89d;
+    }
+
+    code {
+      background: #eff1f3;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+      color: #cf222e;
+    }
+
+    /* ============================================
+       COMPARISON TABLES
+       ============================================ */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    .comparison-table th {
+      font-family: 'Arial', sans-serif;
+      background: #24292e;
+      color: white;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid #d0d7de;
+      vertical-align: top;
+    }
+
+    .comparison-table tr:nth-child(even) {
+      background: #f6f8fa;
+    }
+
+    /* hover removed — table rows are not clickable (see ARCHITECTURE.md rule 7) */
+
+    /* ============================================
+       VISUAL DIAGRAMS
+       ============================================ */
+    .diagram {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .diagram-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    /* ============================================
+       GITHUB MOCK-UP STYLES
+       ============================================ */
+    .gh-mock {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+    }
+
+    .gh-mock-header {
+      background: #f6f8fa;
+      border-bottom: 1px solid #d0d7de;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .gh-mock-repo-name {
+      font-weight: 600;
+      color: #0969da;
+      font-size: 1.1rem;
+    }
+
+    .gh-mock-repo-name span {
+      color: #57606a;
+      font-weight: 400;
+    }
+
+    .gh-mock-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      border: 1px solid #d0d7de;
+      color: #57606a;
+    }
+
+    .gh-mock-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #d0d7de;
+      flex-wrap: wrap;
+    }
+
+    .gh-mock-tab {
+      padding: 0.6rem 1rem;
+      color: #57606a;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-bottom: 2px solid transparent;
+    }
+
+    .gh-mock-tab.selected {
+      font-weight: 600;
+      color: #24292e;
+      border-bottom: 2px solid #fd8c73;
+    }
+
+    .gh-mock-tab .count {
+      background: #eaeef2;
+      border-radius: 10px;
+      padding: 0 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .gh-mock-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #d0d7de;
+      flex-wrap: wrap;
+    }
+
+    .gh-btn {
+      padding: 0.35rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid #d0d7de;
+      font-size: 0.8rem;
+      cursor: default;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .gh-btn-green {
+      background: #2ea44f;
+      color: white;
+      border-color: #2ea44f;
+    }
+
+    .gh-btn-outline {
+      background: #f6f8fa;
+      color: #24292e;
+    }
+
+    .gh-mock-body {
+      padding: 1rem;
+    }
+
+    .gh-mock-branch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #ddf4ff;
+      border: 1px solid #b6d4fe;
+      border-radius: 6px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.8rem;
+      color: #0969da;
+    }
+
+    /* ============================================
+       FLOW DIAGRAMS (CSS)
+       ============================================ */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .flow-box {
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: #57606a;
+    }
+
+    .flow-box-local {
+      background: #ddf4ff;
+      border: 2px solid #0969da;
+      color: #0969da;
+    }
+
+    .flow-box-action {
+      background: #fff8c5;
+      border: 2px solid #d4a72c;
+      color: #7c4d12;
+    }
+
+    .flow-box-remote {
+      background: #dcffe4;
+      border: 2px solid #2ea44f;
+      color: #116329;
+    }
+
+    .flow-box-danger {
+      background: #fff5f5;
+      border: 2px solid #dc3545;
+      color: #842029;
+    }
+
+    /* ============================================
+       BRANCH DIAGRAM
+       ============================================ */
+    .branch-diagram {
+      position: relative;
+      padding: 2rem 1rem;
+      min-height: 200px;
+    }
+
+    .branch-line {
+      position: relative;
+      height: 4px;
+      border-radius: 2px;
+      margin: 1.5rem 0;
+    }
+
+    .branch-line-main {
+      background: #2ea44f;
+      width: 100%;
+    }
+
+    .branch-line-feature {
+      background: #0969da;
+      width: 60%;
+      margin-left: 20%;
+    }
+
+    .branch-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      position: absolute;
+      top: -6px;
+      border: 2px solid white;
+    }
+
+    .branch-dot-main {
+      background: #2ea44f;
+    }
+
+    .branch-dot-feature {
+      background: #0969da;
+    }
+
+    .branch-dot-merge {
+      background: #8957e5;
+      width: 20px;
+      height: 20px;
+      top: -8px;
+    }
+
+    .branch-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      position: absolute;
+      top: -28px;
+      white-space: nowrap;
+    }
+
+    .branch-commit-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.65rem;
+      color: #57606a;
+      position: absolute;
+      top: 14px;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .branch-fork-line {
+      position: absolute;
+      width: 2px;
+      background: #0969da;
+    }
+
+    .branch-merge-line {
+      position: absolute;
+      width: 2px;
+      background: #8957e5;
+    }
+
+    /* Full visual branch diagram */
+    .visual-branch-container {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+
+    .visual-branch-container svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* ============================================
+       VIDEO LINK BUTTONS
+       ============================================ */
+    .video-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin: 1.5rem 0;
+    }
+
+    .video-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: #ff0000;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .video-link:hover {
+      background: #cc0000;
+    }
+
+    .video-link::before {
+      content: "\25B6";
+      font-size: 0.7rem;
+    }
+
+    /* ============================================
+       QUICK REFERENCE TABLE
+       ============================================ */
+    .quick-ref {
+      margin: 3rem 0 2rem;
+      padding-top: 2rem;
+      border-top: 3px solid #24292e;
+    }
+
+    .quick-ref h2 {
+      border-bottom: none;
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    /* ============================================
+       FINDER ANALOGY BOX
+       ============================================ */
+    .finder-analogy {
+      background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+      border: 1px solid #c8c8d4;
+      border-left: 5px solid #7d7da8;
+      border-radius: 6px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .finder-analogy::before {
+      content: "Finder Analogy";
+      display: block;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      color: #5a5a80;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.3rem;
+    }
+
+    /* ============================================
+       STEP-BY-STEP
+       ============================================ */
+    .steps {
+      counter-reset: step-counter;
+      margin: 1rem 0;
+    }
+
+    .step {
+      counter-increment: step-counter;
+      padding: 0.8rem 1rem 0.8rem 3.5rem;
+      margin-bottom: 0.5rem;
+      background: #f6f8fa;
+      border-radius: 6px;
+      position: relative;
+      border: 1px solid #eaeef2;
+    }
+
+    .step::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0.8rem;
+      top: 0.7rem;
+      width: 2rem;
+      height: 2rem;
+      background: #2ea44f;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    /* ============================================
+       SIDE-BY-SIDE COMPARISON
+       ============================================ */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .side-by-side > div {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .side-by-side h4 {
+      margin-top: 0;
+    }
+
+    @media (max-width: 768px) {
+      .side-by-side {
+        grid-template-columns: 1fr;
+      }
+      header {
+        padding: 1.5rem;
+      }
+      .container {
+        padding: 1.5rem;
+      }
+      .nav-inner {
+        overflow-x: auto;
+      }
+    }
+
+    /* ============================================
+       INTERACTIVE TOGGLE
+       ============================================ */
+    .toggle-section {
+      margin: 1rem 0;
+    }
+
+    .toggle-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background: #eaeef2;
+    }
+
+    .toggle-btn.active {
+      background: #0969da;
+      color: white;
+      border-color: #0969da;
+    }
+
+    .toggle-content {
+      display: none;
+      margin-top: 0.8rem;
+    }
+
+    .toggle-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       FILE TREE VISUAL
+       ============================================ */
+    .file-tree {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      line-height: 1.8;
+      color: #24292e;
+    }
+
+    .file-tree .folder {
+      color: #0969da;
+      font-weight: 600;
+    }
+
+    .file-tree .file {
+      color: #57606a;
+    }
+
+    .file-tree .ignored {
+      color: #cf222e;
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .file-tree .indent {
+      display: inline-block;
+      width: 1.5rem;
+    }
+
+    /* ============================================
+       LOCAL-REMOTE DIAGRAM
+       ============================================ */
+    .local-remote-diagram {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      gap: 2rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+
+    .lr-box {
+      flex: 1;
+      min-width: 250px;
+      max-width: 400px;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .lr-local {
+      background: #ddf4ff;
+      border: 2px solid #0969da;
+    }
+
+    .lr-remote {
+      background: #dcffe4;
+      border: 2px solid #2ea44f;
+    }
+
+    .lr-box h3 {
+      margin-top: 0;
+      font-size: 1.1rem;
+    }
+
+    .lr-box .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .lr-arrows {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Arial', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #57606a;
+    }
+
+    .lr-arrows .arrow-up,
+    .lr-arrows .arrow-down {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* ============================================
+       SECTION DIVIDER
+       ============================================ */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #eaeef2;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       HEADER
+       ========================================== -->
+  <header>
+    <h1>GitHub Complete Guide</h1>
+    <p class="subtitle">Everything you need to know about GitHub, Git, and the tools around them -- for people who have never touched code.</p>
+  </header>
+
+  <!-- ==========================================
+       TAB NAVIGATION
+       ========================================== -->
+  <nav>
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="chapter-1">Chapter 1: Foundations</button>
+      <button class="tab-btn" data-tab="chapter-2">Chapter 2: Going Deeper</button>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <div class="tab-content active" id="chapter-1">
+
+      <nav class="ch1-subnav" id="ch1Subnav">
+        <a href="#sec-big-picture" class="ch1-subnav-link active" data-section="sec-big-picture">Big Picture</a>
+        <a href="#sec-interface" class="ch1-subnav-link" data-section="sec-interface">Interface</a>
+        <a href="#sec-workflow" class="ch1-subnav-link" data-section="sec-workflow">Workflow</a>
+        <a href="#sec-branches" class="ch1-subnav-link" data-section="sec-branches">Branches</a>
+        <a href="#sec-local-remote" class="ch1-subnav-link" data-section="sec-local-remote">Local/Remote</a>
+        <a href="#sec-pages" class="ch1-subnav-link" data-section="sec-pages">Pages</a>
+        <a href="#sec-tools" class="ch1-subnav-link" data-section="sec-tools">Tools</a>
+        <a href="#sec-best-practices" class="ch1-subnav-link" data-section="sec-best-practices">Practices</a>
+      </nav>
+
+      <h2 id="sec-big-picture">The Big Picture</h2>
+<p>Before diving into buttons and commands, let's understand what GitHub actually <em>is</em> and why it exists. If you only read one tab, read this one.</p>
+
+      <h3>What is GitHub?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">GitHub is like Google Docs for code.</span>
+          <span class="desc">Just like Google Docs lets multiple people work on the same document, track changes, leave comments, and see who wrote what -- GitHub does all of that for code files. It stores your files in the cloud, remembers every change ever made, and lets multiple people collaborate without overwriting each other's work.</span> <a href="https://docs.github.com/en/get-started/start-your-journey/about-github-and-git" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        Imagine you have a folder on your Mac Desktop called "my-website". You make changes to files inside it every day. Now imagine that folder could <strong>remember every version of every file you ever saved</strong>, let you jump back to any previous version instantly, and automatically sync to the internet so your teammates could see your work. That's GitHub.
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is Git vs GitHub?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Git = the engine under the hood</span>
+          <span class="desc">Git is a program that runs on your computer. It tracks changes to files. It was invented in 2005 by the person who created Linux. Git works entirely on your own machine -- it doesn't need the internet. Git is not a programming language or a library -- it is a standalone software program (written in C) that you install and run as a command-line tool, much like how Finder is a program for managing files but Git is a program for managing file versions.</span> <a href="https://docs.github.com/en/get-started/using-git/about-git" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+        <div class="outline-item">
+          <span class="label">GitHub = the website that uses Git</span>
+          <span class="desc">GitHub is a website (github.com) built on top of Git. It takes everything Git can do and adds a visual interface, cloud storage, collaboration features, and social features like profiles and followers. Think of Git as the car engine and GitHub as the car with the dashboard, steering wheel, and GPS. GitHub.com provides a visual web interface for Git -- instead of typing commands like <code>git commit</code> in a terminal, you can click buttons on the website to do the same things. GitHub Desktop is a Mac app that offers the same convenience. In total, there are three ways to use Git: (1) Terminal commands, (2) the GitHub.com website, and (3) the GitHub Desktop app.</span>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Git</th>
+            <th>GitHub</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>What it is</td>
+            <td>Software on your computer</td>
+            <td>Website / cloud service</td>
+          </tr>
+          <tr>
+            <td>Where it runs</td>
+            <td>Your local machine</td>
+            <td>In your web browser</td>
+          </tr>
+          <tr>
+            <td>Needs internet?</td>
+            <td>No</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Has a visual interface?</td>
+            <td>No built-in GUI (third-party tools like GitHub Desktop exist)</td>
+            <td>Yes (website + desktop app)</td>
+          </tr>
+          <tr>
+            <td>Analogy</td>
+            <td>The engine</td>
+            <td>The car + dashboard</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">
+        Git is a <strong>distributed</strong> version control system. This means every developer has a complete copy of the entire project history on their own computer -- not just the latest version. If the server goes down, any developer's copy can restore the whole project.
+      </div>
+
+      <p>In practice, this means that when you clone a repository, you download the entire project and its full history to your machine. Every commit, every version, every branch reference -- it all lives in a hidden <code>.git</code> folder inside your project folder. If you lose internet, you can still commit changes, view history, and create branches locally. When you reconnect, you <code>push</code> your local commits to GitHub and everything syncs up. Git is smart enough to merge your offline work with whatever happened on the server while you were away.</p>
+
+      <hr class="section-divider">
+
+      <h3>What is a Repository?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">A repository ("repo") is a project folder with superpowers.</span>
+          <span class="desc">It looks and acts like a regular folder on your Mac -- it has files and subfolders inside it. But it also has a hidden layer that remembers every change you've ever made. Every save point. Every version. It's a folder with a built-in time machine.</span> <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        Open Finder on your Mac. Navigate to any folder. That's basically what a repository looks like on your computer -- just a folder with files. The only difference is that inside that folder, there's a hidden folder called <code>.git</code> that stores all the version history. You'll never need to open or edit that hidden folder. It's Git's brain.
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What Tools Do You Need?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">IDE = Integrated Development Environment</span>
+          <span class="desc">An IDE is your workspace for writing code, just like Microsoft Word is your workspace for writing documents, or Photoshop is for editing images. An IDE is a program where you open files, type code, and save them.</span>
+        </div>
+
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">VS Code (Visual Studio Code)</span>
+            <span class="desc">Free, made by Microsoft, and the most popular IDE in the world. It looks like a text editor but with features like color-coded text, file browsing, and a built-in Terminal. If someone says "open it in VS Code," they mean open the folder/file in this app.</span>
+          </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" style="max-width:500px;width:100%;height:auto;">
+              <!-- Window frame -->
+              <rect x="0" y="0" width="500" height="300" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1.5"/>
+              <!-- Title bar -->
+              <rect x="0" y="0" width="500" height="32" rx="8" fill="#323233"/>
+              <rect x="0" y="16" width="500" height="16" fill="#323233"/>
+              <!-- Traffic lights -->
+              <circle cx="16" cy="16" r="5.5" fill="#ff5f57"/>
+              <circle cx="34" cy="16" r="5.5" fill="#febc2e"/>
+              <circle cx="52" cy="16" r="5.5" fill="#28c840"/>
+              <text x="250" y="20" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#cccccc" font-weight="600">VS Code</text>
+              <!-- Activity bar (far left icons) -->
+              <rect x="0" y="32" width="40" height="268" fill="#333333"/>
+              <rect x="0" y="284" width="40" height="16" rx="0" fill="#333333"/>
+              <!-- Activity bar icons -->
+              <rect x="12" y="46" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="12" y="72" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="12" y="98" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="12" y="124" width="16" height="16" rx="2" fill="#0078d4" opacity="0.9"/>
+              <rect x="12" y="150" width="16" height="16" rx="2" fill="#888"/>
+              <!-- Sidebar (file explorer) -->
+              <rect x="40" y="32" width="120" height="268" fill="#252526"/>
+              <text x="50" y="52" font-family="Arial,sans-serif" font-size="9" fill="#bbbbbb" font-weight="600" text-transform="uppercase" letter-spacing="0.5">EXPLORER</text>
+              <!-- Folder icons and file tree -->
+              <text x="50" y="72" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; my-project</text>
+              <text x="62" y="88" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; css/</text>
+              <text x="62" y="104" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; js/</text>
+              <text x="62" y="120" font-family="Arial,sans-serif" font-size="10" fill="#e8ab53">index.html</text>
+              <text x="62" y="136" font-family="Arial,sans-serif" font-size="10" fill="#519aba">style.css</text>
+              <!-- Editor area -->
+              <rect x="160" y="32" width="340" height="18" fill="#252526"/>
+              <!-- Tab -->
+              <rect x="160" y="32" width="100" height="18" fill="#1e1e1e"/>
+              <text x="172" y="44" font-family="Arial,sans-serif" font-size="9" fill="#ffffff">index.html</text>
+              <rect x="260" y="32" width="80" height="18" fill="#2d2d2d"/>
+              <text x="272" y="44" font-family="Arial,sans-serif" font-size="9" fill="#969696">style.css</text>
+              <!-- Code lines -->
+              <!-- Line numbers -->
+              <text x="170" y="68" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">1</text>
+              <text x="170" y="82" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">2</text>
+              <text x="170" y="96" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">3</text>
+              <text x="170" y="110" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">4</text>
+              <text x="170" y="124" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">5</text>
+              <text x="170" y="138" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">6</text>
+              <!-- Code text -->
+              <text x="190" y="68" font-family="Courier New,monospace" font-size="10" fill="#569cd6">&lt;!DOCTYPE</text><text x="268" y="68" font-family="Courier New,monospace" font-size="10" fill="#9cdcfe"> html</text><text x="298" y="68" font-family="Courier New,monospace" font-size="10" fill="#569cd6">&gt;</text>
+              <text x="190" y="82" font-family="Courier New,monospace" font-size="10" fill="#808080">&lt;</text><text x="198" y="82" font-family="Courier New,monospace" font-size="10" fill="#569cd6">html</text><text x="224" y="82" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="190" y="96" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;</text><text x="210" y="96" font-family="Courier New,monospace" font-size="10" fill="#569cd6">head</text><text x="236" y="96" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="190" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">    &lt;</text><text x="218" y="110" font-family="Courier New,monospace" font-size="10" fill="#569cd6">title</text><text x="250" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text><text x="258" y="110" font-family="Courier New,monospace" font-size="10" fill="#ce9178">My Site</text><text x="306" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">&lt;/</text><text x="318" y="110" font-family="Courier New,monospace" font-size="10" fill="#569cd6">title</text><text x="350" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="190" y="124" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;/</text><text x="214" y="124" font-family="Courier New,monospace" font-size="10" fill="#569cd6">head</text><text x="240" y="124" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="190" y="138" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;</text><text x="210" y="138" font-family="Courier New,monospace" font-size="10" fill="#569cd6">body</text><text x="236" y="138" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <!-- Terminal area -->
+              <rect x="160" y="220" width="340" height="80" fill="#1e1e1e"/>
+              <rect x="160" y="220" width="340" height="18" fill="#252526"/>
+              <text x="172" y="233" font-family="Arial,sans-serif" font-size="9" fill="#cccccc" font-weight="600">TERMINAL</text>
+              <text x="170" y="252" font-family="Courier New,monospace" font-size="10" fill="#4ec9b0">$</text>
+              <text x="182" y="252" font-family="Courier New,monospace" font-size="10" fill="#cccccc"> git status</text>
+              <text x="170" y="268" font-family="Courier New,monospace" font-size="10" fill="#6a9955">On branch main</text>
+              <!-- Status bar -->
+              <rect x="0" y="284" width="500" height="16" fill="#0078d4"/>
+              <text x="10" y="295" font-family="Arial,sans-serif" font-size="9" fill="#ffffff">main</text>
+              <text x="460" y="295" font-family="Arial,sans-serif" font-size="9" fill="#ffffff" text-anchor="end">UTF-8</text>
+              <!-- Labels -->
+              <text x="20" y="210" font-family="Arial,sans-serif" font-size="8" fill="#666666" transform="rotate(-90 20 210)">Activity Bar</text>
+              <text x="100" y="165" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">File Explorer</text>
+              <text x="330" y="165" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">Code Editor</text>
+              <text x="330" y="278" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">Built-in Terminal</text>
+            </svg>
+          </div>
+          <div class="outline-item">
+            <span class="label">Cursor</span>
+            <span class="desc">Cursor is VS Code but with AI built directly into it. It looks identical to VS Code, uses all the same features, but adds the ability to chat with an AI about your code and have it write/edit code for you. It's essentially "VS Code + ChatGPT in one app." By comparison, VS Code with an AI extension (like Claude, GitHub Copilot, or Microsoft Copilot) gives you a chat sidebar and inline suggestions, but Cursor goes further -- the AI is woven into every part of the editor, able to read your entire project, edit multiple files at once, and understand the full context of what you're building. Think of VS Code + Copilot as having a helpful assistant sitting next to you, while Cursor is more like the assistant has their hands on the keyboard. The Tools &amp; Setup tab explores these options in more detail.</span>
+          </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" style="max-width:500px;width:100%;height:auto;">
+              <!-- Window frame -->
+              <rect x="0" y="0" width="500" height="300" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1.5"/>
+              <!-- Title bar -->
+              <rect x="0" y="0" width="500" height="32" rx="8" fill="#323233"/>
+              <rect x="0" y="16" width="500" height="16" fill="#323233"/>
+              <!-- Traffic lights -->
+              <circle cx="16" cy="16" r="5.5" fill="#ff5f57"/>
+              <circle cx="34" cy="16" r="5.5" fill="#febc2e"/>
+              <circle cx="52" cy="16" r="5.5" fill="#28c840"/>
+              <text x="250" y="20" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#cccccc" font-weight="600">Cursor</text>
+              <!-- Activity bar (far left) -->
+              <rect x="0" y="32" width="40" height="268" fill="#333333"/>
+              <rect x="12" y="46" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="12" y="72" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="12" y="98" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="12" y="124" width="16" height="16" rx="2" fill="#7c3aed" opacity="0.9"/>
+              <!-- Sidebar (file explorer) -->
+              <rect x="40" y="32" width="100" height="268" fill="#252526"/>
+              <text x="50" y="52" font-family="Arial,sans-serif" font-size="9" fill="#bbbbbb" font-weight="600">EXPLORER</text>
+              <text x="50" y="72" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; my-project</text>
+              <text x="62" y="88" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; css/</text>
+              <text x="62" y="104" font-family="Arial,sans-serif" font-size="10" fill="#e8ab53">index.html</text>
+              <text x="62" y="120" font-family="Arial,sans-serif" font-size="10" fill="#519aba">style.css</text>
+              <!-- Editor area -->
+              <rect x="140" y="32" width="220" height="18" fill="#252526"/>
+              <rect x="140" y="32" width="90" height="18" fill="#1e1e1e"/>
+              <text x="152" y="44" font-family="Arial,sans-serif" font-size="9" fill="#ffffff">index.html</text>
+              <!-- Code lines -->
+              <text x="150" y="68" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">1</text>
+              <text x="150" y="82" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">2</text>
+              <text x="150" y="96" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">3</text>
+              <text x="150" y="110" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">4</text>
+              <text x="150" y="124" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">5</text>
+              <text x="168" y="68" font-family="Courier New,monospace" font-size="10" fill="#569cd6">&lt;!DOCTYPE html&gt;</text>
+              <text x="168" y="82" font-family="Courier New,monospace" font-size="10" fill="#808080">&lt;</text><text x="176" y="82" font-family="Courier New,monospace" font-size="10" fill="#569cd6">html</text><text x="202" y="82" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="168" y="96" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;</text><text x="188" y="96" font-family="Courier New,monospace" font-size="10" fill="#569cd6">head</text><text x="214" y="96" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="168" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">    &lt;</text><text x="196" y="110" font-family="Courier New,monospace" font-size="10" fill="#569cd6">title</text><text x="228" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text><text x="236" y="110" font-family="Courier New,monospace" font-size="10" fill="#ce9178">My Site</text><text x="284" y="110" font-family="Courier New,monospace" font-size="10" fill="#808080">&lt;/title&gt;</text>
+              <text x="168" y="124" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;/</text><text x="192" y="124" font-family="Courier New,monospace" font-size="10" fill="#569cd6">head</text><text x="218" y="124" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <!-- Terminal -->
+              <rect x="140" y="220" width="220" height="64" fill="#1e1e1e"/>
+              <rect x="140" y="220" width="220" height="16" fill="#252526"/>
+              <text x="150" y="232" font-family="Arial,sans-serif" font-size="9" fill="#cccccc" font-weight="600">TERMINAL</text>
+              <text x="150" y="250" font-family="Courier New,monospace" font-size="10" fill="#4ec9b0">$</text>
+              <text x="162" y="250" font-family="Courier New,monospace" font-size="10" fill="#cccccc"> git status</text>
+              <!-- AI Chat Panel (right side) -->
+              <rect x="360" y="32" width="140" height="252" fill="#1a1625" stroke="#7c3aed" stroke-width="1.5"/>
+              <rect x="360" y="32" width="140" height="22" fill="#2d2041"/>
+              <text x="430" y="47" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#c4b5fd" font-weight="600">AI Chat</text>
+              <!-- Chat bubble icon -->
+              <rect x="380" y="66" width="100" height="28" rx="10" fill="#7c3aed" opacity="0.2" stroke="#7c3aed" stroke-width="0.8"/>
+              <text x="430" y="84" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#c4b5fd">How can I help?</text>
+              <!-- User message bubble -->
+              <rect x="390" y="104" width="90" height="22" rx="8" fill="#3b2d5e"/>
+              <text x="435" y="119" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#e0d4fd">Fix this bug...</text>
+              <!-- AI response bubble -->
+              <rect x="375" y="136" width="110" height="30" rx="8" fill="#7c3aed" opacity="0.15"/>
+              <text x="430" y="150" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#c4b5fd">Sure! I updated</text>
+              <text x="430" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#c4b5fd">line 12 for you.</text>
+              <!-- Chat input -->
+              <rect x="368" y="254" width="124" height="22" rx="4" fill="#2d2041" stroke="#7c3aed" stroke-width="0.5"/>
+              <text x="378" y="268" font-family="Arial,sans-serif" font-size="8" fill="#888">Ask anything...</text>
+              <!-- Status bar -->
+              <rect x="0" y="284" width="500" height="16" fill="#7c3aed"/>
+              <text x="10" y="295" font-family="Arial,sans-serif" font-size="9" fill="#ffffff">main</text>
+              <text x="460" y="295" font-family="Arial,sans-serif" font-size="9" fill="#ffffff" text-anchor="end">UTF-8</text>
+              <!-- Labels -->
+              <text x="85" y="145" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">File Explorer</text>
+              <text x="250" y="155" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">Code Editor</text>
+              <text x="430" y="198" font-family="Arial,sans-serif" font-size="8" fill="#9f7aea" text-anchor="middle">AI Chat Panel</text>
+            </svg>
+            <div style="text-align:center;margin-top:0.3rem;font-size:0.75rem;font-style:italic;color:#57606a;font-family:'Arial',sans-serif;">Same as VS Code, plus an AI chat panel on the right</div>
+          </div>
+          <div class="outline-item">
+            <span class="label">GitHub Codespaces</span>
+            <span class="desc">VS Code running in your web browser. You don't install anything -- you just go to a GitHub repository, click a button, and a full IDE opens in your browser tab. Great for getting started quickly or when you're on someone else's computer. Because Codespaces is VS Code running in your browser, the buttons, menus, and shortcuts are identical to the desktop version. The Tools &amp; Setup tab walks through the VS Code interface in detail.</span> <a href="https://docs.github.com/en/codespaces/overview" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+          </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" style="max-width:500px;width:100%;height:auto;">
+              <!-- Browser chrome -->
+              <rect x="0" y="0" width="500" height="320" rx="8" fill="#e8e8e8" stroke="#bbb" stroke-width="1.5"/>
+              <!-- Browser title bar -->
+              <rect x="0" y="0" width="500" height="28" rx="8" fill="#dee1e6"/>
+              <rect x="0" y="14" width="500" height="14" fill="#dee1e6"/>
+              <!-- Browser traffic lights -->
+              <circle cx="16" cy="14" r="5" fill="#ff5f57"/>
+              <circle cx="34" cy="14" r="5" fill="#febc2e"/>
+              <circle cx="52" cy="14" r="5" fill="#28c840"/>
+              <!-- Address bar -->
+              <rect x="80" y="5" width="340" height="18" rx="9" fill="#ffffff" stroke="#ccc" stroke-width="0.8"/>
+              <text x="100" y="17" font-family="Arial,sans-serif" font-size="9" fill="#555">github.dev/username/repo</text>
+              <!-- Lock icon hint -->
+              <circle cx="92" cy="14" r="4" fill="none" stroke="#2ea44f" stroke-width="1"/>
+              <rect x="90" y="12" width="4" height="4" rx="1" fill="#2ea44f"/>
+              <!-- VS Code inside browser -->
+              <rect x="4" y="28" width="492" height="288" fill="#1e1e1e"/>
+              <!-- VS Code title bar inside browser -->
+              <rect x="4" y="28" width="492" height="24" fill="#2ea44f"/>
+              <text x="250" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#ffffff" font-weight="600">GitHub Codespaces</text>
+              <!-- Activity bar -->
+              <rect x="4" y="52" width="36" height="264" fill="#333333"/>
+              <rect x="14" y="62" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="14" y="86" width="16" height="16" rx="2" fill="#888"/>
+              <rect x="14" y="110" width="16" height="16" rx="2" fill="#2ea44f" opacity="0.9"/>
+              <!-- Sidebar -->
+              <rect x="40" y="52" width="110" height="264" fill="#252526"/>
+              <text x="50" y="70" font-family="Arial,sans-serif" font-size="9" fill="#bbbbbb" font-weight="600">EXPLORER</text>
+              <text x="50" y="88" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; my-project</text>
+              <text x="62" y="104" font-family="Arial,sans-serif" font-size="10" fill="#cccccc">&#9660; css/</text>
+              <text x="62" y="120" font-family="Arial,sans-serif" font-size="10" fill="#e8ab53">index.html</text>
+              <text x="62" y="136" font-family="Arial,sans-serif" font-size="10" fill="#519aba">style.css</text>
+              <!-- Editor tabs -->
+              <rect x="150" y="52" width="346" height="18" fill="#252526"/>
+              <rect x="150" y="52" width="90" height="18" fill="#1e1e1e"/>
+              <text x="162" y="64" font-family="Arial,sans-serif" font-size="9" fill="#ffffff">index.html</text>
+              <!-- Code lines -->
+              <text x="160" y="86" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">1</text>
+              <text x="160" y="100" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">2</text>
+              <text x="160" y="114" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">3</text>
+              <text x="160" y="128" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">4</text>
+              <text x="160" y="142" font-family="Courier New,monospace" font-size="10" fill="#5a5a5a">5</text>
+              <text x="178" y="86" font-family="Courier New,monospace" font-size="10" fill="#569cd6">&lt;!DOCTYPE html&gt;</text>
+              <text x="178" y="100" font-family="Courier New,monospace" font-size="10" fill="#808080">&lt;</text><text x="186" y="100" font-family="Courier New,monospace" font-size="10" fill="#569cd6">html</text><text x="212" y="100" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="178" y="114" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;</text><text x="198" y="114" font-family="Courier New,monospace" font-size="10" fill="#569cd6">head</text><text x="224" y="114" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <text x="178" y="128" font-family="Courier New,monospace" font-size="10" fill="#808080">    &lt;</text><text x="206" y="128" font-family="Courier New,monospace" font-size="10" fill="#569cd6">title</text><text x="238" y="128" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text><text x="246" y="128" font-family="Courier New,monospace" font-size="10" fill="#ce9178">My Site</text><text x="294" y="128" font-family="Courier New,monospace" font-size="10" fill="#808080">&lt;/title&gt;</text>
+              <text x="178" y="142" font-family="Courier New,monospace" font-size="10" fill="#808080">  &lt;/</text><text x="202" y="142" font-family="Courier New,monospace" font-size="10" fill="#569cd6">head</text><text x="228" y="142" font-family="Courier New,monospace" font-size="10" fill="#808080">&gt;</text>
+              <!-- Terminal -->
+              <rect x="150" y="240" width="346" height="60" fill="#1e1e1e"/>
+              <rect x="150" y="240" width="346" height="16" fill="#252526"/>
+              <text x="162" y="252" font-family="Arial,sans-serif" font-size="9" fill="#cccccc" font-weight="600">TERMINAL</text>
+              <text x="162" y="270" font-family="Courier New,monospace" font-size="10" fill="#4ec9b0">$</text>
+              <text x="174" y="270" font-family="Courier New,monospace" font-size="10" fill="#cccccc"> git status</text>
+              <!-- Status bar with green accent -->
+              <rect x="4" y="300" width="492" height="16" fill="#2ea44f"/>
+              <text x="14" y="311" font-family="Arial,sans-serif" font-size="9" fill="#ffffff">Codespaces: main</text>
+              <text x="464" y="311" font-family="Arial,sans-serif" font-size="9" fill="#ffffff" text-anchor="end">UTF-8</text>
+              <!-- Labels -->
+              <text x="95" y="160" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">File Explorer</text>
+              <text x="323" y="170" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">Code Editor</text>
+              <text x="323" y="290" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">Built-in Terminal</text>
+              <!-- Browser label -->
+              <text x="250" y="336" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#888888">Browser window</text>
+            </svg>
+            <div style="text-align:center;margin-top:0.3rem;font-size:0.75rem;font-style:italic;color:#57606a;font-family:'Arial',sans-serif;">VS Code running inside your browser -- no installation needed</div>
+          </div>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">GitHub Desktop (not an IDE -- it's a visual Git client)</span>
+          <span class="desc">A simplified visual app made by GitHub. It's not for writing code -- it's for managing your Git operations (committing, pushing, pulling, switching branches) without using the Terminal. Think of it as a visual remote control for Git. You use it alongside an IDE, not instead of one. GitHub Desktop handles the most common Git operations -- commit, push, pull, branch, merge, view history, and resolve conflicts -- covering roughly 95% of what beginners need. Some advanced operations like rebasing or cherry-picking still require the terminal.</span> <a href="https://docs.github.com/en/desktop/overview/about-github-desktop" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        You don't need to understand code to use GitHub. Think of it as a really powerful folder system with a time machine.
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=pBy1zgt0XPc" target="_blank" class="video-link">What is GitHub? (GitHub official, 4 min)</a>
+        <a href="https://www.youtube.com/watch?v=HkdAHXoRtos" target="_blank" class="video-link">Git Explained in 100 Seconds (Fireship)</a>
+        <a href="https://www.youtube.com/watch?v=RGOj5yH7evk" target="_blank" class="video-link">Git &amp; GitHub Crash Course (freeCodeCamp, 1 hr)</a>
+      </div>
+
+      <h2 id="sec-interface">The GitHub Interface</h2>
+<p>When you open a repository on GitHub.com, you'll see a specific layout. Let's walk through every element so nothing looks unfamiliar.</p>
+
+      <h3>What You See When You Open a Repository</h3>
+      <p>Below is a visual mock-up of a typical GitHub repository page. Each element is labeled and explained beneath it.</p>
+
+      <!-- GITHUB MOCK-UP -->
+      <div class="gh-mock">
+        <!-- Row 1: Repo name -->
+        <div class="gh-mock-header">
+          <span class="gh-mock-repo-name"><span>your-username / </span>my-awesome-project</span>
+          <span class="gh-mock-badge">Public</span>
+        </div>
+
+        <!-- Row 2: Tabs -->
+        <div class="gh-mock-tabs">
+          <div class="gh-mock-tab selected">&#128196; Code</div>
+          <div class="gh-mock-tab">&#9888; Issues <span class="count">3</span></div>
+          <div class="gh-mock-tab">&#128256; Pull Requests <span class="count">1</span></div>
+          <div class="gh-mock-tab">&#9654; Actions</div>
+          <div class="gh-mock-tab">&#128218; Wiki</div>
+          <div class="gh-mock-tab">&#9881; Settings</div>
+        </div>
+
+        <!-- Row 3: Actions bar -->
+        <div class="gh-mock-actions">
+          <span class="gh-mock-branch">&#127796; main</span>
+          <span style="flex:1;"></span>
+          <button class="gh-btn gh-btn-outline">&#9734; Star</button>
+          <button class="gh-btn gh-btn-outline">&#128065; Watch</button>
+          <button class="gh-btn gh-btn-outline">&#127860; Fork</button>
+          <button class="gh-btn gh-btn-green">&#11015; Code</button>
+        </div>
+
+        <!-- Row 4: File list -->
+        <div class="gh-mock-body" style="font-size:0.85rem;color:#57606a;">
+          <div style="padding:0.4rem 0;border-bottom:1px solid #eaeef2;">&#128193; css/</div>
+          <div style="padding:0.4rem 0;border-bottom:1px solid #eaeef2;">&#128193; images/</div>
+          <div style="padding:0.4rem 0;border-bottom:1px solid #eaeef2;">&#128193; js/</div>
+          <div style="padding:0.4rem 0;border-bottom:1px solid #eaeef2;">&#128196; index.html</div>
+          <div style="padding:0.4rem 0;border-bottom:1px solid #eaeef2;">&#128196; README.md</div>
+          <div style="padding:0.4rem 0;">&#128196; .gitignore</div>
+        </div>
+      </div>
+
+      <h3>Every Button and Tab Explained</h3>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label" style="color:#2ea44f;">&#11015; Code Button (Green)</span>
+          <span class="desc">The big green button in the top-right. This is how you download or clone the repository to your computer. Clicking it shows options: "Open with GitHub Desktop", "Download ZIP", or a URL to use with the Terminal. This does NOT edit anything -- it just downloads.</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#128196; Code Tab</span>
+          <span class="desc">Shows you the files in the repository, like looking at a folder in Finder. This is the default view when you open any repo. You can click on folders to navigate inside them and click on files to see their contents.</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#9888; Issues Tab</span>
+          <span class="desc">A built-in bug tracker and discussion board. Anyone can open an "issue" to report a bug, request a feature, or ask a question. Think of it like a to-do list for the project. Each issue can be assigned to someone, labeled, and discussed.</span> <a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#128256; Pull Requests Tab</span>
+          <span class="desc">This is where proposed changes live. When someone makes changes on a branch and wants to merge them into the main version, they open a "pull request" (PR). It's like saying "Hey, I made some edits -- can you review them before we combine them into the real version?"</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#9654; Actions Tab</span>
+          <span class="desc">Automated tasks that run when certain things happen. For example: "Every time someone pushes code, automatically check for errors." You probably won't use this as a beginner, but it's good to know it exists.</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#9881; Settings</span>
+          <span class="desc">Where you configure the repository: rename it, make it public/private, enable GitHub Pages, manage who can access it, and more. Only the repo owner (or people with admin access) can change settings.</span>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="outline-item">
+          <span class="label">&#127860; Fork Button</span>
+          <span class="desc">Makes a complete copy of someone else's repository and puts it in YOUR GitHub account. It's like photocopying someone's entire folder so you can make changes to your copy without affecting theirs. Your fork retains a connection to the original repo (GitHub shows "forked from..." at the top), but changes don't automatically sync between them -- you must manually pull updates from the upstream repo or submit pull requests back to it.</span> <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#9734; Star Button</span>
+          <span class="desc">Bookmarks the repository. Starring a repo doesn't do anything functional -- it's just like adding a bookmark in your browser. You can find all your starred repos later from your profile.</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#128065; Watch Button</span>
+          <span class="desc">Subscribes you to notifications for this repo. If someone opens an issue, makes a commit, or creates a pull request, you'll get notified. You can choose to watch "all activity," "releases only," or "nothing."</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">&#127796; Branch Dropdown</span>
+          <span class="desc">Shows which branch you're currently viewing and lets you switch to a different one. By default, you're looking at the "main" branch. (More on branches in the Branches tab.)</span>
+        </div>
+
+        <div class="outline-item">
+          <span class="label">Commit History</span>
+          <span class="desc">You can find this by clicking "X commits" near the top of the file list. It shows a timeline of every save point (commit) ever made, who made it, and when. It's the "time machine" view of your project.</span>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        Forks are copies. Branches are parallel timelines. They look similar but serve different purposes. A fork copies the entire repo to your account. A branch creates a parallel version within the same repo.
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=iv8rSLsi1xo" target="_blank" class="video-link">GitHub Interface Tour (Net Ninja)</a>
+        <a href="https://www.youtube.com/watch?v=RGOj5yH7evk&t=1200" target="_blank" class="video-link">Issues &amp; Pull Requests (freeCodeCamp)</a>
+      </div>
+
+      <h2 id="sec-workflow">The Core Workflow</h2>
+<p>Everything in GitHub revolves around one fundamental loop. Once you understand this loop, the rest is just details.</p>
+
+      <h3>The Fundamental Loop</h3>
+      <div class="diagram">
+        <span class="diagram-label">The GitHub Workflow Loop</span>
+        <div class="flow-row">
+          <div class="flow-box flow-box-local">Edit<br><small>Change files</small></div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box flow-box-action">Save<br><small>Ctrl+S / Cmd+S</small></div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box flow-box-action">Commit<br><small>Snapshot + note</small></div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box flow-box-remote">Push<br><small>Upload to GitHub</small></div>
+        </div>
+        <p style="margin-top:1rem;color:#57606a;font-size:0.9rem;">You repeat this loop over and over as you work. Edit, save, commit, push. That's it.</p>
+      </div>
+
+      <p>Let's break down each step:</p>
+
+      <hr class="section-divider">
+
+      <h3>What is a Commit?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">A commit is a save point with a label.</span>
+          <span class="desc">When you save a file (Cmd+S), you're saving it on your computer. But Git doesn't know about that save yet. A <strong>commit</strong> tells Git: "I want to record the current state of my files as a checkpoint." Each commit includes a message describing what you changed.</span> <a href="https://docs.github.com/en/get-started/using-git/about-git#about-commits" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        Think of it like "Save As" in Microsoft Word. When you save a Word document, you overwrite the old version. But if you use "Save As," you create a new copy with a new name. A commit is like using "Save As" every time, except Git does it automatically and keeps all the old versions behind the scenes. You don't end up with "project_v1.html", "project_v2_final.html", "project_v2_FINAL_REAL.html" -- Git handles all of that cleanly.
+      </div>
+
+      <div class="side-by-side">
+        <div>
+          <h4>Good Commit Messages</h4>
+          <div class="code-block">
+            <span class="comment"># Descriptive and specific:</span><br>
+            "Add navigation bar to homepage"<br>
+            "Fix broken image link on about page"<br>
+            "Update footer phone number"<br>
+            "Remove unused CSS from stylesheet"
+          </div>
+        </div>
+        <div>
+          <h4>Bad Commit Messages</h4>
+          <div class="code-block">
+            <span class="comment"># Vague and unhelpful:</span><br>
+            "stuff"<br>
+            "update"<br>
+            "fix"<br>
+            "asdfasdf"<br>
+            "final version"
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is Push?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Push = upload your commits to GitHub.</span>
+          <span class="desc">Your commits only exist on your computer until you push them. Pushing sends your commits to GitHub.com so they're stored in the cloud and visible to your team. No push = nobody else can see your work.</span>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        You know how Finder has files that only exist on your laptop? If you drag them to Google Drive or iCloud, they upload and sync. Pushing is like dragging your work to the cloud. Until you push, it's only on your machine.
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is Pull?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Pull = download changes others made.</span>
+          <span class="desc">If your teammate pushed new commits to GitHub, those changes exist on GitHub but NOT on your computer yet. Pulling downloads those changes to your local machine so you're up to date. It's the opposite of push.</span>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <span class="diagram-label">Push vs Pull</span>
+        <div class="local-remote-diagram">
+          <div class="lr-box lr-local">
+            <div class="icon">&#128187;</div>
+            <h3>Your Computer (Local)</h3>
+            <p style="font-size:0.85rem;margin-top:0.5rem;">Where you edit files and make commits</p>
+          </div>
+          <div class="lr-arrows">
+            <div class="arrow-up">PUSH &#8594;</div>
+            <div class="arrow-down">&#8592; PULL</div>
+          </div>
+          <div class="lr-box lr-remote">
+            <div class="icon">&#9729;</div>
+            <h3>GitHub.com (Remote)</h3>
+            <p style="font-size:0.85rem;margin-top:0.5rem;">Cloud storage visible to everyone</p>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is Clone?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Clone = download a repository for the first time.</span>
+          <span class="desc">When you find a repository on GitHub.com and want to work on it on your own computer, you "clone" it. Cloning downloads the entire repository -- all files, references to all branches, all history -- to a folder on your Mac. (Note: only the default branch is checked out locally; other branches exist as references you can switch to.) After cloning, that folder IS the repository, and you can start editing.</span> <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Prerequisite: You need Git installed on your computer.</span>
+            <span class="desc">Most Macs come with Git pre-installed. You can check by opening Terminal and typing <code>git --version</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        Cloning is like downloading a ZIP file from the internet and unzipping it into a folder, except the folder also has a connection back to the original source so you can push and pull changes.
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is Fork?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Fork = make your own copy of someone else's repository.</span>
+          <span class="desc">Forking happens on GitHub.com (not on your computer). When you fork a repo, GitHub creates a duplicate of it under YOUR account. You now own that copy and can make whatever changes you want without affecting the original. It's commonly used in open-source projects where you want to contribute to someone else's project.</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Fork vs Clone -- What's the Difference?</span>
+            <span class="desc">A <strong>fork</strong> happens on GitHub.com and creates a copy in your online account. A <strong>clone</strong> downloads a repo to your computer. Typically you fork first (to get your own copy on GitHub), then clone your fork (to get it on your computer).</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What This Looks Like in Practice</h3>
+
+      <div class="side-by-side">
+        <div>
+          <h4>In GitHub Desktop (Visual App)</h4>
+          <div class="steps">
+            <div class="step">Edit a file in VS Code or any editor and save it</div>
+            <div class="step">Open GitHub Desktop -- it automatically detects your changes</div>
+            <div class="step">Type a commit message in the "Summary" box at the bottom left</div>
+            <div class="step">Click the blue "Commit to main" button</div>
+            <div class="step">Click "Push origin" in the top bar to send it to GitHub</div>
+          </div>
+        </div>
+        <div>
+          <h4>In Terminal (Command Line)</h4>
+          <div class="code-block">
+            <span class="comment"># Step 1: Check what changed</span><br>
+            <span class="prompt">$</span> <span class="command">git status</span><br><br>
+            <span class="comment"># Step 2: Stage your changes</span><br>
+            <span class="prompt">$</span> <span class="command">git add .</span><br><br>
+            <span class="comment"># Step 3: Commit with a message</span><br>
+            <span class="prompt">$</span> <span class="command">git commit -m "Add nav bar"</span><br><br>
+            <span class="comment"># Step 4: Push to GitHub</span><br>
+            <span class="prompt">$</span> <span class="command">git push</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">The Staging Area</div>
+        <p>Before committing, you must "stage" your changes with <code>git add</code>. Think of it like putting items in a box before sealing it. You choose exactly which changes go into each commit. The period in <code>git add .</code> means "everything that changed." You can also add specific files: <code>git add index.html</code>. <a href="https://docs.github.com/en/get-started/using-git/about-git#about-staging" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a></p>
+      </div>
+
+      <div class="key-insight">
+        Commit early, commit often. Each commit is a save point you can go back to. If you make 100 changes and only commit once, you can only undo all 100 at once. If you commit after each change, you can undo them one at a time.
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=RGOj5yH7evk&t=600" target="_blank" class="video-link">Commit, Push, Pull (freeCodeCamp)</a>
+        <a href="https://www.youtube.com/watch?v=8Dd7KRpKeaE" target="_blank" class="video-link">GitHub Desktop Tutorial (Coder Coder)</a>
+        <a href="https://www.youtube.com/watch?v=CML6vfKjQss" target="_blank" class="video-link">Clone vs Fork (Programming with Mosh)</a>
+      </div>
+
+      <h2 id="sec-branches">Branches & Merging</h2>
+<p>Branches are one of Git's most powerful features. They let you work on different versions of your project at the same time without breaking anything.</p>
+
+      <h3>What Are Branches?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">A branch is a parallel timeline of your project.</span>
+          <span class="desc">When you create a branch, you're making a copy of your project at that moment in time. You can make changes on the branch without affecting the original. When you're happy with the changes, you merge the branch back. If the changes were bad, you just delete the branch.</span> <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        Imagine duplicating a folder in Finder: "my-website" becomes "my-website-experiment." You make changes in the experiment copy. If the changes work, you replace the original folder with the experiment. If they don't, you trash the experiment. That's what branches do -- except Git does it more efficiently without literally duplicating all your files.
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">main vs master</div>
+        <p>The default branch is called <code>main</code> on new repositories, but older repos may use <code>master</code>. They work the same way -- only the name is different. You can configure the default branch name in your GitHub settings.</p>
+      </div>
+
+      <h3>Visual Branch Diagram</h3>
+
+      <div class="visual-branch-container">
+        <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:800px;">
+          <!-- Main branch line -->
+          <line x1="50" y1="80" x2="750" y2="80" stroke="#2ea44f" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- Feature branch line -->
+          <path d="M 250 80 C 280 80, 290 160, 320 160" stroke="#0969da" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <line x1="320" y1="160" x2="550" y2="160" stroke="#0969da" stroke-width="3" stroke-linecap="round"/>
+          <path d="M 550 160 C 580 160, 590 80, 620 80" stroke="#8957e5" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+          <!-- Main branch commits -->
+          <circle cx="100" cy="80" r="10" fill="#2ea44f" stroke="white" stroke-width="2"/>
+          <circle cx="180" cy="80" r="10" fill="#2ea44f" stroke="white" stroke-width="2"/>
+          <circle cx="250" cy="80" r="10" fill="#2ea44f" stroke="white" stroke-width="2"/>
+          <circle cx="450" cy="80" r="10" fill="#2ea44f" stroke="white" stroke-width="2"/>
+          <circle cx="620" cy="80" r="14" fill="#8957e5" stroke="white" stroke-width="2"/>
+          <circle cx="720" cy="80" r="10" fill="#2ea44f" stroke="white" stroke-width="2"/>
+
+          <!-- Feature branch commits -->
+          <circle cx="350" cy="160" r="9" fill="#0969da" stroke="white" stroke-width="2"/>
+          <circle cx="430" cy="160" r="9" fill="#0969da" stroke="white" stroke-width="2"/>
+          <circle cx="510" cy="160" r="9" fill="#0969da" stroke="white" stroke-width="2"/>
+
+          <!-- Labels -->
+          <text x="50" y="50" font-family="Arial" font-size="14" font-weight="bold" fill="#2ea44f">main</text>
+          <text x="320" y="200" font-family="Arial" font-size="13" font-weight="bold" fill="#0969da">feature/add-navbar</text>
+
+          <!-- Commit labels -->
+          <text x="100" y="115" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">v1</text>
+          <text x="180" y="115" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">v2</text>
+          <text x="250" y="115" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">branch off</text>
+          <text x="350" y="140" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">edit 1</text>
+          <text x="430" y="140" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">edit 2</text>
+          <text x="510" y="140" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">edit 3</text>
+          <text x="450" y="115" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">other work</text>
+          <text x="620" y="50" font-family="Arial" font-size="11" font-weight="bold" fill="#8957e5" text-anchor="middle">MERGE</text>
+          <text x="720" y="115" font-family="Arial" font-size="10" fill="#57606a" text-anchor="middle">v3</text>
+        </svg>
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">Reading the Diagram</div>
+        <p>The <strong style="color:#2ea44f;">green line</strong> is the "main" branch -- the real, live version. The <strong style="color:#0969da;">blue line</strong> is a feature branch where someone is building a navbar. The <strong style="color:#8957e5;">purple dot</strong> is the merge point -- where the navbar work gets combined back into main. Notice that work continued on main (the "other work" commit) while the feature was being built separately.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Why Branches Exist</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Branches let you experiment without risk.</span>
+          <span class="desc">If you're working on a team, you don't want to make changes directly to the main version that everyone depends on. What if your change breaks something? Branches let you work in isolation. The main branch stays clean and working while you experiment on your branch.</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What Shows Up on GitHub Pages?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">GitHub Pages serves the main branch by default.</span>
+          <span class="desc">When you enable GitHub Pages (free website hosting), it looks at the <strong>main</strong> branch and publishes whatever HTML files are there. Changes on other branches are invisible to your live website until they're merged into main. This is useful -- you can work on a new feature branch without your live website changing.</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is a Merge?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Merging combines two branches together.</span>
+          <span class="desc">When you're done working on a branch and everything looks good, you merge it into main. Git takes all the changes from your branch and applies them to main. After merging, main has everything it had before PLUS your new changes.</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is a Pull Request?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">A Pull Request (PR) = asking permission to merge.</span>
+          <span class="desc">Instead of merging directly (which could introduce bugs), you open a Pull Request on GitHub. A PR says: "Here are the changes I made on my branch. Can someone review them before we merge into main?" Your teammates can look at your changes, leave comments, suggest edits, and then approve the merge.</span> <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">The PR Review Process</span>
+            <span class="desc">
+              1. You push your branch to GitHub.<br>
+              2. You click "New Pull Request" on GitHub.com.<br>
+              3. You write a description of what you changed and why.<br>
+              4. Reviewers look at your code and leave comments.<br>
+              5. Once approved, someone clicks "Merge pull request."<br>
+              6. Your branch's changes are now part of main.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">Branch Protection Rules</div>
+        <p>On team projects, administrators can protect the main branch so nobody can push to it directly. All changes must go through a pull request with code review. This prevents accidents. <a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a></p>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Merge Conflicts</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">A merge conflict = two people edited the same line.</span>
+          <span class="desc">If you changed line 15 of index.html on your branch, and your teammate also changed line 15 on their branch, Git doesn't know which version to keep. It flags this as a "conflict" and asks you to manually decide. Don't panic -- conflicts are normal and fixable.</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">What a conflict looks like in a file:</span>
+            <span class="desc">Git adds markers showing both versions. You delete the markers and keep the version you want (or combine both).</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><br>
+        &lt;h1&gt;Welcome to My Site&lt;/h1&gt;<br>
+        <span class="comment">=======</span><br>
+        &lt;h1&gt;Welcome to Our Amazing Site&lt;/h1&gt;<br>
+        <span class="comment">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/update-heading</span>
+      </div>
+
+      <p>In this example, <code>HEAD</code> is your version (main), and <code>feature/update-heading</code> is the incoming branch's version. You pick which heading to keep, delete the conflict markers, save, and commit.</p>
+
+      <hr class="section-divider">
+
+      <h3>Branch Naming Best Practices</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>Example</th>
+            <th>When to Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>feature/</code></td>
+            <td><code>feature/add-login</code></td>
+            <td>Building something new</td>
+          </tr>
+          <tr>
+            <td><code>fix/</code></td>
+            <td><code>fix/broken-nav</code></td>
+            <td>Fixing a bug</td>
+          </tr>
+          <tr>
+            <td><code>update/</code></td>
+            <td><code>update/footer-links</code></td>
+            <td>Updating existing content</td>
+          </tr>
+          <tr>
+            <td><code>experiment/</code></td>
+            <td><code>experiment/new-layout</code></td>
+            <td>Trying something you might throw away</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">
+        Think of branches like making a copy of a document to try edits. If you like them, you merge it back. If not, you delete the copy. The original stays safe the whole time.
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=e9lnsKot_SQ" target="_blank" class="video-link">Git Branching Explained (Visualized, Net Ninja)</a>
+        <a href="https://www.youtube.com/watch?v=JtIX3HJKwfo" target="_blank" class="video-link">Merge Conflicts Explained (Programming with Mosh)</a>
+        <a href="https://www.youtube.com/watch?v=For9VtrQx58" target="_blank" class="video-link">Pull Requests for Beginners (Jake Vanderplas)</a>
+      </div>
+
+      <h2 id="sec-local-remote">Local vs Remote</h2>
+<p>One of the most confusing things for beginners is understanding where your files actually live. Let's clear that up.</p>
+
+      <h3>The Two Copies</h3>
+
+      <div class="local-remote-diagram">
+        <div class="lr-box lr-local">
+          <div class="icon">&#128187;</div>
+          <h3>Local (Your Computer)</h3>
+          <p style="font-size:0.85rem;margin-top:0.5rem;">The files on your Mac. You edit them here. Git tracks changes here. This is where you do your actual work.</p>
+          <div style="margin-top:1rem;text-align:left;">
+            <strong style="font-size:0.8rem;">You interact with it via:</strong>
+            <ul style="font-size:0.85rem;margin-top:0.3rem;">
+              <li>Finder (to browse files)</li>
+              <li>VS Code / Cursor (to edit files)</li>
+              <li>GitHub Desktop (to commit/push)</li>
+              <li>Terminal (for Git commands)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="lr-arrows">
+          <div class="arrow-up" style="font-size:1.1rem;">
+            <strong style="color:#2ea44f;">PUSH</strong> &#8594;
+          </div>
+          <div style="font-size:0.75rem;color:#999;">Upload your commits</div>
+          <div style="margin:0.5rem 0;border-top:1px dashed #d0d7de;width:60px;"></div>
+          <div class="arrow-down" style="font-size:1.1rem;">
+            &#8592; <strong style="color:#0969da;">PULL</strong>
+          </div>
+          <div style="font-size:0.75rem;color:#999;">Download commits from other collaborators on GitHub</div>
+          <div style="margin:0.5rem 0;border-top:1px dashed #d0d7de;width:60px;"></div>
+          <div style="font-size:1.1rem;">
+            &#8592; <strong style="color:#6f42c1;">CLONE</strong>
+          </div>
+          <div style="font-size:0.75rem;color:#999;">First-time download</div>
+        </div>
+        <div class="lr-box lr-remote">
+          <div class="icon">&#9729;</div>
+          <h3>Remote (GitHub.com)</h3>
+          <p style="font-size:0.85rem;margin-top:0.5rem;">The cloud copy at github.com. Your team sees this version. This is the "source of truth."</p>
+          <div style="margin-top:1rem;text-align:left;">
+            <strong style="font-size:0.8rem;">You interact with it via:</strong>
+            <ul style="font-size:0.85rem;margin-top:0.3rem;">
+              <li>Web browser (github.com)</li>
+              <li>GitHub Desktop (push/pull)</li>
+              <li>Terminal (git push / git pull)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="finder-analogy">
+        Think of it like a Google Doc. You have a copy on your computer (local) and a copy in Google Drive (remote). If you edit offline, your changes only exist on your computer until you go online and sync. Similarly, your Git commits only exist on your machine until you push them to GitHub.
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is localhost?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">localhost = your computer pretending to be a web server.</span>
+          <span class="desc">When you see a URL like <code>http://localhost:3000</code>, that's your own computer serving a website to itself. Nobody else on the internet can see it. It's like a private preview of your website.</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Why does localhost exist?</span>
+            <span class="desc">Some websites need a server to work properly (for example, sites that load data from databases or use JavaScript frameworks). Your computer runs a temporary mini-server so you can preview those sites while developing them.</span>
+          </div>
+          <div class="outline-item">
+            <span class="label">The number after the colon is the "port."</span>
+            <span class="desc"><code>localhost:3000</code> means "my computer, door number 3000." Different projects use different ports so they don't conflict. It's just an address.</span>
+          </div>
+          <div class="outline-item">
+            <span class="label">Does localhost update instantly?</span>
+            <span class="desc">Most local development servers include "live reload" or "hot reload" — they watch your files and automatically refresh the browser when you save a change, making them even faster than file:// (where you have to manually press Cmd+R). To start a localhost server, open Terminal, navigate to your project folder with <code>cd ~/my-project</code>, and run a command like <code>python3 -m http.server 8080</code> (for a basic server) or <code>npm start</code> (for JavaScript projects). The server runs until you press Ctrl+C or close the Terminal window. With VS Code's "Live Server" extension, you just right-click an HTML file and select "Open with Live Server" — no Terminal needed.</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>What is file:// ?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">file:// = opening an HTML file directly, with no server.</span>
+          <span class="desc">When you double-click an HTML file in Finder, your browser opens it with a URL like <code>file:///Users/yourname/my-site/index.html</code>. This means the browser is reading the file straight from your hard drive. There's no server involved. For simple HTML/CSS pages, this works fine.</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">file:// vs localhost vs a live URL</span>
+            <span class="desc">These are three different ways to view a website, from simplest to most "real."</span>
+          </div>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL Looks Like</th>
+            <th>Server Running?</th>
+            <th>Who Can See It?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>file://</td>
+            <td><code>file:///Users/you/site/index.html</code></td>
+            <td>No</td>
+            <td>Only you</td>
+          </tr>
+          <tr>
+            <td>localhost</td>
+            <td><code>http://localhost:3000</code></td>
+            <td>Yes (local)</td>
+            <td>Only you</td>
+          </tr>
+          <tr>
+            <td>Live URL</td>
+            <td><code>https://yourname.github.io</code></td>
+            <td>Yes (GitHub's server)</td>
+            <td>Everyone on the internet</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr class="section-divider">
+
+      <h3>Starting Local vs Starting on GitHub</h3>
+      <div class="side-by-side">
+        <div>
+          <h4>Start Local, Then Push to GitHub</h4>
+          <div class="steps">
+            <div class="step">Create a folder on your Mac and add files</div>
+            <div class="step">Open Terminal in that folder and run <code>git init</code> to turn it into a repo</div>
+            <div class="step">Make commits as you work</div>
+            <div class="step">Create a new empty repository on GitHub.com</div>
+            <div class="step">Connect your local repo to GitHub with <code>git remote add origin [URL]</code></div>
+            <div class="step">Push your work with <code>git push</code></div>
+          </div>
+          <p style="font-size:0.9rem;color:#57606a;margin-top:0.5rem;">Best for: new projects you started on your own.</p>
+        </div>
+        <div>
+          <h4>Start on GitHub, Then Clone Locally</h4>
+          <div class="steps">
+            <div class="step">Create a new repository on GitHub.com (optionally add a README)</div>
+            <div class="step">Click the green "Code" button and copy the URL</div>
+            <div class="step">Open Terminal and run <code>git clone [URL]</code></div>
+            <div class="step">In GitHub Desktop, cloning is even simpler: click File → Clone Repository, paste the repository URL or search your GitHub repos by name, choose where to save it on your Mac, and click Clone. GitHub Desktop downloads everything and opens the project — no Terminal required.</div>
+            <div class="step">A folder appears on your Mac -- that's the repo</div>
+            <div class="step">Edit, commit, and push as normal</div>
+          </div>
+          <p style="font-size:0.9rem;color:#57606a;margin-top:0.5rem;">Best for: team projects or when you want GitHub set up from the start.</p>
+        </div>
+      </div>
+
+      <div class="outline" style="margin-top:1.5rem;">
+        <div class="outline-item">
+          <span class="label">What happens when two people edit the same file?</span>
+          <span class="desc">When two people edit the same file at the same time, Git detects a "merge conflict" when you try to push or pull. Git marks the conflicting lines in the file with special markers so you can see both versions:</span>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top:0.5rem;">
+        <span class="comment">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><br>
+        Your version of the line<br>
+        <span class="comment">=======</span><br>
+        Their version of the line<br>
+        <span class="comment">&gt;&gt;&gt;&gt;&gt;&gt;&gt; main</span>
+      </div>
+
+      <div class="outline" style="margin-top:0.5rem;">
+        <div class="outline-item">
+          <span class="desc">You choose which version to keep (or combine both), delete the markers, and commit the resolved file. This is covered in more detail in the Branches & Merging tab. Circular references (where two branches depend on each other's changes) are rare in practice — Git's branching model prevents them by design. Conflicts are normal and not dangerous — they just need a human decision.</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Branches Exist in Both Places</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Each branch exists both locally and remotely (if you push it).</span>
+          <span class="desc">When you create a branch on your computer, it only exists on your computer. When you push that branch, it also exists on GitHub. Pulling a branch someone else created downloads it to your computer. You can think of each branch as having two copies -- one on your machine, one in the cloud -- and you keep them in sync with push/pull.</span>
+        </div>
+      </div>
+
+      <h3>What This Looks Like in Finder and GitHub Desktop</h3>
+      <div class="side-by-side">
+        <div>
+          <h4>In Finder</h4>
+          <p>The files you see in Finder always reflect whichever branch you currently have "checked out." If you switch branches in GitHub Desktop or Terminal, the files in Finder literally change. Don't be alarmed -- Git is swapping which version you see. All versions are safely stored.</p>
+        </div>
+        <div>
+          <h4>In GitHub Desktop</h4>
+          <p>GitHub Desktop has a "Current Branch" dropdown at the top. Clicking it shows all your local branches and any remote branches. Switching branches here instantly updates the files in Finder. You'll also see "Push origin" or "Fetch origin" buttons that sync your local and remote copies.</p>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        Your local copy and the GitHub copy are like two copies of a Google Doc. You have to sync them manually with push and pull. They don't auto-sync. If you forget to push, your teammates can't see your work. If you forget to pull, you're working on an outdated version.
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=RGOj5yH7evk&t=900" target="_blank" class="video-link">Local vs Remote (freeCodeCamp)</a>
+        <a href="https://www.youtube.com/watch?v=4sMELp0p_bQ" target="_blank" class="video-link">What is Localhost? (Techquickie)</a>
+      </div>
+
+      <h2 id="sec-pages">GitHub Pages</h2>
+<p>One of GitHub's best free features is the ability to turn any repository into a live website.</p>
+
+      <h3>What is GitHub Pages?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">GitHub Pages = free website hosting from a repository.</span>
+          <span class="desc">You put HTML, CSS, and JavaScript files in a repository, flip a switch in settings, and GitHub gives you a URL where the site is live. No server to manage, no hosting fees. It's completely free.</span> <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(official docs)</a>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>How It Works</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Your repo's HTML files become a live website.</span>
+          <span class="desc">GitHub reads the HTML files in your repository and serves them as a real website that anyone can visit. If your repo has an <code>index.html</code> file, that becomes the homepage.</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Which branch gets served?</span>
+            <span class="desc">Usually the <strong>main</strong> branch. You can configure this in Settings. Any changes you push to main are automatically deployed to the live site (usually within a minute or two).</span>
+          </div>
+          <div class="outline-item">
+            <span class="label">What URL do you get?</span>
+            <span class="desc">The default URL format is: <code>https://YOUR-USERNAME.github.io/REPO-NAME/</code>. For example, if your username is "jdoe" and your repo is "my-portfolio", the URL would be <code>https://jdoe.github.io/my-portfolio/</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Two types of GitHub Pages sites: Personal Site vs. Project Sites</span>
+          <span class="desc">Your <strong>Personal Site</strong> is your one homepage per GitHub account. You create a repo named exactly <code>yourusername.github.io</code>, and it appears at <code>https://yourusername.github.io</code>. You only get one. <strong>Project Sites</strong> are attached to individual repos — any repo can have one, and you can have unlimited Project Sites. A repo called <code>my-portfolio</code> would live at <code>https://yourusername.github.io/my-portfolio</code>. Personal Sites are great for portfolios; Project Sites are great for individual assignments or experiments.</span>
+        </div>
+      </div>
+
+      <div class="diagram" style="padding:1rem;">
+        <svg viewBox="0 0 500 260" width="500" height="260" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;" aria-label="Diagram showing one Personal Site as a house with three Project Sites as rooms inside it">
+          <!-- House shape -->
+          <polygon points="250,18 60,100 440,100" fill="#ddf4ff" stroke="#0969da" stroke-width="2"/>
+          <rect x="80" y="100" width="340" height="130" rx="4" fill="#f0f7ff" stroke="#0969da" stroke-width="2"/>
+          <!-- House label -->
+          <text x="250" y="70" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#0969da" text-anchor="middle">yourusername.github.io</text>
+          <text x="250" y="88" font-family="Arial, sans-serif" font-size="10" fill="#57606a" text-anchor="middle">Personal Site (ONE per account)</text>
+          <!-- Door / Room 1 -->
+          <rect x="95" y="120" width="95" height="95" rx="4" fill="#dcffe4" stroke="#2ea44f" stroke-width="1.5"/>
+          <text x="142" y="158" font-family="Courier New, monospace" font-size="9" fill="#116329" text-anchor="middle">/project-a</text>
+          <text x="142" y="174" font-family="Arial, sans-serif" font-size="8" fill="#57606a" text-anchor="middle">Project Site</text>
+          <!-- Door / Room 2 -->
+          <rect x="202" y="120" width="95" height="95" rx="4" fill="#dcffe4" stroke="#2ea44f" stroke-width="1.5"/>
+          <text x="250" y="158" font-family="Courier New, monospace" font-size="9" fill="#116329" text-anchor="middle">/project-b</text>
+          <text x="250" y="174" font-family="Arial, sans-serif" font-size="8" fill="#57606a" text-anchor="middle">Project Site</text>
+          <!-- Door / Room 3 -->
+          <rect x="309" y="120" width="95" height="95" rx="4" fill="#dcffe4" stroke="#2ea44f" stroke-width="1.5"/>
+          <text x="357" y="158" font-family="Courier New, monospace" font-size="9" fill="#116329" text-anchor="middle">/project-c</text>
+          <text x="357" y="174" font-family="Arial, sans-serif" font-size="8" fill="#57606a" text-anchor="middle">Project Site</text>
+          <!-- Bottom labels -->
+          <text x="250" y="250" font-family="Arial, sans-serif" font-size="10" fill="#57606a" text-anchor="middle">Project Sites: one per repo, unlimited</text>
+        </svg>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>How to Enable GitHub Pages</h3>
+      <div class="steps">
+        <div class="step">Go to your repository on GitHub.com</div>
+        <div class="step">Click the <strong>Settings</strong> tab (gear icon)</div>
+        <div class="step">Scroll down to the <strong>"Pages"</strong> section in the left sidebar (under "Code and automation")</div>
+        <div class="step">Under <strong>"Source"</strong>, select <strong>"Deploy from a branch"</strong></div>
+        <div class="step">Under <strong>"Branch"</strong>, select <strong>"main"</strong> and <strong>"/ (root)"</strong></div>
+        <div class="step">Click <strong>"Save"</strong></div>
+        <div class="step">Wait 1-2 minutes, then visit <code>https://YOUR-USERNAME.github.io/REPO-NAME/</code></div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">What gets published?</div>
+        <p>Every HTML file in your main branch becomes a page on your site. <code>index.html</code> is the homepage. <code>about.html</code> would be at <code>/REPO-NAME/about.html</code>. Subfolders work too: if you have <code>projects/gallery.html</code>, it becomes <code>/REPO-NAME/projects/gallery.html</code>.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Updating Your Live Site</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Every push to main automatically updates the site.</span>
+          <span class="desc">Once Pages is enabled, the workflow is simple: edit your files locally, commit, push, and the live website updates automatically. There's no separate "deploy" step. Push = publish.</span>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <span class="diagram-label">GitHub Pages Deployment Flow</span>
+        <div class="flow-row">
+          <div class="flow-box flow-box-local">Edit locally</div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box flow-box-action">Commit + Push</div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box flow-box-remote">GitHub receives it</div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box" style="background:#f3e8ff;border:2px solid #8957e5;color:#6f42c1;">Site auto-updates</div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Your Learning Hub on GitHub Pages</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">This Learning Hub could be hosted on GitHub Pages.</span>
+          <span class="desc">Since the Learning Hub is just HTML, CSS, and JavaScript files in a repository, enabling GitHub Pages would give it a public URL that anyone can visit. Each study guide (including this one) would be accessible at its own URL.</span>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        GitHub Pages turns your repository into a live website. For free. Every push to main automatically updates what visitors see. It's the simplest way to publish a website.
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">Important Limitation</div>
+        <p>GitHub Pages only hosts <strong>static</strong> sites -- HTML, CSS, and JavaScript. It cannot run server-side code like Python, PHP, or Node.js backends. If your project needs a server, you'll need a different hosting service.</p>
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=OltY8JIaP-4" target="_blank" class="video-link">GitHub Pages Tutorial (Techno Tim)</a>
+        <a href="https://www.youtube.com/watch?v=BT4WzyT2g8k" target="_blank" class="video-link">Host a Free Website on GitHub Pages (Traversy Media)</a>
+      </div>
+
+      <h2 id="sec-tools">Tools & Setup</h2>
+<p>GitHub doesn't live in isolation. There's an ecosystem of tools you'll encounter. Let's demystify them one by one.</p>
+
+      <h3>Homebrew (brew)</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Homebrew is a tool installer for Mac.</span>
+          <span class="desc">It's like the App Store, but for developer tools. Instead of downloading a .dmg file from a website and dragging it to Applications, you type a command in Terminal and Homebrew installs it for you. Developers use it because it's faster and keeps everything organized.</span>
+        </div>
+
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Prerequisite: Terminal</span>
+            <span class="desc">To use Homebrew, you need to understand Terminal. Terminal is an app on your Mac (find it in Applications &gt; Utilities) that lets you type commands instead of clicking buttons. It's a text-based way to talk to your computer. When someone says "run this in Terminal," they mean: open Terminal, type the command, and press Enter.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># Installing Homebrew (you only do this once):</span><br>
+        <span class="prompt">$</span> <span class="command">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span><br><br>
+        <span class="comment"># Installing a tool with Homebrew:</span><br>
+        <span class="prompt">$</span> <span class="command">brew install node</span><br><br>
+        <span class="comment"># That's it. Node.js is now installed on your Mac.</span>
+      </div>
+
+      <div class="finder-analogy">
+        Think of Terminal as talking to your Mac through text messages instead of tapping on icons. And Homebrew is like texting "install Node.js" to your Mac and it just does it.
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Node.js</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Node.js is a runtime environment — a program that can execute JavaScript code outside of a web browser.</span>
+          <span class="desc">JavaScript is the programming language that makes websites interactive (animations, buttons, forms). Normally, JavaScript ONLY runs inside a web browser (Chrome, Safari, Firefox). Before Node.js (created by Ryan Dahl in 2009), JavaScript could only run inside browsers. Node.js uses Chrome's V8 engine to run JavaScript on your computer directly, without needing a browser at all.</span>
+        </div>
+
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Prerequisite: Understanding JavaScript's normal home</span>
+            <span class="desc">JavaScript was invented to run inside web browsers. When you visit a website and see a dropdown menu animate or a form validate your email, that's JavaScript running in your browser. For a long time, that was the ONLY place JavaScript could run.</span>
+          </div>
+          <div class="outline-item">
+            <span class="label">So why does Node.js matter?</span>
+            <span class="desc">Node.js freed JavaScript from the browser. Now developers use JavaScript to build servers, command-line tools, and desktop apps. This matters because it enabled an entire ecosystem of developer tools: package managers (npm), build tools (webpack, Vite), server frameworks (Express), and testing tools — all written in JavaScript. Even if you never write JavaScript yourself, you'll encounter Node.js because tools like VS Code extensions, React, and many website frameworks depend on it being installed.</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>npm (Node Package Manager)</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">npm = the official package manager that comes bundled with Node.js.</span>
+          <span class="desc">When you install Node.js, you get npm automatically — npm (Node Package Manager) was created alongside Node.js and is maintained by GitHub (which is owned by Microsoft). It is the standard tool for downloading and managing JavaScript packages. npm lets you download pre-written JavaScript code (called "packages" or "libraries") that other people made, so you don't have to build everything from scratch. There are alternatives like Yarn and pnpm, but npm is what you'll use by default.</span>
+        </div>
+
+        <div class="outline-sub">
+          <div class="outline-item">
+            <span class="label">Prerequisite: What is a library?</span>
+            <span class="desc">A library is pre-written code that someone else created and shared for free. Instead of writing 500 lines of code to create a date picker, you download a library that already does it. Libraries save enormous amounts of time. The JavaScript ecosystem has millions of them.</span>
+          </div>
+
+          <div class="outline-sub">
+            <div class="outline-item">
+              <span class="label">How people find libraries</span>
+              <span class="desc">npmjs.com is the main registry -- it's like the App Store for JavaScript libraries. The npmjs.com registry is the largest software registry in the world, hosting over 2 million packages. You search for what you need (e.g., "date picker"), compare options, and install the one you want.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># Installing a library with npm:</span><br>
+        <span class="prompt">$</span> <span class="command">npm install lodash</span><br><br>
+        <span class="comment"># This downloads the "lodash" library into your project.</span><br>
+        <span class="comment"># You can now use it in your code.</span>
+      </div>
+
+      <hr class="section-divider">
+
+      <h4>package.json</h4>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">package.json = a recipe file listing what libraries your project needs.</span>
+          <span class="desc">Every project that uses npm has a file called <code>package.json</code> in its root folder. A root folder is the top-level folder of your project — the main folder that contains everything else. If your project lives at <code>~/Documents/my-website/</code>, that <code>my-website</code> folder is the root. When someone says "put this file in the root folder," they mean put it directly inside <code>my-website/</code>, not inside a subfolder like <code>my-website/css/</code>. This file lists every library the project depends on, along with version numbers. It's like a recipe listing ingredients. When someone clones your project, they run <code>npm install</code> and npm reads this file to download everything needed.</span>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment">// A simplified package.json looks like this:</span><br>
+        {<br>
+        &nbsp;&nbsp;"name": "my-project",<br>
+        &nbsp;&nbsp;"version": "1.0.0",<br>
+        &nbsp;&nbsp;"dependencies": {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;"lodash": "^4.17.21",<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;"express": "^4.18.2"<br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+
+      <hr class="section-divider">
+
+      <h4>node_modules</h4>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">node_modules = where downloaded libraries actually live.</span>
+          <span class="desc">When you run <code>npm install</code>, npm creates a folder called <code>node_modules</code> and puts all the downloaded libraries inside it. You run <code>npm install</code> in the Terminal (or VS Code's built-in terminal, which opens at the bottom of the window). The key detail: npm installs packages into whichever folder your Terminal is currently "in." If your Terminal prompt shows <code>~/Documents/my-website</code>, then <code>npm install</code> creates the <code>node_modules</code> folder inside <code>my-website/</code>. This is why you always <code>cd</code> (change directory) into your project folder before running npm commands — the packages go into the project, not your whole computer. Each project has its own separate <code>node_modules</code>. This folder can be HUGE (hundreds of megabytes). Two critical rules:</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item" style="border-left-color:#dc3545;background:#fff5f5;">
+            <span class="label" style="color:#dc3545;">Never edit anything inside node_modules.</span>
+            <span class="desc">These files are managed by npm. If you change them, npm will overwrite your changes next time you install.</span>
+          </div>
+          <div class="outline-item" style="border-left-color:#dc3545;background:#fff5f5;">
+            <span class="label" style="color:#dc3545;">Never upload node_modules to GitHub.</span>
+            <span class="desc">It's too large and completely unnecessary. Anyone who clones your project can recreate node_modules by running <code>npm install</code>, which reads package.json. That's why .gitignore exists.</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h4>.gitignore</h4>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">.gitignore = a file that tells Git which files to NOT track.</span>
+          <span class="desc">It's a plain text file in your project's root folder. Each line is a file or folder name that Git should ignore. When Git sees these files, it pretends they don't exist. They won't be committed, pushed, or tracked.</span> <a href="https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># A typical .gitignore file:</span><br><br>
+        node_modules/<br>
+        .DS_Store<br>
+        .env<br>
+        *.log<br>
+        dist/<br>
+      </div>
+
+      <p style="font-size:0.9rem;color:#57606a;">This is not written in any programming language — it's just a visual representation of how folders and files are organized on your computer, like what you'd see in Finder on your Mac. The indentation shows what's inside what: <code>css/</code> and <code>js/</code> are folders inside <code>my-project/</code>, and <code>style.css</code> is a file inside the <code>css/</code> folder.</p>
+
+      <div class="file-tree">
+        <span class="folder">my-project/</span><br>
+        <span class="indent"></span><span class="folder">css/</span><br>
+        <span class="indent"></span><span class="indent"></span><span class="file">style.css</span><br>
+        <span class="indent"></span><span class="folder">js/</span><br>
+        <span class="indent"></span><span class="indent"></span><span class="file">app.js</span><br>
+        <span class="indent"></span><span class="file">index.html</span><br>
+        <span class="indent"></span><span class="file">package.json</span><br>
+        <span class="indent"></span><span class="file">.gitignore</span><br>
+        <span class="indent"></span><span class="ignored">node_modules/</span> &larr; ignored by Git<br>
+        <span class="indent"></span><span class="ignored">.DS_Store</span> &larr; ignored by Git<br>
+        <span class="indent"></span><span class="ignored">.env</span> &larr; ignored by Git<br>
+      </div>
+
+      <div class="outline" style="margin-top:1rem;">
+        <div class="outline-item">
+          <span class="label">Why .gitignore matters for API keys and secrets:</span>
+          <span class="desc">The <code>.env</code> file in the example above is where developers store API keys and passwords. By listing <code>.env</code> in .gitignore, Git will never track or upload it. This is critical &mdash; if you accidentally push API keys to GitHub, they can be stolen within minutes by automated bots. See the Best Practices tab for a full explanation of protecting sensitive information.</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div>
+      <h3>GitHub Codespaces</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Codespaces = a full VS Code editor in your browser, no installation needed.</span>
+          <span class="desc">GitHub Codespaces gives you a complete development environment that runs in your web browser. It looks and works exactly like VS Code on your Mac, but everything runs on GitHub's servers. This is great for getting started quickly, working on someone else's computer, or avoiding setup headaches. GitHub gives you 60 hours of free Codespaces usage per month on a personal account -- more than enough for coursework. Your codespace pauses automatically after 30 minutes of inactivity, so you won't waste your hours.</span>
+        </div>
+      </div>
+
+      <h4>How to Launch a Codespace</h4>
+      <div class="steps">
+        <div class="step">Go to any repository on GitHub.com</div>
+        <div class="step">Click the green <strong>"Code"</strong> button (top right of the file list)</div>
+        <div class="step">Click the <strong>"Codespaces"</strong> tab (next to "Local")</div>
+        <div class="step">Click <strong>"Create codespace on main"</strong></div>
+        <div class="step">Wait for it to load (this may take 30 seconds to a minute the first time)</div>
+        <div class="step">You're now in VS Code -- in your browser! You can edit files, use the terminal, install extensions, and push commits just like on your Mac.</div>
+      </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>How It All Connects</h3>
+
+      <div class="diagram">
+        <span class="diagram-label">The Tool Ecosystem</span>
+        <div class="flow-row">
+          <div class="flow-box" style="background:#f3e8ff;border:2px solid #8957e5;color:#6f42c1;">
+            <strong>brew</strong><br><small>Installs tools on your Mac</small>
+          </div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box" style="background:#dcffe4;border:2px solid #2ea44f;color:#116329;">
+            <strong>Node.js</strong><br><small>Runs JavaScript</small>
+          </div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box" style="background:#ddf4ff;border:2px solid #0969da;color:#0969da;">
+            <strong>npm</strong><br><small>Downloads JS libraries</small>
+          </div>
+          <span class="flow-arrow">&#8594;</span>
+          <div class="flow-box" style="background:#fff8c5;border:2px solid #d4a72c;color:#7c4d12;">
+            <strong>Your Project</strong><br><small>Uses those libraries</small>
+          </div>
+        </div>
+        <p style="margin-top:1rem;font-size:0.85rem;color:#57606a;">brew installs Node.js. Node.js includes npm. npm downloads libraries into your project.</p>
+      </div>
+
+      <div class="key-insight">
+        brew installs tools. npm installs JavaScript libraries. They're both "package managers" but for different things. brew is for your Mac (system-level tools). npm is for your project (JavaScript code libraries).
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=SOjSNB7F2m4" target="_blank" class="video-link">Homebrew Mac Install &amp; Explained</a>
+        <a href="https://www.youtube.com/watch?v=ENrzD9HAZK4" target="_blank" class="video-link">Node.js Explained in 100 Seconds (Fireship)</a>
+        <a href="https://www.youtube.com/watch?v=P3aKRdUyr0s" target="_blank" class="video-link">npm Crash Course (Traversy Media)</a>
+        <a href="https://www.youtube.com/watch?v=4VBG9FhQKcY" target="_blank" class="video-link">.gitignore Explained (The Modern Coder)</a>
+      </div>
+
+      <h2 id="sec-best-practices">Best Practices</h2>
+<p>Knowing how to use GitHub is one thing. Using it <em>well</em> is another. These practices will save you headaches and make your work professional.</p>
+
+      <h3>Repository Hygiene</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">One repo per project, not per file.</span>
+          <span class="desc">A common beginner mistake is creating a new repository for every single file. Instead, create one repository per <em>project</em>. A website is one repo. An app is one repo. A collection of related scripts is one repo. The repo contains all the files that belong together.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Archive old repos -- don't delete them.</span>
+          <span class="desc">You might think you'll never need an old project again, but you'd be surprised. GitHub lets you "archive" repos -- they become read-only but are still accessible. This keeps your profile clean while preserving your work.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Use clear, descriptive repo names.</span>
+          <span class="desc">Your future self (and anyone who visits your GitHub profile) should immediately understand what a repo contains from its name alone.</span>
+        </div>
+      </div>
+
+      <div class="side-by-side">
+        <div>
+          <h4 style="color:#2ea44f;">Good Repo Names</h4>
+          <ul>
+            <li><code>my-portfolio-site</code></li>
+            <li><code>weather-app</code></li>
+            <li><code>jour352-data-project</code></li>
+            <li><code>class-study-guides</code></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:#dc3545;">Bad Repo Names</h4>
+          <ul>
+            <li><code>repo1</code></li>
+            <li><code>test</code></li>
+            <li><code>stuff</code></li>
+            <li><code>untitled</code></li>
+            <li><code>asdfjkl</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Use README.md files.</span>
+          <span class="desc">Every repo should have a README.md file in its root folder. This file is automatically displayed on the repo's main page on GitHub.com. It should explain: what the project is, how to set it up, and any other important info. It's written in Markdown (a simple text formatting language -- think of it as a simpler version of HTML).</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>Commit Message Discipline</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Every commit message should answer: "What did this change do?"</span>
+          <span class="desc">When you look at your commit history months from now, vague messages like "update" tell you nothing. Descriptive messages let you find exactly when and why something changed.</span>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Message</th>
+            <th>Why It's Good/Bad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#2ea44f;font-size:1.2rem;">&#10003;</td>
+            <td>"Add navigation bar to homepage"</td>
+            <td>Specific: tells you exactly what was added and where</td>
+          </tr>
+          <tr>
+            <td style="color:#2ea44f;font-size:1.2rem;">&#10003;</td>
+            <td>"Fix broken image link on about page"</td>
+            <td>Clear problem and location</td>
+          </tr>
+          <tr>
+            <td style="color:#2ea44f;font-size:1.2rem;">&#10003;</td>
+            <td>"Update footer with new phone number"</td>
+            <td>Describes the change and its purpose</td>
+          </tr>
+          <tr>
+            <td style="color:#dc3545;font-size:1.2rem;">&#10007;</td>
+            <td>"stuff"</td>
+            <td>Useless -- tells you nothing</td>
+          </tr>
+          <tr>
+            <td style="color:#dc3545;font-size:1.2rem;">&#10007;</td>
+            <td>"update"</td>
+            <td>Updated what? Everything is an update.</td>
+          </tr>
+          <tr>
+            <td style="color:#dc3545;font-size:1.2rem;">&#10007;</td>
+            <td>"fix"</td>
+            <td>Fixed what? Where? Why?</td>
+          </tr>
+          <tr>
+            <td style="color:#dc3545;font-size:1.2rem;">&#10007;</td>
+            <td>"final version"</td>
+            <td>Narrator: It was not, in fact, the final version.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr class="section-divider">
+
+      <h3>Branch Discipline</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Never commit directly to main on team projects.</span>
+          <span class="desc">The main branch should always be stable and working. If you make changes directly to main and break something, everyone is affected immediately. Instead, create a branch, make your changes there, test them, then merge via a pull request.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Use feature branches for every change.</span>
+          <span class="desc">Even small changes should get their own branch. This keeps main clean and makes it easy to review, undo, or isolate changes.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Delete branches after merging.</span>
+          <span class="desc">Once a branch has been merged into main, delete it. It served its purpose. Leaving old branches around is like leaving finished drafts on your desk. GitHub even shows a "Delete branch" button after a merge.</span>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>.gitignore Best Practices</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">To ignore files, you create a plain text file called <code>.gitignore</code> in your project's root folder (the same level as your <code>index.html</code> or <code>package.json</code>). Each line in <code>.gitignore</code> lists a file or folder pattern that Git should pretend doesn't exist. Git will never track, stage, commit, or upload anything matching those patterns. You create it like any other file — in VS Code, right-click your project folder, select "New File," and name it exactly <code>.gitignore</code> (with the dot at the beginning, no file extension). Then type one pattern per line.</span>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># Downloaded libraries — recreated with npm install</span><br>
+        node_modules/<br><br>
+        <span class="comment"># Mac system files</span><br>
+        .DS_Store<br><br>
+        <span class="comment"># Secret keys and passwords</span><br>
+        .env<br><br>
+        <span class="comment"># Build output</span><br>
+        dist/
+      </div>
+
+      <p style="font-size:0.9rem;color:#57606a;">The <code>#</code> lines are comments (notes to yourself) — Git ignores them.</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Always ignore these files:</span>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>What It Is</th>
+            <th>Why Ignore It</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>node_modules/</code></td>
+            <td>Downloaded JavaScript libraries</td>
+            <td>Huge folder; anyone can recreate it with <code>npm install</code></td>
+          </tr>
+          <tr>
+            <td><code>.DS_Store</code></td>
+            <td>Mac Finder metadata file</td>
+            <td>Invisible Mac file with no purpose in your project</td>
+          </tr>
+          <tr>
+            <td><code>.env</code></td>
+            <td>Environment variables (passwords, API keys)</td>
+            <td>Contains sensitive information that should never be public</td>
+          </tr>
+          <tr>
+            <td><code>*.log</code></td>
+            <td>Log files</td>
+            <td>Generated automatically; not part of your code</td>
+          </tr>
+          <tr>
+            <td><code>dist/</code></td>
+            <td>Build output folder</td>
+            <td>Generated from source code; can be rebuilt</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warning-box">
+        <div class="warning-label">Warning</div>
+        <p>If you accidentally commit a <code>.env</code> file with passwords or API keys, those secrets are now in your Git history FOREVER -- even if you delete the file in a later commit. The history remembers. Always set up .gitignore <strong>before</strong> your first commit.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <div>
+      <h3>Protecting Sensitive Information</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">What are API keys?</span>
+          <span class="desc">API keys are like passwords for online services. When your code needs to talk to an external service (like a weather API, a maps service, or a database), the service gives you a unique key &mdash; a long string of letters and numbers &mdash; that identifies you. If someone else gets your key, they can use (and abuse) the service on your account, potentially costing you money or exposing your data.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Why you NEVER put API keys in code that goes to GitHub.</span>
+          <span class="desc">GitHub repositories are often public, meaning anyone on the internet can see every file. Even in private repos, you should keep secrets separate from code as a best practice. Bots constantly scan GitHub for exposed API keys &mdash; if you push one, it can be stolen within minutes.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">How to use .env files to store secrets locally.</span>
+          <span class="desc">A <code>.env</code> file is a plain text file in your project's root folder where you store sensitive values. Each line follows the format <code>KEY_NAME=value</code>. For example:<br><code>WEATHER_API_KEY=abc123xyz789</code><br><code>DATABASE_PASSWORD=mySecretPass</code><br>Your code reads these values at runtime (using libraries like <code>dotenv</code> for Node.js or <code>python-dotenv</code> for Python) instead of having the secrets written directly in your source code.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">How .gitignore prevents secrets from being uploaded.</span>
+          <span class="desc">By adding <code>.env</code> to your <code>.gitignore</code> file, Git will completely ignore it. The file stays on your computer but is never committed, pushed, or tracked. This means your API keys stay local and private. When someone else clones your project, they create their own <code>.env</code> file with their own keys. Many projects include a <code>.env.example</code> file (without real values) to show what keys are needed.</span>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># Example .env file (NEVER commit this):</span><br><br>
+        WEATHER_API_KEY=abc123xyz789<br>
+        DATABASE_URL=postgres://user:pass@localhost:5432/mydb<br>
+        SECRET_TOKEN=super_secret_value_here<br>
+      </div>
+
+      <div class="code-block">
+        <span class="comment"># In your .gitignore, make sure this line exists:</span><br><br>
+        .env<br>
+      </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <h3>New Repo vs New Branch?</h3>
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">When to create a new repository:</span>
+          <span class="desc">When the project is completely different and unrelated. A portfolio site and a data analysis project are separate repos. A class study guide and a personal blog are separate repos.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">When to create a new branch:</span>
+          <span class="desc">When you're working on a new feature or experiment <em>within the same project</em>. Adding a new page to your website = new branch. Trying a different color scheme = new branch. Fixing a bug = new branch.</span>
+        </div>
+      </div>
+
+      <div class="side-by-side">
+        <div style="border-color:#2ea44f;">
+          <h4 style="color:#2ea44f;">New Repo</h4>
+          <ul>
+            <li>Completely different project</li>
+            <li>Different purpose / audience</li>
+            <li>No shared files with existing repos</li>
+            <li>Different collaborators</li>
+          </ul>
+        </div>
+        <div style="border-color:#0969da;">
+          <h4 style="color:#0969da;">New Branch</h4>
+          <ul>
+            <li>New feature in existing project</li>
+            <li>Bug fix in existing project</li>
+            <li>Experiment you might throw away</li>
+            <li>Same codebase, different version</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        The best GitHub users have clean, well-named repos with descriptive commits. It's like keeping a tidy desk -- you can find everything, nothing is cluttered, and anyone who looks at it can understand your work.
+      </div>
+
+      <h3>Helpful Videos</h3>
+      <div class="video-links">
+        <a href="https://www.youtube.com/watch?v=Uszj_k0DGsg" target="_blank" class="video-link">GitHub Tips &amp; Tricks (Fireship)</a>
+        <a href="https://www.youtube.com/watch?v=Hlp-9cdImSM" target="_blank" class="video-link">How to Write Good Commit Messages (Coder Coder)</a>
+        <a href="https://www.youtube.com/watch?v=4VBG9FhQKcY" target="_blank" class="video-link">.gitignore Guide (The Modern Coder)</a>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         QUICK REFERENCE TABLE (Outside Tabs)
+         ========================================== -->
+    <details class="quick-ref" style="margin-top:2rem;">
+      <summary style="font-family:Arial,sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;padding:0.75rem 0;color:#24292e;">Quick Reference — click to expand</summary>
+      <p style="text-align:center;color:#57606a;margin-bottom:1.5rem;">Every key term in one place.</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th style="width:18%;">Term</th>
+            <th style="width:42%;">What It Is</th>
+            <th style="width:40%;">Analogy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Repository</strong></td>
+            <td>A project folder tracked by Git. Contains files, folders, and full version history.</td>
+            <td>A Finder folder that remembers every version of every file</td>
+          </tr>
+          <tr>
+            <td><strong>Commit</strong></td>
+            <td>A snapshot of your project at a moment in time, with a description of what changed.</td>
+            <td>Hitting "Save As" with a note about what you changed</td>
+          </tr>
+          <tr>
+            <td><strong>Push</strong></td>
+            <td>Upload your local commits to GitHub so they're in the cloud.</td>
+            <td>Dragging files from your Desktop to Google Drive</td>
+          </tr>
+          <tr>
+            <td><strong>Pull</strong></td>
+            <td>Download commits from GitHub that others made.</td>
+            <td>Syncing Google Drive changes back to your laptop</td>
+          </tr>
+          <tr>
+            <td><strong>Clone</strong></td>
+            <td>Download an entire repository to your computer for the first time. (Clone = download a copy to work on. You can push changes back to the SAME repo if you have permission. Fork = make your OWN copy on GitHub first, then clone that. You push to YOUR fork, then propose changes to the original via a pull request.)</td>
+            <td>Downloading a ZIP from the internet, but with a live connection back</td>
+          </tr>
+          <tr>
+            <td><strong>Fork</strong></td>
+            <td>Copy someone else's repository to your own GitHub account.</td>
+            <td>Photocopying someone's entire folder so you have your own copy</td>
+          </tr>
+          <tr>
+            <td><strong>Branch</strong></td>
+            <td>A parallel version of your project for working on changes in isolation. A branch is WITHIN the same repository. A fork is a copy of the ENTIRE repository to a different owner. Example: You have a repo "my-website." You create a branch "add-contact-page" &mdash; both branches live in the same repo. A fork would be if someone ELSE copied your entire "my-website" repo to their own GitHub account.</td>
+            <td>Duplicating a folder to try experimental edits</td>
+          </tr>
+          <tr>
+            <td><strong>Merge</strong></td>
+            <td>Combining changes from one branch into another.</td>
+            <td>Replacing the original folder with your edited copy</td>
+          </tr>
+          <tr>
+            <td><strong>Pull Request</strong></td>
+            <td>A proposal to merge a branch, with review and discussion.</td>
+            <td>Asking your editor to review your draft before publishing</td>
+          </tr>
+          <tr>
+            <td><strong>GitHub Pages</strong></td>
+            <td>Free hosting that turns a repo into a live website.</td>
+            <td>A free web server that reads your Finder folder</td>
+          </tr>
+          <tr>
+            <td><strong>npm</strong></td>
+            <td>Node Package Manager -- downloads JavaScript libraries. Example: you want to add a date picker to your website. Instead of building one from scratch, you run <code>npm install datepicker-library</code> and it downloads pre-built code someone else wrote. Popular libraries: React (for building user interfaces), Express (for building servers), Lodash (for common utility functions).</td>
+            <td>An app store for JavaScript code snippets</td>
+          </tr>
+          <tr>
+            <td><strong>node_modules</strong></td>
+            <td>Folder where npm stores downloaded libraries. Never edit or upload it. This folder can contain thousands of files and be hundreds of MB. If you look inside, you'll see folders like <code>lodash/</code>, <code>express/</code>, <code>react/</code>, each containing the library's code. You never need to open or edit this folder &mdash; npm manages it for you. It's like the engine compartment of your car: important, but you don't need to touch it. The <code>node_modules</code> folder lives on your computer, inside your project folder &mdash; right next to your HTML/CSS/JS files. It is NOT on GitHub (your <code>.gitignore</code> file prevents it from being uploaded). Each project has its own <code>node_modules</code> folder. When someone else clones your project, they run <code>npm install</code> to recreate it from the <code>package.json</code> recipe file. (<code>package.json</code> is explained in detail in the Tools &amp; Setup tab &mdash; it's a file that lists every library your project needs, like a recipe listing ingredients.)</td>
+            <td>A cabinet full of reference books you ordered -- don't rewrite them</td>
+          </tr>
+          <tr>
+            <td><strong>.gitignore</strong></td>
+            <td>A file listing what Git should NOT track. A .gitignore file is a plain text file in your project's root folder. Each line lists a file or folder Git should ignore. Example contents: <code>node_modules/</code> (ignore all downloaded libraries), <code>.env</code> (ignore your secret API keys), <code>.DS_Store</code> (ignore Mac system files). Git will never track, commit, or upload these files. This is covered in detail in the Tools &amp; Setup tab.</td>
+            <td>A "do not photograph" list for files you want to keep private or skip</td>
+          </tr>
+          <tr>
+            <td><strong>brew</strong></td>
+            <td>Homebrew -- a tool installer for Mac, run from Terminal. You run Homebrew commands in the Terminal app on your Mac (find it in Applications &gt; Utilities). You only run <code>brew install [tool-name]</code> once per tool &mdash; after that, the tool stays installed on your computer permanently. To update installed tools later, run <code>brew upgrade</code>.
+              <details style="margin-top:0.5rem;"><summary style="cursor:pointer;color:#1a73e8;font-size:0.9em;">Tangential: Homebrew History &amp; Tips</summary><div style="margin-top:0.5rem;font-size:0.9em;">Homebrew was created by Max Howell in 2009 and is maintained by a community of open-source volunteers. To see everything Homebrew has installed on your Mac, run <code>brew list</code> in Terminal. To see all installed software (not just Homebrew), you can check System Settings &gt; General &gt; Storage, or run <code>ls /Applications</code> in Terminal.</div></details>
+            </td>
+            <td>The App Store, but for developer tools, via text commands</td>
+          </tr>
+          <tr>
+            <td><strong>localhost</strong></td>
+            <td>Your computer acting as a web server. Only you can see the site. When you run a local server (like <code>python -m http.server 8080</code>), your computer becomes a mini web server. You visit it at <code>http://localhost:8080</code> in your browser. The number after the colon (8080, 3000, 5000) is called a "port" &mdash; think of it like an apartment number in a building. Common ports: 3000 (React apps, Express servers), 5000 (Flask/Python), 8080 (general development). Only you can see localhost &mdash; nobody else on the internet can access it. A local server runs entirely on your computer. Commands like <code>python -m http.server 8080</code> or <code>npm start</code> launch a temporary server process. The address <code>localhost</code> points to a special network address (127.0.0.1) that loops back to your own machine &mdash; other computers cannot access it, even with the same address. The server runs only while the Terminal window is open; press Ctrl+C or close the window to stop it.</td>
+            <td>A private preview screening of your website, audience of one</td>
+          </tr>
+          <tr>
+            <td><strong>file://</strong></td>
+            <td>Opening an HTML file directly from your hard drive, no server.</td>
+            <td>Double-clicking a document to open it -- simple and direct</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+
+    <!-- ==========================================
+         VIDEO RESOURCES
+         ========================================== -->
+    <div style="margin-top:2rem;padding-top:2rem;border-top:3px solid #24292e;">
+      <h2 style="text-align:center;">Video Resources</h2>
+      <p style="text-align:center;color:#57606a;margin-bottom:1.5rem;">Curated video searches for visual learners. Each button takes you to relevant YouTube results.</p>
+
+      <div class="video-links" style="justify-content:center;">
+        <a href="https://www.youtube.com/watch?v=RGOj5yH7evk" target="_blank" class="video-link">Git &amp; GitHub Full Course (freeCodeCamp, 1 hr)</a>
+        <a href="https://www.youtube.com/watch?v=HkdAHXoRtos" target="_blank" class="video-link">Git in 100 Seconds (Fireship)</a>
+        <a href="https://www.youtube.com/watch?v=8Dd7KRpKeaE" target="_blank" class="video-link">GitHub Desktop for Beginners (Coder Coder)</a>
+        <a href="https://www.youtube.com/watch?v=i_23KUAEtUM" target="_blank" class="video-link">VS Code + GitHub Integration (James Q Quick)</a>
+        <a href="https://www.youtube.com/watch?v=OltY8JIaP-4" target="_blank" class="video-link">Deploy with GitHub Pages (Techno Tim)</a>
+        <a href="https://www.youtube.com/watch?v=P3aKRdUyr0s" target="_blank" class="video-link">npm Crash Course (Traversy Media)</a>
+      </div>
+
+    </div>
+
+    <div id="chapter-2" class="tab-content">
+      <h2>Chapter 2: Going Deeper</h2>
+      <p>Now that you understand the fundamentals, these intermediate topics will help you work more effectively with Git and GitHub on real projects.</p>
+
+      <nav style="background:#f8f9fa;padding:1rem;border-radius:8px;margin-bottom:2rem;">
+        <strong>In this chapter:</strong>
+        <ol style="margin:0.5rem 0 0 1.5rem;line-height:2;">
+          <li><a href="#sec-adv-branching">Advanced Branching Strategies</a></li>
+          <li><a href="#sec-actions">GitHub Actions &amp; Automation</a></li>
+          <li><a href="#sec-code-review">Code Review</a></li>
+          <li><a href="#sec-orgs">Organizations &amp; Teams</a></li>
+          <li><a href="#sec-advanced-git">Advanced Git Commands</a></li>
+          <li><a href="#sec-open-source">Contributing to Open Source</a></li>
+        </ol>
+      </nav>
+
+      <!-- SECTION 1: Advanced Branching -->
+      <h2 id="sec-adv-branching">1. Advanced Branching Strategies</h2>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Git Flow</span>
+          <span class="desc">A structured branching model with designated branch types:</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><code>main</code> — production-ready code. Only receives merges from release or hotfix branches.</span></div>
+          <div class="outline-item"><span class="desc"><code>develop</code> — the integration branch. All feature branches merge here first.</span></div>
+          <div class="outline-item"><span class="desc"><code>feature/*</code> — individual features, branched from develop, merged back to develop.</span></div>
+          <div class="outline-item"><span class="desc"><code>release/*</code> — preparation for a new release. Bug fixes only, then merged to both main and develop.</span></div>
+          <div class="outline-item"><span class="desc"><code>hotfix/*</code> — emergency fixes on production. Branched from main, merged to both main and develop.</span></div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Trunk-Based Development</span>
+          <span class="desc">A simpler approach: everyone works on <code>main</code> (the "trunk") with very short-lived branches (hours, not days). Changes are small and merged quickly. Popular at companies like Google. Requires good automated testing.</span>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead><tr><th>Aspect</th><th>Git Flow</th><th>Trunk-Based</th></tr></thead>
+        <tbody>
+          <tr><td>Complexity</td><td>High — many branch types</td><td>Low — just main + short branches</td></tr>
+          <tr><td>Best for</td><td>Scheduled releases, large teams</td><td>Continuous deployment, small teams</td></tr>
+          <tr><td>Branch lifetime</td><td>Days to weeks</td><td>Hours to 1-2 days</td></tr>
+          <tr><td>Risk</td><td>Merge conflicts from long-lived branches</td><td>Requires strong testing</td></tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">Git Flow is like planning a road trip with multiple stops and rest areas. Trunk-based development is like driving straight to the destination with quick bathroom breaks.</div>
+
+      <!-- SECTION 2: GitHub Actions -->
+      <h2 id="sec-actions">2. GitHub Actions &amp; Automation</h2>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">What is CI/CD?</span>
+          <span class="desc"><strong>Continuous Integration (CI)</strong> means your code gets automatically tested every time you push. <strong>Continuous Deployment (CD)</strong> means your code gets automatically deployed (published) when tests pass. Together, they eliminate the "it works on my machine" problem.</span>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">What are GitHub Actions?</span>
+          <span class="desc">Automated workflows that run when something happens in your repo. "When someone pushes code, run the tests." "When a PR is merged to main, deploy the website." You define these workflows in YAML files inside a <code>.github/workflows/</code> folder in your repo.</span>
+        </div>
+      </div>
+
+      <div class="key-insight">GitHub Actions is like setting up email filters — "when X happens, automatically do Y."</div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">A simple workflow example</span>
+          <span class="desc">This file would live at <code>.github/workflows/test.yml</code>:</span>
+        </div>
+      </div>
+
+      <pre style="background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:8px;font-size:0.82rem;overflow-x:auto;margin:1rem 0;">
+<span style="color:#569cd6;">name:</span> Run Tests
+<span style="color:#569cd6;">on:</span> [push, pull_request]
+<span style="color:#569cd6;">jobs:</span>
+  <span style="color:#569cd6;">test:</span>
+    <span style="color:#569cd6;">runs-on:</span> ubuntu-latest
+    <span style="color:#569cd6;">steps:</span>
+      - <span style="color:#569cd6;">uses:</span> actions/checkout@v4
+      - <span style="color:#569cd6;">uses:</span> actions/setup-node@v4
+      - <span style="color:#569cd6;">run:</span> npm install
+      - <span style="color:#569cd6;">run:</span> npm test</pre>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Common workflows</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc">Run tests on every push</span></div>
+          <div class="outline-item"><span class="desc">Deploy to GitHub Pages when main is updated</span></div>
+          <div class="outline-item"><span class="desc">Check code style (linting) on pull requests</span></div>
+          <div class="outline-item"><span class="desc">Auto-label issues based on content</span></div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: Code Review -->
+      <h2 id="sec-code-review">3. Code Review</h2>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Why code review matters</span>
+          <span class="desc">Code review catches bugs, shares knowledge across the team, and keeps code quality consistent. Most professional teams require at least one review before merging any PR.</span>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">How to review a PR</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><strong>1. Read the description</strong> — understand what the PR is trying to do before looking at code.</span></div>
+          <div class="outline-item"><span class="desc"><strong>2. Check the diff</strong> — the "Files changed" tab shows exactly what was added (green) and removed (red).</span></div>
+          <div class="outline-item"><span class="desc"><strong>3. Leave inline comments</strong> — click the + icon next to any line to comment on it.</span></div>
+          <div class="outline-item"><span class="desc"><strong>4. Submit your review</strong> — choose Approve, Request Changes, or Comment (no decision).</span></div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Writing helpful review comments</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><strong>Be specific</strong> — "This variable name is unclear" is better than "fix this."</span></div>
+          <div class="outline-item"><span class="desc"><strong>Suggest alternatives</strong> — "Consider using <code>forEach</code> instead of a for loop here."</span></div>
+          <div class="outline-item"><span class="desc"><strong>Explain why</strong> — "This could cause a bug because X."</span></div>
+          <div class="outline-item"><span class="desc"><strong>Praise good work</strong> — "Nice solution to this problem!" goes a long way.</span></div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">CODEOWNERS file</span>
+          <span class="desc">A file at <code>.github/CODEOWNERS</code> that auto-assigns reviewers. For example: <code>*.js @team-lead</code> means any JavaScript file change automatically requests a review from @team-lead.</span>
+        </div>
+      </div>
+
+      <!-- SECTION 4: Organizations -->
+      <h2 id="sec-orgs">4. Organizations &amp; Teams</h2>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">What's an Organization?</span>
+          <span class="desc">A shared GitHub account for groups — companies, classes, or open-source projects. Repos belong to the organization, not a single person. If someone leaves the team, the repos stay.</span>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead><tr><th>Permission Level</th><th>What They Can Do</th></tr></thead>
+        <tbody>
+          <tr><td>Read</td><td>View code and issues</td></tr>
+          <tr><td>Triage</td><td>Manage issues and PRs (but can't push code)</td></tr>
+          <tr><td>Write</td><td>Push code, create branches</td></tr>
+          <tr><td>Maintain</td><td>Manage settings (but not destructive actions)</td></tr>
+          <tr><td>Admin</td><td>Full control including deleting the repo</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 5: Advanced Git -->
+      <h2 id="sec-advanced-git">5. Advanced Git Commands</h2>
+
+      <table class="comparison-table">
+        <thead><tr><th>Command</th><th>What It Does</th><th>When to Use It</th></tr></thead>
+        <tbody>
+          <tr><td><code>git rebase</code></td><td>Moves your branch's commits on top of another branch, rewriting history for a cleaner timeline</td><td>When you want a linear history instead of merge commits</td></tr>
+          <tr><td><code>git stash</code></td><td>Temporarily saves your uncommitted changes so you can switch branches</td><td>When you need to switch branches but aren't ready to commit</td></tr>
+          <tr><td><code>git cherry-pick</code></td><td>Copies a single commit from one branch to another</td><td>When you need just one specific change from another branch</td></tr>
+          <tr><td><code>git reflog</code></td><td>Shows a log of every action you've taken, even "deleted" commits</td><td>When you accidentally lose work — reflog can find it</td></tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight"><code>git reflog</code> is your undo button for everything. Even if you think you deleted a branch or lost commits, reflog almost certainly has them. Git rarely truly deletes anything.</div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Rebase vs Merge</span>
+          <span class="desc"><code>git merge</code> creates a "merge commit" that ties two branches together — your history shows the branch existed. <code>git rebase</code> replays your commits on top of the target branch — your history looks like a straight line. Merge is safer (preserves history), rebase is cleaner (linear history). Most beginners should stick with merge.</span>
+        </div>
+      </div>
+
+      <!-- SECTION 6: Open Source -->
+      <h2 id="sec-open-source">6. Contributing to Open Source</h2>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Finding repos to contribute to</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><strong>GitHub Explore</strong> (<a href="https://github.com/explore" target="_blank">github.com/explore</a>) — curated collections and trending repos.</span></div>
+          <div class="outline-item"><span class="desc"><strong>"good first issue" label</strong> — many repos tag beginner-friendly issues. Search: <code>label:"good first issue" language:javascript</code></span></div>
+          <div class="outline-item"><span class="desc"><strong>Projects you already use</strong> — found a bug in a tool you use? That's a contribution opportunity.</span></div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">The fork-and-PR workflow</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><strong>1. Fork</strong> the repo (makes your own copy on GitHub)</span></div>
+          <div class="outline-item"><span class="desc"><strong>2. Clone</strong> your fork to your computer</span></div>
+          <div class="outline-item"><span class="desc"><strong>3. Branch</strong> — create a feature branch for your change</span></div>
+          <div class="outline-item"><span class="desc"><strong>4. Code</strong> — make your changes, commit them</span></div>
+          <div class="outline-item"><span class="desc"><strong>5. Push</strong> to your fork</span></div>
+          <div class="outline-item"><span class="desc"><strong>6. PR</strong> — open a pull request from your fork to the original repo</span></div>
+          <div class="outline-item"><span class="desc"><strong>7. Respond</strong> to review feedback and iterate</span></div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Important repo files to read before contributing</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><code>CONTRIBUTING.md</code> — how the project wants you to contribute (coding style, PR process, testing requirements)</span></div>
+          <div class="outline-item"><span class="desc"><code>CODE_OF_CONDUCT.md</code> — behavior expectations for the community</span></div>
+          <div class="outline-item"><span class="desc"><code>README.md</code> — project overview, setup instructions, and usage</span></div>
+        </div>
+      </div>
+
+      <div class="key-insight">Your first open-source contribution doesn't have to be code. Fixing a typo in documentation, improving a README, or reporting a well-described bug are all valuable contributions.</div>
+
+      <!-- Chapter 2 Quick Reference -->
+      <details class="quick-ref" style="margin-top:3rem;">
+        <summary style="font-family:Arial,sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;padding:0.75rem 0;color:#24292e;">Chapter 2 Quick Reference — click to expand</summary>
+        <table class="comparison-table">
+          <thead><tr><th>Term</th><th>What It Is</th></tr></thead>
+          <tbody>
+            <tr><td>CI/CD</td><td>Automated testing (CI) and deployment (CD) of code</td></tr>
+            <tr><td>GitHub Actions</td><td>GitHub's built-in automation — runs workflows on events</td></tr>
+            <tr><td>YAML</td><td>A human-readable config file format used for workflows</td></tr>
+            <tr><td>Code Review</td><td>Team members reading and commenting on proposed changes</td></tr>
+            <tr><td>CODEOWNERS</td><td>A file that auto-assigns reviewers to code changes</td></tr>
+            <tr><td>Organization</td><td>A shared GitHub account for teams or companies</td></tr>
+            <tr><td>git rebase</td><td>Replay commits on top of another branch (clean history)</td></tr>
+            <tr><td>git stash</td><td>Temporarily save uncommitted work</td></tr>
+            <tr><td>git cherry-pick</td><td>Copy a single commit from one branch to another</td></tr>
+            <tr><td>git reflog</td><td>View log of all actions — your safety net for lost work</td></tr>
+            <tr><td>Fork &amp; PR</td><td>The standard way to contribute to someone else's project</td></tr>
+          </tbody>
+        </table>
+      </details>
+    </div>
+
+  </div><!-- end .container -->
+
+  <!-- ==========================================
+       TAB SWITCHING SCRIPT
+       ========================================== -->
+  <script>
+    (function() {
+      var tabButtons = document.querySelectorAll('.tab-btn');
+      var tabContents = document.querySelectorAll('.tab-content');
+
+      tabButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var targetTab = this.getAttribute('data-tab');
+
+          // Remove active from all buttons and contents
+          tabButtons.forEach(function(b) { b.classList.remove('active'); });
+          tabContents.forEach(function(c) { c.classList.remove('active'); });
+
+          // Add active to clicked button and matching content
+          this.classList.add('active');
+          var targetContent = document.getElementById(targetTab);
+          if (targetContent) {
+            targetContent.classList.add('active');
+          }
+
+          // Scroll to top of content area
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+    })();
+
+    // ========== SECTION SCROLL SPY ==========
+    (function() {
+      var links = document.querySelectorAll('.ch1-subnav-link');
+      var sectionIds = [];
+      links.forEach(function(l) { sectionIds.push(l.getAttribute('data-section')); });
+
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            var id = entry.target.id;
+            links.forEach(function(l) {
+              l.classList.toggle('active', l.getAttribute('data-section') === id);
+            });
+          }
+        });
+      }, { rootMargin: '-170px 0px -60% 0px', threshold: 0 });
+
+      sectionIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+
+      // Hide subnav when Chapter 2 is active
+      var ch1Tab = document.querySelector('[data-tab="chapter-1"]');
+      var subnav = document.getElementById('ch1Subnav');
+      document.addEventListener('click', function(e) {
+        if (e.target.classList && e.target.classList.contains('tab-btn')) {
+          var tab = e.target.getAttribute('data-tab');
+          subnav.style.display = (tab === 'chapter-1') ? 'flex' : 'none';
+        }
+      });
+    })();
+  </script>
+
+  <!-- Learning Hub Integration -->
+  <link rel="stylesheet" href="../learning-hub.css">
+  <script src="../learning-hub.js"></script>
+<!-- lh-implemented: mnazfc8a8chfsm, mnazg9y5ea4exr, mnazk0u5024vby -->
+<!-- lh-implemented: mnavyfcxphusm7, mnaw1h92ukqkcf, mnaw3sizwe5wx0, mnawgcfgcncz1c, mnawhmachwk0lu, mnawn6y618mxkf, mnawnfma9q0m19, mnawnrjd3i7ux4, mnawoa8wux08i7, mnawpa03vyj4el, mnawun2f0di8og, mnawvoxex5avbm, mnaww6hvcsg7o4, mnawy9iholu7m1, mnawyml2ezd03a, mnawyzceizu6jg, mnawzo77lty1ht, mnax0y5nyy8wcd, mnax1mk70jp7rk, mnaxl80851ho9g, mnay646mc5n2gi -->
+<!-- lh-implemented: mnazo3ivi4uprn, mnazo89xjjrsiw, mnazqjedn52oz5 -->
+<!-- lh-implemented: mnb00m061g0kd1 -->
+<!-- lh-implemented: mnb0szqt19luee -->
+<!-- lh-implemented: mnb0szqt19luee, mnb0zh2n3utc55, mnb10dfkl2qgob, mnb155tizy0ynl, mnb19botaiyp4e -->
+<!-- lh-implemented: mnb1enmg5plw9u, mnb1g89osnlp5s, mnb1gqu2187kh4, mnb1inrn1r82zi, mnb1lq60h8pu5y, mnb1nkkq1wvlno, mnb1qx5ls1h4b9, mnb1sk3znc7oz9, mnb1ud4ikqv3tb -->
+<!-- lh-implemented: mnb21o97fqqol4 -->
+<!-- lh-implemented: mnb42admg14utw -->
+<!-- lh-implemented: mnb43ufm24x0xz -->
+<!-- lh-implemented: mnb47erb6amg7w -->
+</body>
+</html>
