@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrate Learning Hub Data</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 3rem auto; padding: 0 1.5rem; color: #202124; }
+    h1 { font-size: 1.5rem; }
+    p { color: #5f6368; line-height: 1.6; }
+    .step { background: #f8f9fa; border: 1px solid #dadce0; border-radius: 8px; padding: 1.25rem; margin: 1rem 0; }
+    .step h2 { font-size: 1rem; margin: 0 0 0.5rem 0; }
+    button { background: #1a73e8; color: #fff; border: none; border-radius: 6px; padding: 0.6rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; margin: 0.5rem 0; }
+    button:hover { background: #1557b0; }
+    button.secondary { background: #1e8e3e; }
+    button.secondary:hover { background: #167d34; }
+    textarea { width: 100%; height: 150px; font-family: monospace; font-size: 0.75rem; border: 1px solid #dadce0; border-radius: 6px; padding: 0.5rem; margin: 0.5rem 0; }
+    .status { font-size: 0.85rem; color: #1e8e3e; margin: 0.3rem 0; min-height: 1.2em; }
+    .warning { color: #e8710a; }
+    .origin { font-family: monospace; background: #e8eaed; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>Migrate Learning Hub Data</h1>
+  <p>Your current origin is: <span class="origin" id="currentOrigin"></span></p>
+  <p>Learning Hub data (comments, queued topics, custom instructions) is stored per-origin. Use this tool to move data between <span class="origin">file:///</span> and <span class="origin">http://localhost:3000</span>.</p>
+
+  <div class="step">
+    <h2>Step 1: Export from current origin</h2>
+    <p>Open this page in the origin that HAS your data. Click Export to copy all Learning Hub data.</p>
+    <button id="exportBtn">Export All Data</button>
+    <div class="status" id="exportStatus"></div>
+    <textarea id="exportArea" placeholder="Exported data will appear here..." readonly></textarea>
+  </div>
+
+  <div class="step">
+    <h2>Step 2: Import into new origin</h2>
+    <p>Open this page in the origin you want to move data TO. Paste the exported data below and click Import.</p>
+    <textarea id="importArea" placeholder="Paste exported data here..."></textarea>
+    <button class="secondary" id="importBtn">Import Data</button>
+    <div class="status" id="importStatus"></div>
+  </div>
+
+  <div class="step">
+    <h2>Quick way (if both origins are accessible)</h2>
+    <p>If you're switching from <span class="origin">file:///</span> to <span class="origin">localhost:3000</span>:</p>
+    <ol style="line-height:2;">
+      <li>Open <span class="origin">file:///path/to/migrate-data.html</span> in a browser tab</li>
+      <li>Click <strong>Export All Data</strong> — it copies to clipboard</li>
+      <li>Open <span class="origin">http://localhost:3000/migrate-data.html</span> in another tab</li>
+      <li>Click in the import box, press <strong>Cmd+V</strong>, click <strong>Import Data</strong></li>
+      <li>Done — all your comments, queue, and settings are now on localhost</li>
+    </ol>
+  </div>
+
+  <script>
+    var KEYS = [
+      'learningHubComments',
+      'learningHubCustomInstructions',
+      'learningHubExportVersion',
+      'learningHubQueue',
+      'learningHubLastOpened'
+    ];
+
+    // Also grab any per-page batch keys
+    function getAllLHKeys() {
+      var keys = KEYS.slice();
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.startsWith('learningHub')) {
+          if (keys.indexOf(k) === -1) keys.push(k);
+        }
+      }
+      return keys;
+    }
+
+    document.getElementById('currentOrigin').textContent = window.location.origin || window.location.protocol + '//' + window.location.host || 'file://';
+
+    // Debug: show ALL localStorage keys
+    var debugInfo = 'localStorage has ' + localStorage.length + ' total keys:\n';
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      var v = localStorage.getItem(k);
+      debugInfo += '  ' + k + ' (' + (v ? v.length : 0) + ' chars)\n';
+    }
+    console.log(debugInfo);
+    if (localStorage.length === 0) {
+      document.getElementById('exportStatus').textContent = 'localStorage is empty on this origin. Your data may be on a different origin (try localhost:8080 or a different browser).';
+      document.getElementById('exportStatus').className = 'status warning';
+    }
+
+    document.getElementById('exportBtn').addEventListener('click', function () {
+      var keys = getAllLHKeys();
+      var data = {};
+      var count = 0;
+      keys.forEach(function (k) {
+        var val = localStorage.getItem(k);
+        if (val !== null) {
+          data[k] = val;
+          count++;
+        }
+      });
+
+      var json = JSON.stringify(data, null, 2);
+      document.getElementById('exportArea').value = json;
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(json).then(function () {
+        document.getElementById('exportStatus').textContent = 'Exported ' + count + ' keys and copied to clipboard!';
+      }).catch(function () {
+        document.getElementById('exportStatus').textContent = 'Exported ' + count + ' keys. Select all and copy manually (Cmd+A, Cmd+C).';
+        document.getElementById('exportStatus').className = 'status warning';
+      });
+    });
+
+    document.getElementById('importBtn').addEventListener('click', function () {
+      var raw = document.getElementById('importArea').value.trim();
+      if (!raw) { document.getElementById('importStatus').textContent = 'Paste data first.'; return; }
+
+      try {
+        var data = JSON.parse(raw);
+        var count = 0;
+        Object.keys(data).forEach(function (k) {
+          // Merge comments instead of overwriting
+          if (k === 'learningHubComments') {
+            var existing = [];
+            try { existing = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+            var incoming = [];
+            try { incoming = JSON.parse(data[k]); } catch (e) {}
+            // Merge by ID — keep existing, add new
+            var existingIds = {};
+            existing.forEach(function (c) { existingIds[c.id] = true; });
+            incoming.forEach(function (c) { if (!existingIds[c.id]) existing.push(c); });
+            localStorage.setItem(k, JSON.stringify(existing));
+          } else if (k === 'learningHubQueue') {
+            var existingQ = [];
+            try { existingQ = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+            var incomingQ = [];
+            try { incomingQ = JSON.parse(data[k]); } catch (e) {}
+            var existingQIds = {};
+            existingQ.forEach(function (q) { existingQIds[q.id] = true; });
+            incomingQ.forEach(function (q) { if (!existingQIds[q.id]) existingQ.push(q); });
+            localStorage.setItem(k, JSON.stringify(existingQ));
+          } else {
+            localStorage.setItem(k, data[k]);
+          }
+          count++;
+        });
+        document.getElementById('importStatus').textContent = 'Imported ' + count + ' keys! Refresh the Learning Hub to see your data.';
+        document.getElementById('importStatus').className = 'status';
+      } catch (e) {
+        document.getElementById('importStatus').textContent = 'Error: invalid data format. ' + e.message;
+        document.getElementById('importStatus').className = 'status warning';
+      }
+    });
+  </script>
+</body>
+</html>

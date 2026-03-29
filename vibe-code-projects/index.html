@@ -11,6 +11,101 @@
   <header class="hub-header">
     <h1>Learning Hub</h1>
     <p>Your interactive collection of study guides. Highlight text, ask questions, and build change files for AI-assisted learning.</p>
+    <details style="max-width:800px;margin:1.5rem auto 0;text-align:left;background:rgba(255,255,255,0.12);border-radius:8px;padding:0 1.25rem;overflow:hidden;">
+      <summary style="padding:0.75rem 0;cursor:pointer;font-family:Arial,sans-serif;font-size:0.9rem;font-weight:600;color:rgba(255,255,255,0.9);">How this works &amp; how to set it up</summary>
+      <div style="padding:0 0 1.25rem;font-size:0.85rem;color:rgba(255,255,255,0.8);line-height:1.7;overflow-wrap:break-word;word-break:break-word;">
+
+        <p style="margin:0.75rem 0;">The Learning Hub is designed for active engagement with content &mdash; not passive reading. After you complete the <a href="#setup-section" onclick="event.preventDefault();document.getElementById('setup-section').scrollIntoView();window.scrollBy(0,-70);" style="color:#ffd54f;">setup</a>, you can import content, create a topic from scratch, then interrogate it. Highlight text and add comments just like Google Docs. Comments can be:</p>
+        <ul style="margin:0.3rem 0 0.75rem;padding-left:1.5rem;">
+          <li>Questions about what you just read</li>
+          <li>Requests for clarification on a referenced topic</li>
+          <li>Changes to how an answer or topic is laid out</li>
+          <li>Anything! Write it as if you&rsquo;re talking to an AI that can see the page</li>
+        </ul>
+        <p style="margin:0 0 1rem;">When ready, click <strong style="color:#fff;">Export Comments</strong> to copy a structured instruction to your clipboard, then paste it into Claude Code. It updates the website with your comments in mind.</p>
+
+        <p id="setup-section" style="margin:0 0 0.5rem;font-size:1.1rem;font-weight:700;color:#fff;font-family:Arial,sans-serif;scroll-margin-top:70px;">Setup</p>
+        <p style="margin:0 0 1rem;">Because this page is personalized and meant to be updated constantly &mdash; almost like an AI-powered word processor &mdash; it runs on a local server. Pick one option below:</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.85rem;overflow:hidden;">
+            <p style="margin:0 0 0.4rem;"><strong style="color:#fff;">Option A: One command</strong></p>
+            <p style="margin:0 0 0.4rem;color:rgba(255,255,255,0.6);font-size:0.78rem;">Open the <strong>Terminal</strong> app (Applications &gt; Utilities &gt; Terminal) and paste this. It does everything automatically, downloading to your Desktop.</p>
+            <div style="position:relative;">
+              <pre style="background:rgba(0,0,0,0.3);padding:0.6rem;border-radius:4px;font-size:0.72rem;color:#e8e8e8;line-height:1.5;margin:0;white-space:pre-wrap;word-break:break-all;"><code id="optionA">git clone https://github.com/david-landerman/david-landerman-jour352.git ~/Desktop/learning-hub &amp;&amp; cd ~/Desktop/learning-hub/vibe-code-projects &amp;&amp; npm install &amp;&amp; printf '#!/bin/bash\ncd "$(dirname "$0")"\necho "Starting Learning Hub..."\nopen "http://localhost:3000"\nnode image-server.js\n' &gt; "Start Learning Hub.command" &amp;&amp; chmod +x "Start Learning Hub.command" &amp;&amp; echo "Done!"</code></pre>
+              <button onclick="navigator.clipboard.writeText(document.getElementById('optionA').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)" style="position:absolute;top:4px;right:4px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:0.68rem;cursor:pointer;">Copy</button>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.85rem;overflow:hidden;">
+            <p style="margin:0 0 0.4rem;"><strong style="color:#fff;">Option B: Step by step</strong></p>
+            <p style="margin:0 0 0.4rem;color:rgba(255,255,255,0.6);font-size:0.75rem;">Open <strong>Terminal</strong> (Applications &gt; Utilities) and run each command:</p>
+            <ol style="margin:0;padding-left:1.3rem;font-size:0.78rem;">
+              <li style="margin:0.3rem 0;"><code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:2px;word-break:break-all;">git clone https://github.com/david-landerman/david-landerman-jour352.git ~/Desktop/learning-hub</code><br><span style="color:rgba(255,255,255,0.5);">Downloads the repo to your Desktop.</span></li>
+              <li style="margin:0.3rem 0;"><code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:2px;">cd ~/Desktop/learning-hub/vibe-code-projects</code><br><span style="color:rgba(255,255,255,0.5);">Enter the project folder.</span></li>
+              <li style="margin:0.3rem 0;"><code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:2px;">npm install</code><br><span style="color:rgba(255,255,255,0.5);"><a href="https://www.npmjs.com" target="_blank" style="color:rgba(255,255,255,0.6);">npm</a> is a package manager that downloads JavaScript tools &amp; libraries. This installs what the Learning Hub needs. Everything it downloads is listed in <code>package.json</code> so you can audit it.</span></li>
+            </ol>
+            <p style="margin:0.75rem 0 0.3rem;font-size:0.8rem;"><strong style="color:#ffd54f;">Make it easy to open:</strong></p>
+            <ol start="4" style="margin:0;padding-left:1.3rem;font-size:0.78rem;">
+              <li style="margin:0.3rem 0;">Paste this entire block into Terminal to create the launcher file:<br>
+                <div style="position:relative;">
+                  <pre style="background:rgba(0,0,0,0.3);padding:0.3rem 0.5rem;border-radius:3px;font-size:0.7rem;margin:0.2rem 0;white-space:pre-wrap;"><code id="optionBcreate">cat &gt; ~/Desktop/learning-hub/vibe-code-projects/"Start Learning Hub.command" &lt;&lt; 'EOF'
+#!/bin/bash
+cd "$(dirname "$0")"
+echo "Starting Learning Hub..."
+open "http://localhost:3000"
+node image-server.js
+EOF
+chmod +x ~/Desktop/learning-hub/vibe-code-projects/"Start Learning Hub.command"</code></pre>
+                  <button onclick="navigator.clipboard.writeText(document.getElementById('optionBcreate').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)" style="position:absolute;top:2px;right:4px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:3px;padding:2px 6px;font-size:0.65rem;cursor:pointer;">Copy</button>
+                </div>
+              </li>
+            </ol>
+            <details style="margin:0.5rem 0 0;font-size:0.75rem;">
+              <summary style="cursor:pointer;color:rgba(255,255,255,0.5);">What if I don&rsquo;t want it on my Desktop?</summary>
+              <p style="color:rgba(255,255,255,0.5);margin:0.3rem 0 0;">Move the <code>learning-hub</code> folder anywhere you like in Finder. The <code>Start Learning Hub.command</code> file uses relative paths, so it works from any location. Just double-click it wherever it ends up.</p>
+            </details>
+          </div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.85rem;margin-bottom:1rem;overflow:hidden;">
+          <p style="margin:0 0 0.4rem;"><strong style="color:#fff;">Option C: Have an AI do it</strong></p>
+          <p style="margin:0 0 0.4rem;color:rgba(255,255,255,0.6);font-size:0.78rem;">Instead of running commands yourself, paste this into Claude Code, ChatGPT, or any AI coding assistant and let it handle the setup.</p>
+          <div style="position:relative;">
+            <pre style="background:rgba(0,0,0,0.3);padding:0.6rem;border-radius:4px;font-size:0.72rem;color:#e8e8e8;line-height:1.6;margin:0;white-space:pre-wrap;word-break:break-word;"><code id="optionC">Clone the repo at
+https://github.com/david-landerman/david-landerman-jour352
+to ~/Desktop/learning-hub.
+
+Then:
+1. cd into vibe-code-projects
+2. Run npm install
+3. Create a "Start Learning Hub.command" file that runs
+   "node image-server.js" and opens http://localhost:3000
+4. Make the .command file executable
+
+Read vibe-code-projects/ARCHITECTURE.md for full project context.</code></pre>
+            <button onclick="navigator.clipboard.writeText(document.getElementById('optionC').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)" style="position:absolute;top:4px;right:4px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:0.68rem;cursor:pointer;">Copy</button>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;">
+          <div style="flex-shrink:0;width:50px;text-align:center;">
+            <div style="background:#fff;width:40px;height:48px;border-radius:4px;margin:0 auto;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+              <span style="font-size:0.55rem;font-family:'Courier New',monospace;color:#333;text-align:center;line-height:1.1;">.cmd</span>
+            </div>
+            <p style="margin:3px 0 0;font-size:0.6rem;color:rgba(255,255,255,0.6);line-height:1.2;">Start Learning<br>Hub.command</p>
+          </div>
+          <p style="margin:0;font-size:0.9rem;"><strong style="color:#ffd54f;">When you&rsquo;re done, you&rsquo;ll have this file on your Desktop. Double-click it to start the local server and open the Learning Hub &mdash; then you&rsquo;re ready to rock!</strong></p>
+        </div>
+
+        <p style="margin:0 0 0.3rem;"><strong style="color:#fff;">Security notes:</strong></p>
+        <ul style="margin:0;padding-left:1.5rem;color:rgba(255,255,255,0.6);font-size:0.78rem;">
+          <li>Server runs on <code>localhost:3000</code> only &mdash; not exposed to the internet.</li>
+          <li>No data leaves your machine. No external services contacted.</li>
+          <li>The server accepts only validated image files and plain text notes.</li>
+          <li>All code is readable: <code>image-server.js</code> (~100 lines) and <code>learning-hub.js</code>.</li>
+        </ul>
+      </div>
+    </details>
   </header>
 
   <main class="hub-main" id="hubMain"></main>
@@ -25,6 +120,7 @@
       { href: 'new-topic.html', title: '+ New Topic', desc: 'Create a new study guide on any subject' },
       { href: 'change-file.html', title: 'View Change File', desc: 'See annotations, custom instructions, export' },
       { href: 'convert-guide.html', title: 'Convert to Learning Hub', desc: 'Upload an HTML file and add Learning Hub navigation + commenting' },
+      { href: 'migrate-data.html', title: 'Migrate Data', desc: 'Move comments and queue between file:// and localhost' },
     ];
 
     // ========== STUDY GUIDES (rendered as cards with thumbnails) ==========
@@ -75,6 +171,7 @@
         items: [
           { file: '../r-study-guide.html', title: 'R Study Guide', desc: 'Socratic Q&A — ask questions, get answers.', thumb: 'thumbnails/r-study-guide.png', direct: true },
           { file: 'Claude Join page copy.html', title: 'R Tidyverse Joins Example', desc: 'R code examples for join operations.', thumb: 'thumbnails/claude-join-page.png' },
+          { file: 'census-guide3.html', title: 'Census Table Codes', desc: 'Visual guide to pulling Census data with R — table codes, geographies, and tidycensus.', thumb: 'thumbnails/census-guide3.png' },
         ]
       },
       {
@@ -82,6 +179,7 @@
         catKey: 'tools',
         items: [
           { file: 'github-complete-guide.html', title: 'GitHub: Complete Beginner Guide', desc: 'Git, repos, branches, Pages, npm, best practices.', thumb: 'thumbnails/github-complete-guide.png', tabs: ['Big Picture', 'Interface', 'Core Workflow', 'Branches', 'Local vs Remote', 'Pages', 'Tools', 'Best Practices'] },
+          { file: 'agentic-engineering.html', title: 'Agentic Engineering', desc: 'Best practices for working with AI coding agents — debugging, security, reuse, and quality.', thumb: 'thumbnails/agentic-engineering.png', tabs: ['Foundations', 'Patterns in Practice', 'Quick Reference'] },
         ]
       },
       {
@@ -220,13 +318,29 @@
       });
 
       var q = getQueue();
-      q.push({
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
-        title: title,
-        notes: notes,
-        links: links,
-        added: new Date().toISOString()
-      });
+      var editingId = this.getAttribute('data-editing-id');
+
+      if (editingId) {
+        // Update existing item (preserve ID so comments stay linked)
+        var existing = q.find(function (i) { return i.id === editingId; });
+        if (existing) {
+          existing.title = title;
+          existing.notes = notes;
+          existing.links = links;
+        }
+        this.removeAttribute('data-editing-id');
+        this.textContent = 'Add to Queue';
+      } else {
+        // Create new item
+        q.push({
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+          title: title,
+          notes: notes,
+          links: links,
+          added: new Date().toISOString()
+        });
+      }
+
       saveQueue(q);
 
       // Reset form
@@ -238,7 +352,7 @@
 
     queueTitleEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') queueSaveBtn.click(); });
 
-    function renderQueue() {
+    window.renderQueue = function renderQueue() {
       var q = getQueue();
       if (q.length === 0) {
         queueList.innerHTML = '<p class="queue-empty">No topics queued yet. Add one above!</p>';
@@ -257,7 +371,7 @@
           buildParams += '&links=' + encodeURIComponent(item.link);
         }
 
-        html += '<li class="queue-item">';
+        html += '<li class="queue-item" data-id="' + item.id + '">';
         html += '<div class="queue-item-header">';
         html += '<span class="queue-item-bullet">&#x25CB;</span>';
         html += '<span class="queue-item-title">' + escapeHtml(item.title) + '</span>';
@@ -288,6 +402,9 @@
       html += '</ul>';
 
       queueList.innerHTML = html;
+
+      // Notify comment system to re-render markers after queue DOM changes
+      document.dispatchEvent(new Event('lh-content-changed'));
 
       queueList.querySelectorAll('.queue-delete').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -325,10 +442,9 @@
             });
           }
 
-          // Remove the old item
-          q = q.filter(function (i) { return i.id !== id; });
-          saveQueue(q);
-          renderQueue();
+          // Store the editing ID so Save updates instead of creating new
+          queueSaveBtn.setAttribute('data-editing-id', id);
+          queueSaveBtn.textContent = 'Update';
 
           // Scroll to the form and focus
           queueTitleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -350,5 +466,12 @@
 
 <!-- lh-implemented: mnb2pmar95momr, mnb2qbcu1rjthb, mnb2qlwxomgix3, mnb2r84pbeunx2, mnb2sj76wv76p2, mnb2tw57d035yz -->
 <!-- lh-implemented: mnb3kxqthdf8l7, mnb3mp43b0rylx, mnb3uxzjk7imn9, mnb4c001iuylo6 -->
+<!-- lh-implemented: mnb8dtplb2s4tv, mnb8fda70dy5o5 -->
+<!-- lh-implemented: mnba9dul2lyvk4 -->
+<!-- lh-implemented: mnc3r86l4vx1vy -->
+<!-- lh-implemented: mnc40m5e0fbzac, mnc41c5x8axgt7, mnc42wrglhfwmb -->
+<!-- lh-implemented: mnc46aprvmr6d1, mnc48gxnfwwjm1, mnc496e2msezkl, mnc4d1c60yb91h, mnc4drfwmn0i23, mnc4e47exe0wz0, mnc4g75fo0v476 -->
+<!-- lh-implemented: mnc4lh4tmndueh, mnc4qrg6ke9500, mnc4rewz5rv35n, mnc4shcs8kfrb2, mnc4tkwdojda5o, mnc4tx5k86mot1, mnc4vqxy42xls6 -->
+<!-- lh-implemented: mnc51qle9t031d -->
 </body>
 </html>

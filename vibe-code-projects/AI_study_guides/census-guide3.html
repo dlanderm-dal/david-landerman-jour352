@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Census Table Codes — A Visual Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f6f2eb;
+    --cream: #ede7db;
+    --rust: #c4652a;
+    --rust-light: #f0d5c1;
+    --teal: #2a6f6f;
+    --teal-light: #d1e8e8;
+    --slate: #5a5a7a;
+    --faint: #d4cfc6;
+    --code-bg: #2b2b3d;
+    --code-text: #e8e4dc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); line-height: 1.7; font-size: 17px; padding-top: 56px; }
+  .hero { background: var(--ink); color: var(--paper); padding: 4rem 2rem 3.5rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border: 40px solid rgba(196,101,42,0.15); border-radius: 50%; }
+  .hero::after { content: ''; position: absolute; bottom: -40px; left: 10%; width: 200px; height: 200px; border: 30px solid rgba(42,111,111,0.12); border-radius: 50%; }
+  .hero-inner { max-width: 780px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--rust); margin-bottom: 1rem; display: block; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; margin-bottom: 1rem; font-weight: 400; }
+  .hero h1 em { color: var(--rust); font-style: normal; }
+  .hero p { font-size: 1.05rem; color: #b0abb8; max-width: 560px; line-height: 1.7; }
+  .container { max-width: 780px; margin: 0 auto; padding: 0 2rem; }
+  section { padding: 3.5rem 0; border-bottom: 1px solid var(--faint); }
+  section:last-of-type { border-bottom: none; }
+  .section-number { font-family: 'DM Serif Display', serif; font-size: 3rem; color: var(--faint); line-height: 1; margin-bottom: 0.25rem; }
+  h2 { font-family: 'DM Serif Display', serif; font-size: 1.7rem; font-weight: 400; margin-bottom: 1.2rem; color: var(--ink); }
+  h3 { font-family: 'DM Sans', sans-serif; font-weight: 700; margin: 2rem 0 0.6rem; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
+  p { margin-bottom: 1rem; color: #3a3a4e; }
+  p strong { color: var(--ink); }
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 2rem 0; }
+  .flow-step { display: flex; gap: 1.2rem; align-items: flex-start; position: relative; }
+  .flow-dot-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 40px; }
+  .flow-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--rust); flex-shrink: 0; margin-top: 6px; z-index: 1; }
+  .flow-line { width: 2px; flex-grow: 1; background: var(--faint); min-height: 20px; }
+  .flow-card { background: white; border: 1px solid var(--faint); border-radius: 8px; padding: 1.1rem 1.3rem; margin-bottom: 1rem; flex-grow: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .flow-card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.35rem; color: var(--ink); }
+  .flow-card p { margin: 0; font-size: 0.92rem; color: var(--slate); line-height: 1.6; }
+  .callout { background: var(--cream); border-left: 4px solid var(--rust); padding: 1.2rem 1.4rem; border-radius: 0 8px 8px 0; margin: 1.5rem 0; }
+  .callout p { margin: 0; font-size: 0.95rem; color: var(--slate); }
+  .callout strong { color: var(--ink); }
+  .tree-box { background: var(--code-bg); color: var(--code-text); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; padding: 1.5rem 1.8rem; border-radius: 10px; margin: 1.5rem 0; overflow-x: auto; line-height: 1.9; }
+  .tree-box .t-label { color: #9a96a6; }
+  .tree-box .t-code { color: var(--rust); font-weight: 600; background: rgba(196,101,42,0.12); padding: 1px 5px; border-radius: 3px; }
+  .tree-box .t-name { color: #c9e6c9; }
+  .tree-box .t-dim { color: #6a6680; }
+  .anatomy { display: flex; align-items: center; justify-content: center; gap: 0; margin: 2rem 0; flex-wrap: wrap; }
+  .anatomy-segment { text-align: center; padding: 0.3rem 0; }
+  .anatomy-code { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 600; display: block; padding: 0.3rem 0.6rem; border-radius: 6px; line-height: 1.3; }
+  .anatomy-desc { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 0.5rem; display: block; font-weight: 600; }
+  .seg-prefix .anatomy-code { color: var(--teal); background: var(--teal-light); }
+  .seg-prefix .anatomy-desc { color: var(--teal); }
+  .seg-table .anatomy-code { color: var(--rust); background: var(--rust-light); }
+  .seg-table .anatomy-desc { color: var(--rust); }
+  .seg-sep .anatomy-code { color: var(--faint); font-weight: 400; background: transparent; }
+  .seg-row .anatomy-code { color: var(--ink); background: var(--cream); }
+  .seg-row .anatomy-desc { color: var(--slate); }
+  .code-block { background: var(--code-bg); color: var(--code-text); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 1.2rem 1.4rem; border-radius: 8px; margin: 1rem 0; overflow-x: auto; line-height: 1.8; }
+  .code-block .c-fn { color: #82c4e6; }
+  .code-block .c-str { color: #c9e6c9; }
+  .code-block .c-arg { color: #ddb89a; }
+  .code-block .c-com { color: #6a6680; font-style: italic; }
+  .code-block .c-num { color: #d4a0e0; }
+  .result-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-top: 0.5rem; font-weight: 600; }
+  .result-tag.gives { background: var(--teal-light); color: var(--teal); }
+  .lookup-table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: 0.88rem; }
+  .lookup-table th { text-align: left; padding: 0.6rem 1rem; background: var(--cream); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); border-bottom: 2px solid var(--faint); }
+  .lookup-table td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--faint); color: var(--slate); }
+  .lookup-table td:first-child { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--rust); font-size: 0.82rem; }
+  .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 1.5rem 0; }
+  .footer { padding: 2.5rem 2rem; text-align: center; color: var(--slate); font-size: 0.85rem; border-top: 1px solid var(--faint); }
+  .footer span { color: var(--rust); }
+
+  /* COLLAPSIBLE COMMAND BLOCKS */
+  .cmd-block { background: white; border: 2px solid var(--faint); border-radius: 12px; margin: 2rem 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .cmd-header { background: var(--code-bg); color: var(--code-text); padding: 1.2rem 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 2; }
+  .cmd-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--rust); padding: 1rem 1.5rem 0; display: block; }
+  .cmd-desc { font-size: 0.95rem; color: var(--slate); padding: 0.3rem 1.5rem 0; margin-bottom: 0; }
+
+  /* ARG DETAILS */
+  .arg-details { border-top: 1px solid var(--faint); }
+  .arg-details details { border-bottom: 1px solid var(--faint); }
+  .arg-details details:last-child { border-bottom: none; }
+  .arg-details summary {
+    padding: 0.9rem 1.5rem;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    user-select: none;
+    list-style: none;
+    transition: background 0.15s;
+  }
+  .arg-details summary::-webkit-details-marker { display: none; }
+  .arg-details summary::before {
+    content: '▸';
+    font-size: 0.7rem;
+    color: var(--rust);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .arg-details details[open] > summary::before { transform: rotate(90deg); }
+  .arg-details summary:hover { background: var(--cream); }
+  .arg-details summary .arg-name { color: var(--rust); font-weight: 600; }
+  .arg-details summary .arg-val { color: var(--teal); }
+  .arg-details summary .arg-hint { color: var(--slate); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; margin-left: auto; font-weight: 400; }
+  .arg-content { padding: 0 1.5rem 1.5rem 2.8rem; }
+  .arg-content p:last-child { margin-bottom: 0; }
+
+  /* NESTED SUB-DETAILS inside arg-content */
+  .arg-content details { border: 1px solid var(--faint); border-radius: 8px; margin: 1rem 0; background: white; }
+  .arg-content details summary {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    user-select: none;
+    list-style: none;
+    background: var(--cream);
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .arg-content details[open] > summary { border-radius: 8px 8px 0 0; }
+  .arg-content details summary::-webkit-details-marker { display: none; }
+  .arg-content details summary::before {
+    content: '▸';
+    font-size: 0.65rem;
+    color: var(--teal);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .arg-content details[open] > summary::before { transform: rotate(90deg); }
+  .arg-content details > div { padding: 1rem; }
+  .arg-content details .lookup-table { margin: 0.5rem 0; }
+
+  @media (max-width: 600px) {
+    .anatomy { flex-direction: column; gap: 0.5rem; }
+    .hero { padding: 3rem 1.5rem 2.5rem; }
+    section { padding: 2.5rem 0; }
+    .comparison-grid { grid-template-columns: 1fr; }
+    .arg-details summary { font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="hero-label">Study Guide</span>
+    <h1>How to Read <em>Census Table Codes</em></h1>
+    <p>A workflow-driven guide. Click any argument in the commands below to learn what it means and how to use it.</p>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ================================================================ -->
+<!-- QUICK WORKFLOW + LINKS -->
+<!-- ================================================================ -->
+<section style="background: white; margin: 0 -2rem; padding: 2.5rem 2rem; border: 2px solid var(--rust); border-radius: 0 0 10px 10px; border-top: none;">
+  <h2 style="margin-top:0;">Quick workflow summary</h2>
+
+  <div class="tree-box" style="line-height:2.4; font-size: 0.88rem;">
+<span style="color:#82c4e6;font-weight:600;">1.</span> <span class="t-name">Browse for your table</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-label">→ </span><span class="t-name">censusreporter.org</span> <span class="t-label">to find the right table by topic</span><br>
+<br>
+<span style="color:#82c4e6;font-weight:600;">2.</span> <span class="t-name">Get the exact variable code</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-label">→ </span><span class="t-code">vars &lt;- load_variables(2022, "acs5", cache = TRUE)</span> <span class="t-label">in R</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-label">→ search by keyword: </span><span class="t-code">vars %>% filter(str_detect(concept, "SNAP"))</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-label">→ or by table: </span><span class="t-code">vars %>% filter(str_detect(name, "B22001"))</span><br>
+<br>
+<span style="color:#82c4e6;font-weight:600;">3.</span> <span class="t-name">Decide: ACS or Decennial?</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-label">→ ACS for detailed topics (income, SNAP, education) — </span><span class="t-code">get_acs()</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-label">→ Decennial for basic population/race at block level — </span><span class="t-code">get_decennial()</span><br>
+<br>
+<span style="color:#82c4e6;font-weight:600;">4.</span> <span class="t-name">Pick your year and geography, then pull</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;</span><span class="t-code">get_acs(geography = "county", variables = "B22001_002", state = "MD", year = 2022)</span>
+  </div>
+
+  <h3>Key links</h3>
+  <table class="lookup-table" style="font-size: 0.85rem;">
+    <tr><th>Resource</th><th>URL</th><th>What it's for</th></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">Census Reporter</td><td style="font-family:'DM Sans';"><a href="https://censusreporter.org" style="color:var(--teal);">censusreporter.org</a></td><td style="font-family:'DM Sans';color:var(--slate);">Browse tables visually, see tree structures</td></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">data.census.gov</td><td style="font-family:'DM Sans';"><a href="https://data.census.gov" style="color:var(--teal);">data.census.gov</a></td><td style="font-family:'DM Sans';color:var(--slate);">Official source — preview data, see codes</td></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">tidycensus docs</td><td style="font-family:'DM Sans';"><a href="https://walker-data.com/tidycensus/" style="color:var(--teal);">walker-data.com/tidycensus</a></td><td style="font-family:'DM Sans';color:var(--slate);">R package documentation, tutorials, examples</td></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">tidycensus book</td><td style="font-family:'DM Sans';"><a href="https://walker-data.com/census-r/" style="color:var(--teal);">walker-data.com/census-r</a></td><td style="font-family:'DM Sans';color:var(--slate);">Free online book: <em>Analyzing US Census Data</em> by Kyle Walker</td></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">Census API key</td><td style="font-family:'DM Sans';"><a href="https://api.census.gov/data/key_signup.html" style="color:var(--teal);">api.census.gov/data/key_signup.html</a></td><td style="font-family:'DM Sans';color:var(--slate);">Get your free API key (required for tidycensus)</td></tr>
+  </table>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- HOW CENSUS DATA GETS MADE -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">00</div>
+  <h2>How Census data gets made</h2>
+
+  <p>Every year, the Census Bureau mails out the <strong>American Community Survey (ACS)</strong> to about 3.5 million households. It asks questions about income, housing, education, language, commuting, and more — including whether your household received <strong>SNAP benefits</strong> (food stamps). Every 10 years, the <strong>Decennial Census</strong> tries to count every single person, but asks far fewer questions.</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-dot-col"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-title">Someone fills out the survey</div>
+        <p>A household in Prince George's County, MD checks "Yes" on: "In the past 12 months, did anyone in this household receive Food Stamps or SNAP benefits?"</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot-col"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-title">The Census Bureau collects &amp; aggregates</div>
+        <p>They combine everyone's answers by geography (state, county, tract, etc.) and organize them into standardized <strong>tables</strong>. Each table covers one topic and breaks it down by categories.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot-col"><div class="flow-dot"></div><div class="flow-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-title">Tables get a code</div>
+        <p>Each table gets an ID like <strong>B22001</strong>. Each category within that table gets a number like <strong>_002</strong>. Together: <strong>B22001_002</strong>.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot-col"><div class="flow-dot"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-title">You pull it in R</div>
+        <p>Using <code>tidycensus</code>, you request specific variable codes at the geography and year you want.</p>
+      </div>
+    </div>
+  </div>
+
+  <p>The rest of this guide is organized around <strong>actual commands</strong>. Click any argument to expand its explanation.</p>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- COMMAND 1: THE BASIC PULL -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">01</div>
+  <h2>The basic pull</h2>
+
+  <div class="cmd-block">
+    <span class="cmd-label">Command 01 — Single variable, county level</span>
+    <p class="cmd-desc">SNAP households in each Maryland county, ACS 5-year 2022</p>
+    <div class="cmd-header">
+<span class="c-fn">get_acs</span>(<br>
+&nbsp;&nbsp;<span class="c-arg">geography</span> = <span class="c-str">"county"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">variables</span> = <span class="c-str">"B22001_002"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">state</span> = <span class="c-str">"MD"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">year</span> = <span class="c-num">2022</span><br>
+)
+    </div>
+
+    <div class="arg-details">
+
+      <!-- get_acs() -->
+      <details>
+        <summary><span class="arg-name">get_acs(</span> <span class="arg-hint">why not get_decennial()?</span></summary>
+        <div class="arg-content">
+          <p>There are two main Census data products, and they use <strong>different functions</strong>:</p>
+
+          <div class="comparison-grid">
+            <div style="background:white; border:2px solid var(--teal); border-radius:10px; padding:1.2rem;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--teal); margin-bottom:0.4rem;">American Community Survey</div>
+              <div style="font-family:'DM Serif Display',serif; font-size:1.1rem; margin-bottom:0.6rem;">ACS</div>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>How often:</strong> Every year</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Who's asked:</strong> ~3.5M households/year (a sample)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Topics:</strong> Hundreds — income, education, SNAP, commuting, disability, etc.</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Smallest geo:</strong> Block group</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Margin of error:</strong> Yes — always</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Table prefixes:</strong> B, C, S, DP</p>
+              <p style="font-size:0.85rem;"><strong>R function:</strong> <code>get_acs()</code></p>
+            </div>
+            <div style="background:white; border:2px solid var(--rust); border-radius:10px; padding:1.2rem;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--rust); margin-bottom:0.4rem;">Decennial Census</div>
+              <div style="font-family:'DM Serif Display',serif; font-size:1.1rem; margin-bottom:0.6rem;">Census</div>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>How often:</strong> Every 10 years (2000, 2010, 2020)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Who's asked:</strong> Everyone (full count)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Topics:</strong> Very few — population, race/ethnicity, age, housing occupancy</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Smallest geo:</strong> Block</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Margin of error:</strong> No (but has disclosure avoidance noise)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Table prefixes:</strong> P, H</p>
+              <p style="font-size:0.85rem;"><strong>R function:</strong> <code>get_decennial()</code></p>
+            </div>
+          </div>
+
+          <div class="callout">
+            <p><strong>Important:</strong> These use <strong>completely different table codes</strong>. You can't use <code>B22001_002</code> in <code>get_decennial()</code> and you can't use <code>P1_001N</code> in <code>get_acs()</code>. Different products, different codes, different functions.</p>
+          </div>
+
+          <p><strong>Quick decision:</strong> Need detailed topics like income, SNAP, education, commuting? → <strong>ACS</strong>. Just need total population or race at block level? → <strong>Decennial</strong>. (See Command 04 below for a Decennial example.)</p>
+        </div>
+      </details>
+
+      <!-- geography = "county" -->
+      <details>
+        <summary><span class="arg-name">geography</span> = <span class="arg-val">"county"</span> <span class="arg-hint">all geography strings</span></summary>
+        <div class="arg-content">
+          <p>Census geographies nest inside each other like containers:</p>
+          <div class="tree-box" style="line-height: 2.2;">
+<span class="t-name">Nation</span> <span class="t-label">(1 — the whole US)</span><br>
+<span class="t-dim">&nbsp;└──</span> <span class="t-name">Region</span> <span class="t-label">(4 — Northeast, Midwest, South, West)</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="t-name">Division</span> <span class="t-label">(9 — e.g. South Atlantic)</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="t-name">State</span> <span class="t-label">(50 + DC + territories)</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="t-name">County</span> <span class="t-label">(~3,200)</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="t-name">Census Tract</span> <span class="t-label">(~85,000)</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="t-name">Block Group</span> <span class="t-label">(~240,000)</span><br>
+<span class="t-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="t-name">Block</span> <span class="t-label">(~8 million — Decennial only)</span>
+          </div>
+
+          <div class="callout">
+            <p><strong>What is a census tract?</strong> A tract is a semi-permanent statistical area drawn by the Census Bureau inside each county, designed to contain roughly <strong>1,200 to 8,000 people</strong> (ideally about 4,000). They're meant to approximate neighborhoods — in a dense city a tract might be a few blocks, while in a rural area it could cover many square miles. They don't follow city boundaries, zip codes, or school districts — they're their own thing. Tracts stay mostly stable over time (they only get redrawn after a Decennial Census if the population has changed significantly), which makes them useful for tracking changes in a neighborhood over the years. A <strong>block group</strong> is a subdivision within a tract (usually 600–3,000 people), and a <strong>block</strong> is the smallest unit — typically a single city block bounded by streets.</p>
+          </div>
+
+          <p>The exact string you pass to <code>geography = "..."</code>. Some have spaces — you just have to know:</p>
+          <table class="lookup-table">
+            <tr><th>geography = "..."</th><th>What you get</th><th>state?</th><th>county?</th></tr>
+            <tr><td>"us"</td><td style="font-family:'DM Sans';color:var(--ink);">Whole country (1 row)</td><td style="font-family:'DM Sans';color:var(--slate);">No</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"region"</td><td style="font-family:'DM Sans';color:var(--ink);">4 Census regions</td><td style="font-family:'DM Sans';color:var(--slate);">No</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"division"</td><td style="font-family:'DM Sans';color:var(--ink);">9 Census divisions</td><td style="font-family:'DM Sans';color:var(--slate);">No</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"state"</td><td style="font-family:'DM Sans';color:var(--ink);">All states</td><td style="font-family:'DM Sans';color:var(--slate);">Optional</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"county"</td><td style="font-family:'DM Sans';color:var(--ink);">Counties within a state</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"tract"</td><td style="font-family:'DM Sans';color:var(--ink);">Census tracts</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">Optional</td></tr>
+            <tr><td>"block group"</td><td style="font-family:'DM Sans';color:var(--ink);">Block groups <em>(space!)</em></td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">Recommended</td></tr>
+            <tr><td>"block"</td><td style="font-family:'DM Sans';color:var(--ink);">Blocks <em>(Decennial only)</em></td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td></tr>
+            <tr><td>"place"</td><td style="font-family:'DM Sans';color:var(--ink);">Cities, towns, villages</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"zcta"</td><td style="font-family:'DM Sans';color:var(--ink);">Zip Code Tabulation Areas</td><td style="font-family:'DM Sans';color:var(--slate);">No*</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"congressional district"</td><td style="font-family:'DM Sans';color:var(--ink);">U.S. House districts <em>(spaces!)</em></td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"state legislative district (upper chamber)"</td><td style="font-family:'DM Sans';color:var(--ink);">State senate districts</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"state legislative district (lower chamber)"</td><td style="font-family:'DM Sans';color:var(--ink);">State house/assembly districts</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"cbsa"</td><td style="font-family:'DM Sans';color:var(--ink);">Metro/micropolitan areas</td><td style="font-family:'DM Sans';color:var(--slate);">No</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"school district (unified)"</td><td style="font-family:'DM Sans';color:var(--ink);">Unified school districts</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"school district (elementary)"</td><td style="font-family:'DM Sans';color:var(--ink);">Elementary school districts</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+            <tr><td>"school district (secondary)"</td><td style="font-family:'DM Sans';color:var(--ink);">Secondary school districts</td><td style="font-family:'DM Sans';color:var(--slate);">Yes</td><td style="font-family:'DM Sans';color:var(--slate);">No</td></tr>
+          </table>
+          <p style="font-size:0.85rem; color:var(--slate);">* ZCTAs don't nest inside states. Pull all nationally and filter afterward.</p>
+
+          <details>
+            <summary>What are ZCTAs? (and why not just "zip codes")</summary>
+            <div>
+              <p>Zip codes are mail routes maintained by USPS — they can cross county and state lines, change constantly, and don't represent areas (some are just a single building). <strong>ZCTAs</strong> (Zip Code Tabulation Areas) are the Census Bureau's best attempt to turn zip codes into geographic areas. They're close but not identical to zip codes. Pull them nationally (no <code>state</code> argument) and filter by GEOID prefix:</p>
+              <div class="code-block" style="font-size:0.78rem;">
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"zcta"</span>, <span class="c-arg">variables</span> = <span class="c-str">"B22001_002"</span>, <span class="c-arg">year</span> = <span class="c-num">2022</span>) %>%<br>
+&nbsp;&nbsp;<span class="c-fn">filter</span>(<span class="c-fn">str_starts</span>(<span class="c-arg">GEOID</span>, <span class="c-str">"207"</span>))  <span class="c-com"># 207xx = College Park area</span>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>What are congressional &amp; legislative districts?</summary>
+            <div>
+              <p><strong>Congressional districts</strong> are the 435 U.S. House districts, redrawn after each Decennial Census. Each state gets at least one. Maryland has 8. The GEOID is 4 digits: state (24) + district number (01–08).</p>
+              <p><strong>State legislative districts</strong> are for state legislatures — each state has its own system:</p>
+              <table class="lookup-table" style="font-size:0.78rem;">
+                <tr><th>String</th><th>What it is</th><th>Maryland example</th></tr>
+                <tr><td style="font-size:0.72rem;">"state legislative district (upper chamber)"</td><td style="font-family:'DM Sans';color:var(--ink);">State senate</td><td style="font-family:'DM Sans';color:var(--slate);">47 districts</td></tr>
+                <tr><td style="font-size:0.72rem;">"state legislative district (lower chamber)"</td><td style="font-family:'DM Sans';color:var(--ink);">State house/assembly/delegates</td><td style="font-family:'DM Sans';color:var(--slate);">141 districts</td></tr>
+              </table>
+              <p style="font-size:0.85rem;">Nebraska is unicameral — it only has an upper chamber. The naming convention comes from the Census, not your state's specific terminology.</p>
+            </div>
+          </details>
+
+          <details>
+            <summary>What are CBSAs?</summary>
+            <div>
+              <p><strong>CBSA</strong> = Core Based Statistical Area. These are metro and micropolitan areas defined by the Office of Management and Budget. A metro area is a core city of 50,000+ plus surrounding counties tied by commuting patterns (e.g. "Washington-Arlington-Alexandria, DC-VA-MD-WV"). A micropolitan area has a core of 10,000–49,999.</p>
+              <p>CBSAs cross state lines, so you <strong>don't</strong> pass a <code>state</code> argument — just pull them nationally:</p>
+              <div class="code-block" style="font-size:0.78rem;">
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"cbsa"</span>, <span class="c-arg">variables</span> = <span class="c-str">"B22001_002"</span>, <span class="c-arg">year</span> = <span class="c-num">2022</span>)
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>What are "places"?</summary>
+            <div>
+              <p>In Census terminology, a <strong>place</strong> is any incorporated city, town, village, or borough, plus Census-Designated Places (CDPs) — unincorporated communities that the Census gives boundaries to for statistical purposes (like "Columbia, MD" which isn't technically a city). Places don't nest neatly into counties — a city can span multiple counties.</p>
+              <div class="code-block" style="font-size:0.78rem;">
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"place"</span>, <span class="c-arg">variables</span> = <span class="c-str">"B22001_002"</span>, <span class="c-arg">state</span> = <span class="c-str">"MD"</span>, <span class="c-arg">year</span> = <span class="c-num">2022</span>)
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>School districts — three types</summary>
+            <div>
+              <p>Some states have a single school district per area (<strong>unified</strong>). Others split elementary and secondary into separate districts. You need to know which type your state uses:</p>
+              <table class="lookup-table" style="font-size:0.78rem;">
+                <tr><th>String</th><th>Use when</th></tr>
+                <tr><td style="font-size:0.72rem;">"school district (unified)"</td><td style="font-family:'DM Sans';color:var(--ink);">Most states — one district covers K–12</td></tr>
+                <tr><td style="font-size:0.72rem;">"school district (elementary)"</td><td style="font-family:'DM Sans';color:var(--ink);">States that split elementary / secondary</td></tr>
+                <tr><td style="font-size:0.72rem;">"school district (secondary)"</td><td style="font-family:'DM Sans';color:var(--ink);">States that split elementary / secondary</td></tr>
+              </table>
+              <p style="font-size:0.85rem;">Maryland uses unified districts. States like California and Illinois have all three types. If you're not sure, try unified first — if it returns no results, try the others.</p>
+            </div>
+          </details>
+
+          <div class="callout">
+            <p><strong>Watch out:</strong> Smaller geographies = bigger <strong>margins of error</strong>. A tract-level estimate might have a MOE nearly as large as the estimate itself. Always check the <code>moe</code> column.</p>
+          </div>
+        </div>
+      </details>
+
+      <!-- variables = "B22001_002" -->
+      <details>
+        <summary><span class="arg-name">variables</span> = <span class="arg-val">"B22001_002"</span> <span class="arg-hint">anatomy of a code + how to find them</span></summary>
+        <div class="arg-content">
+          <div class="anatomy">
+            <div class="anatomy-segment seg-prefix"><span class="anatomy-code">B</span><span class="anatomy-desc">Detail level</span></div>
+            <div class="anatomy-segment seg-table"><span class="anatomy-code">22001</span><span class="anatomy-desc">Table number</span></div>
+            <div class="anatomy-segment seg-sep"><span class="anatomy-code">_</span></div>
+            <div class="anatomy-segment seg-row"><span class="anatomy-code">002</span><span class="anatomy-desc">Category in table</span></div>
+          </div>
+
+          <h3>ACS table prefixes</h3>
+          <table class="lookup-table">
+            <tr><th>Prefix</th><th>Meaning</th><th>When to use</th></tr>
+            <tr><td>B</td><td>Base / Detailed table</td><td>Most of the time — the most granular breakdown</td></tr>
+            <tr><td>C</td><td>Collapsed table</td><td>Simpler version with fewer categories</td></tr>
+            <tr><td>S</td><td>Subject table</td><td>Pre-calculated percentages and summaries</td></tr>
+            <tr><td>DP</td><td>Data Profile</td><td>Broad demographic snapshots — many topics in one table</td></tr>
+          </table>
+
+          <p>The digits after the prefix identify the <strong>topic</strong>. ACS tables starting with <strong>B19</strong> are about income, <strong>B25</strong> is housing, <strong>B22</strong> is public assistance. You don't memorize these — you look them up.</p>
+
+          <details>
+            <summary>Common ACS table number groups by topic</summary>
+            <div>
+              <table class="lookup-table" style="font-size:0.78rem;">
+                <tr><th>Starts with</th><th>Topic area</th><th>Example table</th></tr>
+                <tr><td>B01</td><td style="font-family:'DM Sans';color:var(--ink);">Age &amp; sex</td><td style="font-family:'DM Sans';color:var(--slate);">B01001 — Sex by age</td></tr>
+                <tr><td>B02</td><td style="font-family:'DM Sans';color:var(--ink);">Race</td><td style="font-family:'DM Sans';color:var(--slate);">B02001 — Race</td></tr>
+                <tr><td>B03</td><td style="font-family:'DM Sans';color:var(--ink);">Hispanic/Latino origin</td><td style="font-family:'DM Sans';color:var(--slate);">B03002 — Hispanic by race</td></tr>
+                <tr><td>B05</td><td style="font-family:'DM Sans';color:var(--ink);">Citizenship &amp; foreign born</td><td style="font-family:'DM Sans';color:var(--slate);">B05001 — Nativity</td></tr>
+                <tr><td>B06–B07</td><td style="font-family:'DM Sans';color:var(--ink);">Place of birth &amp; migration</td><td style="font-family:'DM Sans';color:var(--slate);">B07001 — Geographic mobility</td></tr>
+                <tr><td>B08</td><td style="font-family:'DM Sans';color:var(--ink);">Commuting</td><td style="font-family:'DM Sans';color:var(--slate);">B08301 — Means of transportation to work</td></tr>
+                <tr><td>B09–B10</td><td style="font-family:'DM Sans';color:var(--ink);">Children &amp; grandparents</td><td style="font-family:'DM Sans';color:var(--slate);">B09001 — Population under 18</td></tr>
+                <tr><td>B11</td><td style="font-family:'DM Sans';color:var(--ink);">Household type &amp; families</td><td style="font-family:'DM Sans';color:var(--slate);">B11001 — Household type</td></tr>
+                <tr><td>B12</td><td style="font-family:'DM Sans';color:var(--ink);">Marital status</td><td style="font-family:'DM Sans';color:var(--slate);">B12001 — Marital status by sex</td></tr>
+                <tr><td>B14–B15</td><td style="font-family:'DM Sans';color:var(--ink);">School enrollment &amp; education</td><td style="font-family:'DM Sans';color:var(--slate);">B15003 — Educational attainment</td></tr>
+                <tr><td>B16</td><td style="font-family:'DM Sans';color:var(--ink);">Language spoken at home</td><td style="font-family:'DM Sans';color:var(--slate);">B16001 — Language spoken at home</td></tr>
+                <tr><td>B17</td><td style="font-family:'DM Sans';color:var(--ink);">Poverty status</td><td style="font-family:'DM Sans';color:var(--slate);">B17001 — Poverty by age</td></tr>
+                <tr><td>B18</td><td style="font-family:'DM Sans';color:var(--ink);">Disability</td><td style="font-family:'DM Sans';color:var(--slate);">B18101 — Disability by age</td></tr>
+                <tr><td>B19</td><td style="font-family:'DM Sans';color:var(--ink);">Income</td><td style="font-family:'DM Sans';color:var(--slate);">B19013 — Median household income</td></tr>
+                <tr><td>B22</td><td style="font-family:'DM Sans';color:var(--ink);">Food stamps / SNAP</td><td style="font-family:'DM Sans';color:var(--slate);">B22001 — SNAP receipt</td></tr>
+                <tr><td>B23</td><td style="font-family:'DM Sans';color:var(--ink);">Employment status</td><td style="font-family:'DM Sans';color:var(--slate);">B23025 — Employment by age</td></tr>
+                <tr><td>B25</td><td style="font-family:'DM Sans';color:var(--ink);">Housing</td><td style="font-family:'DM Sans';color:var(--slate);">B25001 — Housing units; B25003 — Tenure</td></tr>
+                <tr><td>B27</td><td style="font-family:'DM Sans';color:var(--ink);">Health insurance</td><td style="font-family:'DM Sans';color:var(--slate);">B27001 — Health insurance by age</td></tr>
+              </table>
+              <p style="font-size:0.82rem; color:var(--slate); margin-top:0.8rem;">This is not exhaustive — there are thousands of tables. Use <code>load_variables()</code> or <a href="https://censusreporter.org/topics/" style="color:var(--teal);">censusreporter.org/topics</a> to explore all of them.</p>
+            </div>
+          </details>
+
+          <h3>The category number — what "rows" really mean</h3>
+          <p>When the Census says a table has 7 "rows," they mean 7 <strong>categories</strong> — 7 different things being measured. Not 7 rows of data like 7 counties.</p>
+
+          <p>Tables are <strong>hierarchical</strong>. Parent categories equal the sum of their children. Here's table B22001:</p>
+
+          <div class="tree-box">
+<span class="t-code">_001</span>  <span class="t-name">Total households</span><br>
+<span class="t-dim">├──</span> <span class="t-code">_002</span>  <span class="t-name">Received SNAP</span>  <span class="t-label">← parent</span><br>
+<span class="t-dim">│   ├──</span> <span class="t-code">_003</span>  <span class="t-name">Has someone 60+</span>  <span class="t-label">← child</span><br>
+<span class="t-dim">│   └──</span> <span class="t-code">_004</span>  <span class="t-name">No one 60+</span>  <span class="t-label">← child</span><br>
+<span class="t-dim">└──</span> <span class="t-code">_005</span>  <span class="t-name">Did NOT receive SNAP</span>  <span class="t-label">← parent</span><br>
+<span class="t-dim">    ├──</span> <span class="t-code">_006</span>  <span class="t-name">Has someone 60+</span><br>
+<span class="t-dim">    └──</span> <span class="t-code">_007</span>  <span class="t-name">No one 60+</span>
+          </div>
+          <p>The math: <code>_002 + _005 = _001</code>. And <code>_003 + _004 = _002</code>.</p>
+
+          <h3>How to find codes: <code>load_variables()</code></h3>
+          <div class="code-block">
+<span class="c-arg">vars</span> &lt;- <span class="c-fn">load_variables</span>(<span class="c-num">2022</span>, <span class="c-str">"acs5"</span>, <span class="c-arg">cache</span> = <span class="c-num">TRUE</span>)
+          </div>
+          <p>This gives you a dataframe with three columns:</p>
+          <table class="lookup-table" style="font-size:0.82rem;">
+            <tr><th>Column</th><th>What's in it</th><th>Example</th></tr>
+            <tr><td style="font-family:'DM Sans';color:var(--ink);">name</td><td style="font-family:'DM Sans';color:var(--slate);">The variable code</td><td>B22001_002</td></tr>
+            <tr><td style="font-family:'DM Sans';color:var(--ink);">label</td><td style="font-family:'DM Sans';color:var(--slate);">Description with !! nesting</td><td style="font-family:'DM Sans';font-size:0.78rem;">Estimate!!Total:!!Household received Food Stamps/SNAP...</td></tr>
+            <tr><td style="font-family:'DM Sans';color:var(--ink);">concept</td><td style="font-family:'DM Sans';color:var(--slate);">The table's topic</td><td style="font-family:'DM Sans';font-size:0.78rem;">RECEIPT OF FOOD STAMPS/SNAP...</td></tr>
+          </table>
+
+          <p><strong>If you know the table number</strong> (e.g. from Census Reporter):</p>
+          <div class="code-block">
+<span class="c-arg">vars</span> %>% <span class="c-fn">filter</span>(<span class="c-fn">str_detect</span>(<span class="c-arg">name</span>, <span class="c-str">"B22001"</span>))
+          </div>
+
+          <p><strong>If you don't know the table</strong>, search by keyword:</p>
+          <div class="code-block">
+<span class="c-com"># What tables mention SNAP?</span><br>
+<span class="c-arg">vars</span> %>% <span class="c-fn">filter</span>(<span class="c-fn">str_detect</span>(<span class="c-arg">concept</span>, <span class="c-str">"SNAP"</span>)) %>% <span class="c-fn">distinct</span>(<span class="c-arg">concept</span>)<br>
+<br>
+<span class="c-com"># Drill deeper</span><br>
+<span class="c-arg">vars</span> %>% <span class="c-fn">filter</span>(<span class="c-fn">str_detect</span>(<span class="c-arg">concept</span>, <span class="c-str">"SNAP"</span>), <span class="c-fn">str_detect</span>(<span class="c-arg">concept</span>, <span class="c-str">"POVERTY"</span>))
+          </div>
+
+          <div class="callout">
+            <p><strong>Heads up:</strong> Labels are ALL CAPS and use official Census phrasing. Try <code>"FOOD STAMPS"</code> instead of <code>"SNAP"</code>. Use <code>regex("snap", ignore_case = TRUE)</code> for case-insensitive search. Or run <code>View(vars)</code> in RStudio for a searchable spreadsheet.</p>
+          </div>
+        </div>
+      </details>
+
+      <!-- state = "MD" -->
+      <details>
+        <summary><span class="arg-name">state</span> = <span class="arg-val">"MD"</span> <span class="arg-hint">FIPS codes &amp; GEOIDs</span></summary>
+        <div class="arg-content">
+          <p>You can pass a state abbreviation (<code>"MD"</code>), full name (<code>"Maryland"</code>), or FIPS code (<code>"24"</code>). Every geography has a numeric <strong>FIPS code</strong>, and they build on each other by concatenation:</p>
+          <table class="lookup-table" style="font-size: 0.85rem;">
+            <tr><th>Level</th><th>Digits</th><th>Example</th><th>How it's built</th></tr>
+            <tr><td>State</td><td style="font-family:'DM Sans';color:var(--ink);">2</td><td><strong>24</strong></td><td style="font-family:'DM Sans';color:var(--slate);">Maryland = 24</td></tr>
+            <tr><td>County</td><td style="font-family:'DM Sans';color:var(--ink);">5</td><td><strong>24033</strong></td><td style="font-family:'DM Sans';color:var(--slate);">State (24) + County (033)</td></tr>
+            <tr><td>Tract</td><td style="font-family:'DM Sans';color:var(--ink);">11</td><td><strong>24033804702</strong></td><td style="font-family:'DM Sans';color:var(--slate);">State + County + Tract (804702)</td></tr>
+            <tr><td>Block Group</td><td style="font-family:'DM Sans';color:var(--ink);">12</td><td><strong>240338047021</strong></td><td style="font-family:'DM Sans';color:var(--slate);">State + County + Tract + BG (1)</td></tr>
+            <tr><td>ZCTA</td><td style="font-family:'DM Sans';color:var(--ink);">5</td><td><strong>20740</strong></td><td style="font-family:'DM Sans';color:var(--slate);">Looks like a zip — Census approximation</td></tr>
+            <tr><td style="font-family:'DM Sans';">Cong. District</td><td style="font-family:'DM Sans';color:var(--ink);">4</td><td><strong>2404</strong></td><td style="font-family:'DM Sans';color:var(--slate);">State (24) + District (04)</td></tr>
+          </table>
+          <div class="callout">
+            <p><strong>Key insight:</strong> GEOIDs are <strong>concatenated</strong>. So <code>24033804702</code> = state <code>24</code> (Maryland) + county <code>033</code> (Prince George's) + tract <code>804702</code>. The <code>paste0(state_code, county_code)</code> pattern in R is doing exactly this.</p>
+          </div>
+
+          <details>
+            <summary>All state FIPS codes &amp; abbreviations</summary>
+            <div>
+              <table class="lookup-table" style="font-size: 0.75rem;">
+                <tr><th>FIPS</th><th>Abbr</th><th>State</th><th style="border-left:2px solid var(--faint);">FIPS</th><th>Abbr</th><th>State</th></tr>
+                <tr><td>01</td><td>AL</td><td style="font-family:'DM Sans';color:var(--ink);">Alabama</td><td style="border-left:2px solid var(--faint);">28</td><td>MS</td><td style="font-family:'DM Sans';color:var(--ink);">Mississippi</td></tr>
+                <tr><td>02</td><td>AK</td><td style="font-family:'DM Sans';color:var(--ink);">Alaska</td><td style="border-left:2px solid var(--faint);">29</td><td>MO</td><td style="font-family:'DM Sans';color:var(--ink);">Missouri</td></tr>
+                <tr><td>04</td><td>AZ</td><td style="font-family:'DM Sans';color:var(--ink);">Arizona</td><td style="border-left:2px solid var(--faint);">30</td><td>MT</td><td style="font-family:'DM Sans';color:var(--ink);">Montana</td></tr>
+                <tr><td>05</td><td>AR</td><td style="font-family:'DM Sans';color:var(--ink);">Arkansas</td><td style="border-left:2px solid var(--faint);">31</td><td>NE</td><td style="font-family:'DM Sans';color:var(--ink);">Nebraska</td></tr>
+                <tr><td>06</td><td>CA</td><td style="font-family:'DM Sans';color:var(--ink);">California</td><td style="border-left:2px solid var(--faint);">32</td><td>NV</td><td style="font-family:'DM Sans';color:var(--ink);">Nevada</td></tr>
+                <tr><td>08</td><td>CO</td><td style="font-family:'DM Sans';color:var(--ink);">Colorado</td><td style="border-left:2px solid var(--faint);">33</td><td>NH</td><td style="font-family:'DM Sans';color:var(--ink);">New Hampshire</td></tr>
+                <tr><td>09</td><td>CT</td><td style="font-family:'DM Sans';color:var(--ink);">Connecticut</td><td style="border-left:2px solid var(--faint);">34</td><td>NJ</td><td style="font-family:'DM Sans';color:var(--ink);">New Jersey</td></tr>
+                <tr><td>10</td><td>DE</td><td style="font-family:'DM Sans';color:var(--ink);">Delaware</td><td style="border-left:2px solid var(--faint);">35</td><td>NM</td><td style="font-family:'DM Sans';color:var(--ink);">New Mexico</td></tr>
+                <tr><td>11</td><td>DC</td><td style="font-family:'DM Sans';color:var(--ink);">District of Columbia</td><td style="border-left:2px solid var(--faint);">36</td><td>NY</td><td style="font-family:'DM Sans';color:var(--ink);">New York</td></tr>
+                <tr><td>12</td><td>FL</td><td style="font-family:'DM Sans';color:var(--ink);">Florida</td><td style="border-left:2px solid var(--faint);">37</td><td>NC</td><td style="font-family:'DM Sans';color:var(--ink);">North Carolina</td></tr>
+                <tr><td>13</td><td>GA</td><td style="font-family:'DM Sans';color:var(--ink);">Georgia</td><td style="border-left:2px solid var(--faint);">38</td><td>ND</td><td style="font-family:'DM Sans';color:var(--ink);">North Dakota</td></tr>
+                <tr><td>15</td><td>HI</td><td style="font-family:'DM Sans';color:var(--ink);">Hawaii</td><td style="border-left:2px solid var(--faint);">39</td><td>OH</td><td style="font-family:'DM Sans';color:var(--ink);">Ohio</td></tr>
+                <tr><td>16</td><td>ID</td><td style="font-family:'DM Sans';color:var(--ink);">Idaho</td><td style="border-left:2px solid var(--faint);">40</td><td>OK</td><td style="font-family:'DM Sans';color:var(--ink);">Oklahoma</td></tr>
+                <tr><td>17</td><td>IL</td><td style="font-family:'DM Sans';color:var(--ink);">Illinois</td><td style="border-left:2px solid var(--faint);">41</td><td>OR</td><td style="font-family:'DM Sans';color:var(--ink);">Oregon</td></tr>
+                <tr><td>18</td><td>IN</td><td style="font-family:'DM Sans';color:var(--ink);">Indiana</td><td style="border-left:2px solid var(--faint);">42</td><td>PA</td><td style="font-family:'DM Sans';color:var(--ink);">Pennsylvania</td></tr>
+                <tr><td>19</td><td>IA</td><td style="font-family:'DM Sans';color:var(--ink);">Iowa</td><td style="border-left:2px solid var(--faint);">44</td><td>RI</td><td style="font-family:'DM Sans';color:var(--ink);">Rhode Island</td></tr>
+                <tr><td>20</td><td>KS</td><td style="font-family:'DM Sans';color:var(--ink);">Kansas</td><td style="border-left:2px solid var(--faint);">45</td><td>SC</td><td style="font-family:'DM Sans';color:var(--ink);">South Carolina</td></tr>
+                <tr><td>21</td><td>KY</td><td style="font-family:'DM Sans';color:var(--ink);">Kentucky</td><td style="border-left:2px solid var(--faint);">46</td><td>SD</td><td style="font-family:'DM Sans';color:var(--ink);">South Dakota</td></tr>
+                <tr><td>22</td><td>LA</td><td style="font-family:'DM Sans';color:var(--ink);">Louisiana</td><td style="border-left:2px solid var(--faint);">47</td><td>TN</td><td style="font-family:'DM Sans';color:var(--ink);">Tennessee</td></tr>
+                <tr><td>23</td><td>ME</td><td style="font-family:'DM Sans';color:var(--ink);">Maine</td><td style="border-left:2px solid var(--faint);">48</td><td>TX</td><td style="font-family:'DM Sans';color:var(--ink);">Texas</td></tr>
+                <tr><td style="background:var(--rust-light);font-weight:700;">24</td><td style="background:var(--rust-light);font-weight:700;">MD</td><td style="font-family:'DM Sans';color:var(--ink);background:var(--rust-light);font-weight:700;">Maryland</td><td style="border-left:2px solid var(--faint);">49</td><td>UT</td><td style="font-family:'DM Sans';color:var(--ink);">Utah</td></tr>
+                <tr><td>25</td><td>MA</td><td style="font-family:'DM Sans';color:var(--ink);">Massachusetts</td><td style="border-left:2px solid var(--faint);">50</td><td>VT</td><td style="font-family:'DM Sans';color:var(--ink);">Vermont</td></tr>
+                <tr><td>26</td><td>MI</td><td style="font-family:'DM Sans';color:var(--ink);">Michigan</td><td style="border-left:2px solid var(--faint);">51</td><td>VA</td><td style="font-family:'DM Sans';color:var(--ink);">Virginia</td></tr>
+                <tr><td>27</td><td>MN</td><td style="font-family:'DM Sans';color:var(--ink);">Minnesota</td><td style="border-left:2px solid var(--faint);">53</td><td>WA</td><td style="font-family:'DM Sans';color:var(--ink);">Washington</td></tr>
+                <tr><td></td><td></td><td></td><td style="border-left:2px solid var(--faint);">54</td><td>WV</td><td style="font-family:'DM Sans';color:var(--ink);">West Virginia</td></tr>
+                <tr><td></td><td></td><td></td><td style="border-left:2px solid var(--faint);">55</td><td>WI</td><td style="font-family:'DM Sans';color:var(--ink);">Wisconsin</td></tr>
+                <tr><td></td><td></td><td></td><td style="border-left:2px solid var(--faint);">56</td><td>WY</td><td style="font-family:'DM Sans';color:var(--ink);">Wyoming</td></tr>
+              </table>
+              <p style="font-size:0.82rem; color:var(--slate); margin-top:0.8rem;">Territories: PR (72), GU (66), VI (78), AS (60), MP (69). Note the gaps in numbering (03, 07, 14, etc. are unused).</p>
+            </div>
+          </details>
+
+          <details>
+            <summary>How to look up county FIPS codes</summary>
+            <div>
+              <p>tidycensus has a built-in dataset with every state + county FIPS code:</p>
+              <div class="code-block" style="font-size:0.78rem;">
+<span class="c-com"># See all counties in Maryland</span><br>
+<span class="c-fn">fips_codes</span> %>% <span class="c-fn">filter</span>(<span class="c-arg">state</span> == <span class="c-str">"MD"</span>)
+              </div>
+              <p style="font-size:0.85rem;">This gives you columns: <code>state</code>, <code>state_code</code>, <code>state_name</code>, <code>county_code</code>, <code>county</code>. Some common Maryland counties:</p>
+              <table class="lookup-table" style="font-size: 0.78rem;">
+                <tr><th>county_code</th><th>County</th></tr>
+                <tr><td>003</td><td style="font-family:'DM Sans';color:var(--ink);">Anne Arundel County</td></tr>
+                <tr><td>005</td><td style="font-family:'DM Sans';color:var(--ink);">Baltimore County</td></tr>
+                <tr><td>510</td><td style="font-family:'DM Sans';color:var(--ink);">Baltimore city</td></tr>
+                <tr><td>017</td><td style="font-family:'DM Sans';color:var(--ink);">Charles County</td></tr>
+                <tr><td>021</td><td style="font-family:'DM Sans';color:var(--ink);">Frederick County</td></tr>
+                <tr><td>025</td><td style="font-family:'DM Sans';color:var(--ink);">Harford County</td></tr>
+                <tr><td>027</td><td style="font-family:'DM Sans';color:var(--ink);">Howard County</td></tr>
+                <tr><td>031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery County</td></tr>
+                <tr><td>033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's County</td></tr>
+              </table>
+              <p style="font-size:0.82rem; color:var(--slate);">Note: Baltimore <em>city</em> (510) is separate from Baltimore <em>County</em> (005). Independent cities are common in Virginia too.</p>
+            </div>
+          </details>
+        </div>
+      </details>
+
+      <!-- year = 2022 -->
+      <details>
+        <summary><span class="arg-name">year</span> = <span class="arg-val">2022</span> <span class="arg-hint">available years &amp; what "2022" means</span></summary>
+        <div class="arg-content">
+          <table class="lookup-table">
+            <tr><th>Product</th><th>Coverage</th><th>Available years</th><th>In tidycensus</th></tr>
+            <tr><td>ACS 5-Year</td><td style="font-family:'DM Sans';color:var(--ink);">Pooled across 5 years. All geographies.</td><td style="font-family:'DM Sans';color:var(--ink);">2009–2023 ("2022" = 2018–2022)</td><td style="font-family:'DM Sans';color:var(--slate);"><code>survey = "acs5"</code> (default)</td></tr>
+            <tr><td>ACS 1-Year</td><td style="font-family:'DM Sans';color:var(--ink);">Single year. Only 65,000+ population areas.</td><td style="font-family:'DM Sans';color:var(--ink);">2005–2023 (skip 2020)</td><td style="font-family:'DM Sans';color:var(--slate);"><code>survey = "acs1"</code></td></tr>
+            <tr><td>Decennial</td><td style="font-family:'DM Sans';color:var(--ink);">Full count. Down to block level.</td><td style="font-family:'DM Sans';color:var(--ink);">In tidycensus: 2000, 2010, 2020</td><td style="font-family:'DM Sans';color:var(--slate);"><code>get_decennial()</code></td></tr>
+          </table>
+          <p>Since this command doesn't specify <code>survey</code>, it defaults to the <strong>5-year ACS</strong>. So <code>year = 2022</code> actually means the <strong>2018–2022 pooled</strong> estimates. See Command 03 below for the 1-year option.</p>
+        </div>
+      </details>
+
+    </div><!-- /arg-details -->
+
+  </div><!-- /cmd-block -->
+
+  <h3>What the output looks like</h3>
+  <p>This returns <strong>long format</strong> by default — each county × variable combination is its own row:</p>
+
+  <div style="overflow-x:auto; margin: 1rem 0;">
+    <table class="lookup-table" style="font-size: 0.82rem;">
+      <tr><th>GEOID</th><th>NAME</th><th>variable</th><th>estimate</th><th>moe</th></tr>
+      <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's County, Maryland</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">48,200</td><td style="font-family:'DM Sans';color:var(--slate);">±2,100</td></tr>
+      <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery County, Maryland</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">28,300</td><td style="font-family:'DM Sans';color:var(--slate);">±1,800</td></tr>
+      <tr style="color: var(--faint);"><td>...</td><td style="font-family:'DM Sans';">...</td><td>...</td><td style="font-family:'DM Sans';">...</td><td style="font-family:'DM Sans';">...</td></tr>
+    </table>
+  </div>
+  <p>Since we pulled one variable, each county appears once. If we pulled multiple variables, each county would appear once <em>per variable</em>.</p>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- COMMAND 2: NAMED VARIABLES + TRICKY GEO -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">02</div>
+  <h2>Named variables + tricky geographies</h2>
+
+  <div class="cmd-block">
+    <span class="cmd-label">Command 02 — Multiple named variables, congressional districts</span>
+    <p class="cmd-desc">SNAP households with and without seniors, by congressional district</p>
+    <div class="cmd-header">
+<span class="c-fn">get_acs</span>(<br>
+&nbsp;&nbsp;<span class="c-arg">geography</span> = <span class="c-str">"congressional district"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">variables</span> = <span class="c-fn">c</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-arg">snap_with_senior</span> = <span class="c-str">"B22001_003"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-arg">snap_no_senior</span> &nbsp;= <span class="c-str">"B22001_004"</span><br>
+&nbsp;&nbsp;),<br>
+&nbsp;&nbsp;<span class="c-arg">state</span> = <span class="c-str">"MD"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">year</span> = <span class="c-num">2022</span><br>
+)
+    </div>
+
+    <div class="arg-details">
+      <details>
+        <summary><span class="arg-name">geography</span> = <span class="arg-val">"congressional district"</span> <span class="arg-hint">geography strings with spaces</span></summary>
+        <div class="arg-content">
+          <p>Some geography strings have spaces or parentheses. You have to type them exactly. Here are the tricky ones with code examples:</p>
+          <div class="code-block">
+<span class="c-com"># Congressional districts</span><br>
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"congressional district"</span>, ...)<br>
+<br>
+<span class="c-com"># State senate districts</span><br>
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"state legislative district (upper chamber)"</span>, ...)<br>
+<br>
+<span class="c-com"># State house/assembly districts</span><br>
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"state legislative district (lower chamber)"</span>, ...)<br>
+<br>
+<span class="c-com"># School districts</span><br>
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"school district (unified)"</span>, ...)<br>
+<br>
+<span class="c-com"># Block groups (also has a space!)</span><br>
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"block group"</span>, ...)<br>
+<br>
+<span class="c-com"># ZCTAs — pull all nationally, then filter</span><br>
+<span class="c-fn">get_acs</span>(<span class="c-arg">geography</span> = <span class="c-str">"zcta"</span>, <span class="c-arg">variables</span> = <span class="c-str">"B22001_002"</span>, <span class="c-arg">year</span> = <span class="c-num">2022</span>) %>%<br>
+&nbsp;&nbsp;<span class="c-fn">filter</span>(<span class="c-fn">str_starts</span>(<span class="c-arg">GEOID</span>, <span class="c-str">"207"</span>))  <span class="c-com"># MD-ish zip codes</span>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">variables</span> = <span class="arg-val">c(snap_with_senior = "B22001_003", ...)</span> <span class="arg-hint">naming &amp; multiple variables</span></summary>
+        <div class="arg-content">
+          <p>By naming the variables (<code>snap_with_senior = "B22001_003"</code>), the output uses <strong>your labels</strong> instead of raw codes in the <code>variable</code> column. This makes the output much easier to read.</p>
+          <p>The result has <strong>two rows per district</strong> — one for <code>snap_with_senior</code> and one for <code>snap_no_senior</code>. Because <code>_003</code> and <code>_004</code> are children of <code>_002</code> in the tree, their sum equals the total SNAP households.</p>
+          <p>You can also pull a whole table at once using <code>table = "B22001"</code> instead of <code>variables</code>. That gets all 7 variables. (See Command 03 for an example.)</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <span class="result-tag gives">→ Two rows per district (one for each named variable)</span>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- COMMAND 3: WHOLE TABLE + WIDE + TRACT + SURVEY -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">03</div>
+  <h2>Whole table, wide output, and the 1-year option</h2>
+
+  <div class="cmd-block">
+    <span class="cmd-label">Command 03 — Full table, wide format, at tract level</span>
+    <p class="cmd-desc">All SNAP variables for every tract in Prince George's County</p>
+    <div class="cmd-header">
+<span class="c-fn">get_acs</span>(<br>
+&nbsp;&nbsp;<span class="c-arg">geography</span> = <span class="c-str">"tract"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">table</span> = <span class="c-str">"B22001"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">state</span> = <span class="c-str">"MD"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">county</span> = <span class="c-str">"033"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">year</span> = <span class="c-num">2022</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">output</span> = <span class="c-str">"wide"</span><br>
+)
+    </div>
+
+    <div class="arg-details">
+      <details>
+        <summary><span class="arg-name">table</span> = <span class="arg-val">"B22001"</span> <span class="arg-hint">whole table vs. specific variables</span></summary>
+        <div class="arg-content">
+          <p>Instead of listing individual <code>variables</code>, you can pull every variable in a table at once with <code>table</code>. For B22001 that's all 7 categories. Useful when exploring a table for the first time — you can always filter down later.</p>
+          <p>You use <strong>either</strong> <code>table</code> or <code>variables</code>, not both.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">county</span> = <span class="arg-val">"033"</span> <span class="arg-hint">filtering to a single county</span></summary>
+        <div class="arg-content">
+          <p>When pulling tracts or block groups, you can optionally filter to one county using its 3-digit FIPS code. <code>"033"</code> = Prince George's County. Without this, you'd get every tract in the entire state.</p>
+          <p>You can find county FIPS codes with the <code>fips_codes</code> dataset built into tidycensus, or by searching "Prince George's County FIPS."</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">output</span> = <span class="arg-val">"wide"</span> <span class="arg-hint">long format vs. wide format</span></summary>
+        <div class="arg-content">
+          <p>The same data can be shaped two ways. Here's a simplified 2-county, 4-variable example:</p>
+
+          <p><strong>Long format</strong> (the default) — each variable gets its own row:</p>
+          <div style="overflow-x:auto; margin: 1rem 0;">
+            <table class="lookup-table" style="font-size: 0.82rem;">
+              <tr><th>GEOID</th><th>NAME</th><th>variable</th><th>estimate</th><th>moe</th></tr>
+              <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's</td><td>B99001_001</td><td style="font-family:'DM Sans';color:var(--ink);">340,000</td><td style="font-family:'DM Sans';color:var(--slate);">±500</td></tr>
+              <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's</td><td>B99001_002</td><td style="font-family:'DM Sans';color:var(--ink);">120,000</td><td style="font-family:'DM Sans';color:var(--slate);">±400</td></tr>
+              <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's</td><td>B99001_003</td><td style="font-family:'DM Sans';color:var(--ink);">95,000</td><td style="font-family:'DM Sans';color:var(--slate);">±350</td></tr>
+              <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's</td><td>B99001_004</td><td style="font-family:'DM Sans';color:var(--ink);">125,000</td><td style="font-family:'DM Sans';color:var(--slate);">±420</td></tr>
+              <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery</td><td>B99001_001</td><td style="font-family:'DM Sans';color:var(--ink);">380,000</td><td style="font-family:'DM Sans';color:var(--slate);">±480</td></tr>
+              <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery</td><td>B99001_002</td><td style="font-family:'DM Sans';color:var(--ink);">140,000</td><td style="font-family:'DM Sans';color:var(--slate);">±390</td></tr>
+              <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery</td><td>B99001_003</td><td style="font-family:'DM Sans';color:var(--ink);">110,000</td><td style="font-family:'DM Sans';color:var(--slate);">±330</td></tr>
+              <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery</td><td>B99001_004</td><td style="font-family:'DM Sans';color:var(--ink);">130,000</td><td style="font-family:'DM Sans';color:var(--slate);">±410</td></tr>
+            </table>
+          </div>
+          <p>2 counties × 4 variables = <strong>8 rows</strong>. Each county repeats once per variable.</p>
+
+          <p><strong>Wide format</strong> (<code>output = "wide"</code>) — each variable gets its own column:</p>
+          <div style="overflow-x:auto; margin: 1rem 0;">
+            <table class="lookup-table" style="font-size: 0.78rem;">
+              <tr><th>GEOID</th><th>NAME</th><th>B99001_001E</th><th>B99001_001M</th><th>B99001_002E</th><th>B99001_002M</th><th>B99001_003E</th><th>B99001_003M</th><th>B99001_004E</th><th>B99001_004M</th></tr>
+              <tr>
+                <td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">340,000</td><td style="font-family:'DM Sans';color:var(--slate);">±500</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">120,000</td><td style="font-family:'DM Sans';color:var(--slate);">±400</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">95,000</td><td style="font-family:'DM Sans';color:var(--slate);">±350</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">125,000</td><td style="font-family:'DM Sans';color:var(--slate);">±420</td>
+              </tr>
+              <tr>
+                <td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">380,000</td><td style="font-family:'DM Sans';color:var(--slate);">±480</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">140,000</td><td style="font-family:'DM Sans';color:var(--slate);">±390</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">110,000</td><td style="font-family:'DM Sans';color:var(--slate);">±330</td>
+                <td style="font-family:'DM Sans';color:var(--ink);">130,000</td><td style="font-family:'DM Sans';color:var(--slate);">±410</td>
+              </tr>
+            </table>
+          </div>
+          <p>2 counties = <strong>2 rows</strong>. <strong>E</strong> = estimate, <strong>M</strong> = margin of error.</p>
+
+          <div class="callout">
+            <p><strong>Same data, different shape.</strong> Long format is better for plotting with ggplot (which expects one value per row) and for filtering to specific variables. Wide format is better when you want to do math across variables (like <code>mutate(pct_dogs = B99001_002E / B99001_001E)</code>) because the values you need are in the same row. Use whichever makes your analysis easier.</p>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">survey</span> = <span class="arg-val">"acs1"</span>  <span class="arg-hint">1-year vs. 5-year (not shown above — optional arg)</span></summary>
+        <div class="arg-content">
+          <p>This command doesn't include <code>survey</code>, so it defaults to the 5-year (<code>"acs5"</code>). But you can switch to the 1-year by adding <code>survey = "acs1"</code>. Same function, same table codes — just different data:</p>
+
+          <div class="comparison-grid">
+            <div style="background:white; border:2px solid var(--teal); border-radius:10px; padding:1.2rem;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--teal); margin-bottom:0.4rem;">survey = "acs5"</div>
+              <div style="font-family:'DM Serif Display',serif; font-size:1.1rem; margin-bottom:0.6rem;">ACS 5-Year</div>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Data from:</strong> 5 years pooled ("2022" = 2018–2022)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Sample size:</strong> ~17.5M households</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Available for:</strong> Every geography including tracts and block groups</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Margins of error:</strong> Smaller (more data = more precise)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Currency:</strong> Less current — blends 5 years</p>
+              <p style="font-size:0.85rem;"><strong>Best for:</strong> Small areas, tract-level, most research</p>
+            </div>
+            <div style="background:white; border:2px solid var(--rust); border-radius:10px; padding:1.2rem;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:var(--rust); margin-bottom:0.4rem;">survey = "acs1"</div>
+              <div style="font-family:'DM Serif Display',serif; font-size:1.1rem; margin-bottom:0.6rem;">ACS 1-Year</div>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Data from:</strong> A single year ("2022" = just 2022)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Sample size:</strong> ~3.5M households</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Available for:</strong> Only 65,000+ population areas (~800 counties)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Margins of error:</strong> Larger (less data = less precise)</p>
+              <p style="font-size:0.85rem; margin-bottom:0.3rem;"><strong>Currency:</strong> More current — a single year</p>
+              <p style="font-size:0.85rem;"><strong>Best for:</strong> Timeliness, trends in large areas</p>
+            </div>
+          </div>
+
+          <div class="callout">
+            <p><strong>The tradeoff:</strong> Think of it like a camera. The 5-year is a long exposure (smoother, blurrier in time) and the 1-year is a quick snapshot (sharper in time, but noisier and can only see bright things).</p>
+          </div>
+
+          <p><strong>When the 1-year will fail:</strong> If you request tracts, block groups, or rural counties — the 1-year simply doesn't have data. Most individual counties don't qualify (only ~800 of ~3,200). If you need anything below county level, use the 5-year.</p>
+
+          <p><strong>For change-over-time:</strong> The 1-year is cleaner because each year is independent. With 5-year, "2018" (2014–2018) and "2022" (2018–2022) share 2018, muddying the comparison. But you can only use the 1-year if your areas are big enough.</p>
+
+          <div class="callout">
+            <p><strong>Rule of thumb:</strong> Start with the 5-year (the default). Only switch to 1-year if you specifically need single-year timeliness and your geographies are large enough.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- COMMAND 4: DECENNIAL -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">04</div>
+  <h2>The Decennial Census</h2>
+
+  <div class="cmd-block">
+    <span class="cmd-label">Command 04 — Decennial population count</span>
+    <p class="cmd-desc">Total population by county, 2020 Census</p>
+    <div class="cmd-header">
+<span class="c-fn">get_decennial</span>(<br>
+&nbsp;&nbsp;<span class="c-arg">geography</span> = <span class="c-str">"county"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">variables</span> = <span class="c-str">"P1_001N"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">state</span> = <span class="c-str">"MD"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">year</span> = <span class="c-num">2020</span><br>
+)
+    </div>
+
+    <div class="arg-details">
+      <details>
+        <summary><span class="arg-name">get_decennial(</span> <span class="arg-hint">different function, different codes</span></summary>
+        <div class="arg-content">
+          <p>The Decennial Census uses a <strong>completely different function</strong> and <strong>completely different table codes</strong> from the ACS. You cannot mix them — <code>B22001_002</code> doesn't exist in the Decennial, and <code>P1_001N</code> doesn't exist in the ACS.</p>
+          <p>The Decennial is a full population count (not a sample), so it has <strong>no margin of error column</strong> — the output has a <code>value</code> column instead of <code>estimate</code> and <code>moe</code>. It covers very few topics (population, race, age, housing occupancy) but goes all the way down to the <strong>block</strong> level.</p>
+          <p>Available years in tidycensus: <strong>2000, 2010, 2020</strong>.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">variables</span> = <span class="arg-val">"P1_001N"</span> <span class="arg-hint">Decennial table codes</span></summary>
+        <div class="arg-content">
+          <p>Decennial codes look different from ACS codes. Notice the <code>N</code> suffix:</p>
+          <table class="lookup-table">
+            <tr><th>Prefix</th><th>Meaning</th><th>Example</th></tr>
+            <tr><td>P1</td><td>Total population by race</td><td><code>P1_001N</code> = total population count</td></tr>
+            <tr><td>P2</td><td>Hispanic/Latino origin by race</td><td><code>P2_002N</code> = Hispanic or Latino</td></tr>
+            <tr><td>P3</td><td>Race for population 18+</td><td><code>P3_001N</code> = total population 18+</td></tr>
+            <tr><td>P4</td><td>Hispanic/Latino by race, 18+</td><td><code>P4_002N</code> = Hispanic or Latino, 18+</td></tr>
+            <tr><td>H1</td><td>Housing occupancy</td><td><code>H1_001N</code> = total housing units</td></tr>
+          </table>
+          <p>These codes are from the 2020 PL redistricting file. The DHC (Demographic &amp; Housing Characteristics) file has additional tables with a different numbering scheme.</p>
+          <p>To browse Decennial codes, use different dataset strings in <code>load_variables()</code>:</p>
+          <div class="code-block">
+<span class="c-fn">load_variables</span>(<span class="c-num">2020</span>, <span class="c-str">"pl"</span>)    <span class="c-com"># 2020 redistricting data</span><br>
+<span class="c-fn">load_variables</span>(<span class="c-num">2020</span>, <span class="c-str">"dhc"</span>)   <span class="c-com"># 2020 Demographic &amp; Housing</span><br>
+<span class="c-fn">load_variables</span>(<span class="c-num">2010</span>, <span class="c-str">"sf1"</span>)   <span class="c-com"># 2010 Summary File 1</span>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- COMMAND 5: CHANGE OVER TIME -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">05</div>
+  <h2>Comparing change over time</h2>
+
+  <p>There's no "give me multiple years" argument. You pull each year separately, stack them, and pivot.</p>
+
+  <div class="cmd-block">
+    <span class="cmd-label">Command 05 — Multi-year comparison</span>
+    <p class="cmd-desc">SNAP households by county: 2015 vs 2018 vs 2022, each year in its own column</p>
+    <div class="cmd-header" style="line-height:1.9;">
+<span class="c-com"># Pull each year, tag it</span><br>
+<span class="c-arg">snap_2015</span> &lt;- <span class="c-fn">get_acs</span>(<br>
+&nbsp;&nbsp;<span class="c-arg">geography</span> = <span class="c-str">"county"</span>, <span class="c-arg">variables</span> = <span class="c-str">"B22001_002"</span>,<br>
+&nbsp;&nbsp;<span class="c-arg">state</span> = <span class="c-str">"MD"</span>, <span class="c-arg">year</span> = <span class="c-num">2015</span><br>
+) %>% <span class="c-fn">mutate</span>(<span class="c-arg">year</span> = <span class="c-num">2015</span>)<br>
+<br>
+<span class="c-arg">snap_2018</span> &lt;- <span class="c-fn">get_acs</span>(..., <span class="c-arg">year</span> = <span class="c-num">2018</span>) %>% <span class="c-fn">mutate</span>(<span class="c-arg">year</span> = <span class="c-num">2018</span>)<br>
+<span class="c-arg">snap_2022</span> &lt;- <span class="c-fn">get_acs</span>(..., <span class="c-arg">year</span> = <span class="c-num">2022</span>) %>% <span class="c-fn">mutate</span>(<span class="c-arg">year</span> = <span class="c-num">2022</span>)<br>
+<br>
+<span class="c-com"># Stack → pivot → rejoin names</span><br>
+<span class="c-arg">snap_wide</span> &lt;- <span class="c-fn">bind_rows</span>(<span class="c-arg">snap_2015</span>, <span class="c-arg">snap_2018</span>, <span class="c-arg">snap_2022</span>) %>%<br>
+&nbsp;&nbsp;<span class="c-fn">select</span>(<span class="c-arg">GEOID</span>, <span class="c-arg">year</span>, <span class="c-arg">estimate</span>) %>%<br>
+&nbsp;&nbsp;<span class="c-fn">pivot_wider</span>(<span class="c-arg">names_from</span> = <span class="c-arg">year</span>, <span class="c-arg">values_from</span> = <span class="c-arg">estimate</span>, <span class="c-arg">names_prefix</span> = <span class="c-str">"snap_"</span>) %>%<br>
+&nbsp;&nbsp;<span class="c-fn">left_join</span>(<span class="c-arg">snap_2022</span> %>% <span class="c-fn">select</span>(<span class="c-arg">GEOID</span>, <span class="c-arg">NAME</span>), <span class="c-arg">by</span> = <span class="c-str">"GEOID"</span>)
+    </div>
+
+    <div class="arg-details">
+      <details>
+        <summary><span class="arg-name">mutate(year = 2015)</span> <span class="arg-hint">why tag each pull?</span></summary>
+        <div class="arg-content">
+          <p><code>get_acs()</code> doesn't include a year column in its output — it just gives you GEOID, NAME, variable, estimate, moe. Adding <code>mutate(year = 2015)</code> tags each row so you know which pull it came from after you stack them together.</p>
+          <p>Each year's pull looks like this (simplified to 2 counties):</p>
+          <div style="overflow-x:auto; margin: 1rem 0;">
+            <table class="lookup-table" style="font-size: 0.82rem;">
+              <tr><th>GEOID</th><th>NAME</th><th>variable</th><th>estimate</th><th>moe</th><th style="background:var(--rust-light);color:var(--rust);">year</th></tr>
+              <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's County, Maryland</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">48,200</td><td style="font-family:'DM Sans';color:var(--slate);">±2,100</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2015</td></tr>
+              <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery County, Maryland</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">28,300</td><td style="font-family:'DM Sans';color:var(--slate);">±1,800</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2015</td></tr>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">bind_rows()</span> <span class="arg-hint">stacking dataframes vertically</span></summary>
+        <div class="arg-content">
+          <p><code>bind_rows()</code> glues the three dataframes on top of each other into one tall dataframe:</p>
+          <div style="overflow-x:auto; margin: 1rem 0;">
+            <table class="lookup-table" style="font-size: 0.82rem;">
+              <tr><th>GEOID</th><th>NAME</th><th>variable</th><th>estimate</th><th>moe</th><th style="background:var(--rust-light);color:var(--rust);">year</th></tr>
+              <tr style="background:#fdf8f4;"><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's...</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">48,200</td><td style="font-family:'DM Sans';color:var(--slate);">±2,100</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2015</td></tr>
+              <tr style="background:#fdf8f4;"><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery...</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">28,300</td><td style="font-family:'DM Sans';color:var(--slate);">±1,800</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2015</td></tr>
+              <tr style="background:#f4f8f4;"><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's...</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">44,500</td><td style="font-family:'DM Sans';color:var(--slate);">±2,000</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2018</td></tr>
+              <tr style="background:#f4f8f4;"><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery...</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">26,800</td><td style="font-family:'DM Sans';color:var(--slate);">±1,700</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2018</td></tr>
+              <tr style="background:#f4f4f8;"><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's...</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">41,100</td><td style="font-family:'DM Sans';color:var(--slate);">±1,900</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2022</td></tr>
+              <tr style="background:#f4f4f8;"><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery...</td><td>B22001_002</td><td style="font-family:'DM Sans';color:var(--ink);">25,100</td><td style="font-family:'DM Sans';color:var(--slate);">±1,600</td><td style="font-family:'DM Sans';color:var(--rust);font-weight:600;">2022</td></tr>
+            </table>
+          </div>
+          <p>Each county now appears <strong>3 times</strong> — once per year. The background colors show the three original dataframes glued vertically. This long format is great for ggplot but hard to compare across years in a table.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="arg-name">pivot_wider()</span> <span class="arg-hint">years as columns</span></summary>
+        <div class="arg-content">
+          <p><code>pivot_wider(names_from = year, values_from = estimate, names_prefix = "snap_")</code> reshapes so each year value becomes a column name:</p>
+          <div style="overflow-x:auto; margin: 1rem 0;">
+            <table class="lookup-table" style="font-size: 0.82rem;">
+              <tr><th>GEOID</th><th>NAME</th><th>snap_2015</th><th>snap_2018</th><th>snap_2022</th></tr>
+              <tr><td style="color:var(--teal);">24033</td><td style="font-family:'DM Sans';color:var(--ink);">Prince George's County, Maryland</td><td style="font-family:'DM Sans';color:var(--ink);">48,200</td><td style="font-family:'DM Sans';color:var(--ink);">44,500</td><td style="font-family:'DM Sans';color:var(--ink);">41,100</td></tr>
+              <tr><td style="color:var(--teal);">24031</td><td style="font-family:'DM Sans';color:var(--ink);">Montgomery County, Maryland</td><td style="font-family:'DM Sans';color:var(--ink);">28,300</td><td style="font-family:'DM Sans';color:var(--ink);">26,800</td><td style="font-family:'DM Sans';color:var(--ink);">25,100</td></tr>
+            </table>
+          </div>
+          <p>The three rows for Prince George's (one per year) got collapsed into <strong>one row</strong> with three columns. Calculate change: <code>mutate(change = snap_2022 - snap_2015)</code></p>
+
+          <div class="callout">
+            <p><strong>Why not include NAME in the pivot?</strong> The <code>NAME</code> column can have tiny formatting differences across ACS years — an extra space, different punctuation. If that happens, <code>pivot_wider</code> treats them as different rows and you get <code>NA</code>s. Using only <code>GEOID</code> as the ID and joining <code>NAME</code> back afterward is safer.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>Caution with 5-year comparisons:</strong> The 5-year estimates are rolling averages. "2022" = 2018–2022 and "2018" = 2014–2018 — those overlap by 2 years. For truly non-overlapping comparisons, space years at least 5 apart (e.g. 2017 vs 2022).</p>
+  </div>
+</section>
+
+
+<!-- ================================================================ -->
+<!-- QUICK REFERENCE -->
+<!-- ================================================================ -->
+<section>
+  <div class="section-number">06</div>
+  <h2>Quick reference</h2>
+
+  <table class="lookup-table">
+    <tr><th>Method</th><th>Best for</th></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">Census Reporter</td><td>Browsing and discovering tables. Visual tree. No variable codes shown.</td></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">load_variables()</td><td>Confirming exact codes. Official source of truth.</td></tr>
+    <tr><td style="font-family:'DM Sans';color:var(--ink);">data.census.gov</td><td>Previewing actual data. Clunky but shows codes + values.</td></tr>
+  </table>
+
+  <div class="callout">
+    <p><strong>The whole workflow:</strong> Find the table (Census Reporter) → verify the code (<code>load_variables()</code>) → choose ACS or Decennial → pick your year → set your geography → pull.</p>
+  </div>
+</section>
+
+</div>
+
+<footer class="footer">
+  <span>●</span> Census Table Codes Study Guide <span>●</span>
+</footer>
+
+<link rel="stylesheet" href="../learning-hub.css">
+<script src="../learning-hub.js"></script>
+</body>
+</html>

@@ -49,7 +49,6 @@
       '<div class="lh-nav-links">' +
         '<a href="' + prefix + 'index.html" class="lh-nav-link' + (currentFile === 'index.html' && !isInSubfolder ? ' lh-active' : '') + '">Home</a>' +
         '<a href="' + prefix + 'new-topic.html" class="lh-nav-link' + (currentFile === 'new-topic.html' ? ' lh-active' : '') + '">+ New Topic</a>' +
-        '<a href="' + prefix + 'r-study-guide.html" class="lh-nav-link' + (currentFile === 'r-study-guide.html' ? ' lh-active' : '') + '">R Guide</a>' +
         '<a href="' + prefix + 'change-file.html" class="lh-nav-link' + (currentFile === 'change-file.html' ? ' lh-active' : '') + '">Change File</a>' +
       '</div>' +
       '<div class="lh-search-wrap">' +
@@ -62,6 +61,11 @@
         '<div class="lh-nav-dropdown" id="lhCommentsDropdown">' +
           '<button class="lh-nav-drop-item" id="lhCommentModeBtn">Enter Raw Comment Mode</button>' +
           '<button class="lh-nav-drop-item" id="lhShowResolvedBtn">Show Resolved Comments</button>' +
+          '<div class="lh-nav-drop-divider"></div>' +
+          '<button class="lh-nav-drop-item" id="lhAddScratchPadBtn">Add Scratch Pad</button>' +
+          '<div class="lh-nav-drop-divider"></div>' +
+          '<button class="lh-nav-drop-item" id="lhExportDataBtn">Export All Data</button>' +
+          '<button class="lh-nav-drop-item" id="lhImportDataBtn">Receive Data</button>' +
           '<div class="lh-nav-drop-divider"></div>' +
           '<div class="lh-nav-drop-stats" id="lhCommentStats"></div>' +
         '</div>' +
@@ -204,12 +208,32 @@
         });
       }
       html += '<div style="font-size:0.7rem;color:#9aa0a6;">' + new Date(c.timestamp).toLocaleString() + '</div>';
+      html += '<button class="lh-unresolve-btn" data-id="' + c.id + '" style="font-size:0.75rem;color:#1a73e8;background:none;border:1px solid #dadce0;border-radius:4px;padding:0.2rem 0.5rem;cursor:pointer;margin-top:0.3rem;font-family:Arial,sans-serif;">Un-resolve</button>';
       html += '</div>';
     });
     html += '<button class="lh-resolved-close" id="lhResolvedClose">Close</button></div>';
 
     overlay.innerHTML = html;
     document.body.appendChild(overlay);
+    overlay.querySelectorAll('.lh-unresolve-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = this.getAttribute('data-id');
+        var all = getAllComments();
+        var target = all.find(function (c) { return c.id === id; });
+        if (target) {
+          target.status = 'implemented';
+          target.resolved = false;
+          saveAllComments(all);
+          renderCommentMarkers();
+          updateBadge();
+          showToast('Comment un-resolved');
+          // Re-render the resolved list
+          removeResolvedOverlay();
+          renderResolvedComments();
+        }
+      });
+    });
+
     document.getElementById('lhResolvedClose').addEventListener('click', function () {
       showingResolved = false;
       showResolvedBtn.textContent = 'Show Resolved Comments';
@@ -221,6 +245,85 @@
     var el = document.getElementById('lhResolvedOverlay');
     if (el) el.remove();
   }
+
+  // ========== EXPORT / IMPORT ALL DATA ==========
+  var LH_DATA_KEYS = ['learningHubComments', 'learningHubCustomInstructions', 'learningHubExportVersion', 'learningHubQueue', 'learningHubLastOpened'];
+
+  document.getElementById('lhExportDataBtn').addEventListener('click', function () {
+    commentsDropdown.classList.remove('lh-drop-visible');
+    var data = {};
+    var count = 0;
+    // Grab all learningHub keys
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.startsWith('learningHub')) {
+        data[k] = localStorage.getItem(k);
+        count++;
+      }
+    }
+    var json = JSON.stringify(data);
+    navigator.clipboard.writeText(json).then(function () {
+      showToast('Exported ' + count + ' data keys to clipboard');
+    }).catch(function () {
+      // Fallback: show in a prompt
+      window.prompt('Copy this data:', json);
+    });
+  });
+
+  document.getElementById('lhImportDataBtn').addEventListener('click', function () {
+    commentsDropdown.classList.remove('lh-drop-visible');
+
+    // Show import overlay
+    var overlay = document.createElement('div');
+    overlay.id = 'lhImportOverlay';
+    overlay.className = 'lh-resolved-overlay';
+    overlay.innerHTML =
+      '<div class="lh-resolved-panel">' +
+        '<h3>Receive Data</h3>' +
+        '<p style="font-size:0.85rem;color:#5f6368;margin-bottom:0.5rem;">Paste exported Learning Hub data below. This merges comments and queue items without duplicating.</p>' +
+        '<textarea id="lhImportArea" style="width:100%;height:150px;font-family:monospace;font-size:0.75rem;border:1px solid #dadce0;border-radius:6px;padding:0.5rem;margin-bottom:0.5rem;" placeholder="Paste exported data here..."></textarea>' +
+        '<div style="display:flex;gap:0.5rem;justify-content:flex-end;">' +
+          '<button class="lh-resolved-close" id="lhImportCancel" style="background:#fff;color:#5f6368;border:1px solid #dadce0;">Cancel</button>' +
+          '<button class="lh-resolved-close" id="lhImportGo" style="background:#1e8e3e;">Import</button>' +
+        '</div>' +
+        '<div id="lhImportStatus" style="font-size:0.82rem;margin-top:0.3rem;min-height:1.2em;"></div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('lhImportCancel').addEventListener('click', function () { overlay.remove(); });
+
+    document.getElementById('lhImportGo').addEventListener('click', function () {
+      var raw = document.getElementById('lhImportArea').value.trim();
+      if (!raw) return;
+      try {
+        var data = JSON.parse(raw);
+        var count = 0;
+        Object.keys(data).forEach(function (k) {
+          if (k === 'learningHubComments' || k === 'learningHubQueue') {
+            // Merge by ID
+            var existing = [];
+            try { existing = JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) {}
+            var incoming = [];
+            try { incoming = JSON.parse(data[k]); } catch (e) {}
+            var ids = {};
+            existing.forEach(function (item) { ids[item.id] = true; });
+            incoming.forEach(function (item) { if (!ids[item.id]) existing.push(item); });
+            localStorage.setItem(k, JSON.stringify(existing));
+          } else {
+            localStorage.setItem(k, data[k]);
+          }
+          count++;
+        });
+        document.getElementById('lhImportStatus').textContent = 'Imported ' + count + ' keys! Refreshing...';
+        document.getElementById('lhImportStatus').style.color = '#1e8e3e';
+        setTimeout(function () { window.location.reload(); }, 1000);
+      } catch (e) {
+        document.getElementById('lhImportStatus').textContent = 'Error: ' + e.message;
+        document.getElementById('lhImportStatus').style.color = '#d93025';
+      }
+    });
+  });
 
   // Block link clicks in comment mode
   document.addEventListener('click', function (e) {
@@ -462,21 +565,50 @@
       if (!file || !file.type.startsWith('image/')) return;
       var reader = new FileReader();
       reader.onload = function (e) {
-        resizeImage(e.target.result, 600, function (resized) {
-          pendingImage = resized;
-          imgPreview.src = resized;
-          imgPreview.style.display = 'block';
-          imgRemove.style.display = 'inline';
-          imgZone.style.display = 'none';
+        resizeImage(e.target.result, 800, function (resized) {
+          var filename = 'comment-' + Date.now() + '.png';
 
-          // Check storage
-          var usage = checkStorageUsage();
-          if (usage.pct > 80) {
-            showToast('Storage ' + usage.pct + '% full. Consider resolving old comments.');
-          }
+          // Try uploading to the image server first
+          tryUploadToServer(resized, filename, function (serverPath) {
+            if (serverPath) {
+              // Server upload succeeded — store just the path
+              pendingImage = serverPath;
+              imgPreview.src = serverPath;
+              showToast('Image saved to server');
+            } else {
+              // Server not running — fall back to base64 in localStorage
+              pendingImage = resized;
+              imgPreview.src = resized;
+              var usage = checkStorageUsage();
+              if (usage.pct > 80) {
+                showToast('Storage ' + usage.pct + '% full. Start image-server.js for unlimited storage.');
+              }
+            }
+            imgPreview.style.display = 'block';
+            imgRemove.style.display = 'inline';
+            imgZone.style.display = 'none';
+          });
         });
       };
       reader.readAsDataURL(file);
+    }
+
+    function tryUploadToServer(base64, filename, callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/upload-image', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.timeout = 5000;
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            callback(resp.path || null);
+          } catch (e) { callback(null); }
+        } else { callback(null); }
+      };
+      xhr.onerror = function () { callback(null); };
+      xhr.ontimeout = function () { callback(null); };
+      xhr.send(JSON.stringify({ image: base64, filename: filename }));
     }
 
     imgZone.addEventListener('click', function (e) {
@@ -584,6 +716,20 @@
   function scanForImplemented() {
     var html = document.documentElement.innerHTML;
     var match = html.match(/<!--\s*lh-implemented:\s*([^>]+)\s*-->/g);
+
+    // Fallback: walk DOM for comment nodes
+    if (!match) {
+      match = [];
+      var walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_COMMENT, null, false);
+      var commentNode;
+      while (commentNode = walker.nextNode()) {
+        var text = commentNode.textContent.trim();
+        if (text.indexOf('lh-implemented:') === 0) {
+          match.push('<!-- ' + text + ' -->');
+        }
+      }
+      if (match.length === 0) match = null;
+    }
     if (!match) return;
 
     // Parse all batches; the last match is the newest
@@ -627,6 +773,67 @@
     if (isNewBatch) localStorage.setItem(LATEST_BATCH_KEY, newLatestKey);
   }
 
+  // ========== SCAN FOR QUEUE UPDATE MARKERS ==========
+  // Claude Code drops <!-- lh-queue-update: {"id":"...","notes":"...","title":"..."} --> in HTML
+  // On page load, we apply the update to localStorage and remove the marker from the DOM.
+  function scanForQueueUpdates() {
+    // Try innerHTML first, then walk comment nodes as fallback
+    var html = document.documentElement.innerHTML;
+    var matches = html.match(/<!--\s*lh-queue-update:\s*(\{[^}]+\})\s*-->/g);
+
+    // Fallback: walk DOM for comment nodes (innerHTML sometimes strips comments)
+    if (!matches) {
+      matches = [];
+      var walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_COMMENT, null, false);
+      var commentNode;
+      while (commentNode = walker.nextNode()) {
+        var text = commentNode.textContent.trim();
+        if (text.indexOf('lh-queue-update:') === 0) {
+          matches.push('<!-- ' + text + ' -->');
+        }
+      }
+      if (matches.length === 0) matches = null;
+    }
+    if (!matches) return;
+
+    var QUEUE_KEY = 'learningHubQueue';
+    var queue;
+    try { queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); }
+    catch (e) { return; }
+
+    var applied = false;
+    matches.forEach(function (m) {
+      try {
+        var jsonStr = m.replace(/<!--\s*lh-queue-update:\s*/, '').replace(/\s*-->/, '');
+        var update = JSON.parse(jsonStr);
+        if (!update.id && !update.title) return;
+
+        var target = queue.find(function (q) { return q.id === update.id; }) ||
+                     (update.title ? queue.find(function (q) { return q.title === update.title; }) : null);
+        if (target) {
+          if (update.title) target.title = update.title;
+          if (update.notes) target.notes = update.notes;
+          if (update.links) target.links = update.links;
+          if (update.appendNotes) {
+            // Only append if not already present (prevents duplicate appends on refresh)
+            if ((target.notes || '').indexOf(update.appendNotes) === -1) {
+              target.notes = (target.notes || '') + (target.notes ? ' ' : '') + update.appendNotes;
+            }
+          }
+          applied = true;
+        }
+      } catch (e) {}
+    });
+
+    if (applied) {
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+      // Trigger queue re-render so the UI shows the updated data
+      document.dispatchEvent(new Event('lh-content-changed'));
+      // Also try to call renderQueue directly if it exists (defined in index.html)
+      if (typeof window.renderQueue === 'function') window.renderQueue();
+    }
+  }
+
   // ========== FIND TEXT POSITION IN DOM ==========
   // Returns { y: number, container: element|null }
   // If the text is inside a dynamic container (queue item, list item), returns that container
@@ -634,7 +841,8 @@
   function findTextPosition(searchText) {
     if (!searchText || searchText.length < 5) return null;
 
-    var snippet = searchText.substring(0, 60).trim();
+    // Use a shorter snippet for more reliable matching, and normalize whitespace
+    var snippet = searchText.substring(0, 40).trim().replace(/\s+/g, ' ');
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     var node;
 
@@ -644,13 +852,34 @@
         continue;
       }
 
-      if (node.textContent.indexOf(snippet) !== -1) {
-        var range = document.createRange();
-        var startIdx = node.textContent.indexOf(snippet);
-        range.setStart(node, startIdx);
-        range.setEnd(node, Math.min(startIdx + snippet.length, node.textContent.length));
-        var rect = range.getBoundingClientRect();
-        var y = rect.top + window.scrollY;
+      var normalizedText = node.textContent.replace(/\s+/g, ' ');
+      if (normalizedText.indexOf(snippet) !== -1) {
+        // Use normalized index for range positioning
+        var startIdx = normalizedText.indexOf(snippet);
+        if (startIdx < 0) startIdx = 0;
+
+        // Map normalized index back to original text
+        var origIdx = 0;
+        var normCount = 0;
+        var origText = node.textContent;
+        while (normCount < startIdx && origIdx < origText.length) {
+          if (/\s/.test(origText[origIdx])) {
+            // Skip extra whitespace in original
+            while (origIdx + 1 < origText.length && /\s/.test(origText[origIdx + 1])) origIdx++;
+          }
+          origIdx++;
+          normCount++;
+        }
+
+        try {
+          var range = document.createRange();
+          range.setStart(node, Math.min(origIdx, origText.length));
+          range.setEnd(node, Math.min(origIdx + snippet.length, origText.length));
+          var rect = range.getBoundingClientRect();
+          var y = rect.top + window.scrollY;
+        } catch (e) {
+          var y = 0;
+        }
 
         // Check if the text is inside a dynamic container
         var el = node.parentElement;
@@ -696,6 +925,9 @@
       return true;
     });
 
+    // Track how many markers are placed in each container to offset them
+    var containerMarkerCounts = {};
+
     comments.forEach(function (c) {
       var marker = document.createElement('div');
       marker.className = 'lh-comment-marker';
@@ -718,13 +950,23 @@
       var posInfo = findTextPosition(c.highlightedText);
 
       if (posInfo && posInfo.container) {
-        // Text is inside a dynamic container — attach marker to that container
-        posInfo.container.style.position = 'relative';
-        marker.style.position = 'absolute';
-        marker.style.right = '-8px';
-        marker.style.top = '50%';
-        marker.style.transform = 'translateY(-50%)';
-        posInfo.container.appendChild(marker);
+        // Text is inside a dynamic container — attach marker inside it
+        try {
+          marker.style.position = 'absolute';
+          marker.style.right = '4px';
+          marker.style.transform = 'none';
+
+          var containerId = posInfo.container.getAttribute('data-id') || ('c' + Math.random().toString(36).substr(2, 4));
+          var idx = containerMarkerCounts[containerId] || 0;
+          containerMarkerCounts[containerId] = idx + 1;
+          marker.style.top = (4 + idx * 20) + 'px';
+
+          posInfo.container.appendChild(marker);
+        } catch (e) {
+          // Fallback if container is no longer in DOM
+          marker.style.top = (posInfo.y || c.y) + 'px';
+          document.body.appendChild(marker);
+        }
       } else {
         // Standard absolute positioning on the page body
         marker.style.top = (posInfo ? posInfo.y : c.y) + 'px';
@@ -1042,7 +1284,8 @@
     prompt += '- Assume I know very little about code — keep explanations simple\n';
     prompt += '- Append these edit requests (with a timestamp header) to `' + promptFilePath + '` as a changelog entry\n';
     prompt += '- CHANGE HIGHLIGHTING: Remove existing `class="lh-new-content"` spans (unwrap them). Wrap ALL new/modified content in `<span class="lh-new-content">...</span>`.\n';
-    prompt += '- IMPLEMENTATION TRACKING: After making all changes, add this HTML comment at the end of the file (before </body>): `<!-- lh-implemented: ' + exportedCommentIds.join(', ') + ' -->`. This tells the annotation system which comments were implemented.\n\n';
+    prompt += '- IMPLEMENTATION TRACKING: After making all changes, add this HTML comment at the end of the file (before </body>): `<!-- lh-implemented: ' + exportedCommentIds.join(', ') + ' -->`. This tells the annotation system which comments were implemented.\n';
+    prompt += '- QUEUE ITEM UPDATES: If a comment targets a Queued Topic and asks to edit its title, notes, or links, add an HTML comment: `<!-- lh-queue-update: {"id":"QUEUE_ITEM_ID","appendNotes":"text to add"} -->` (or use "notes":"full replacement text" or "title":"new title"). The Learning Hub JS reads this on page load and updates localStorage. Find the queue item ID in the DOM (`data-id` attribute on the `.queue-item` element).\n\n';
     prompt += '---\n\n';
 
     exportItems.forEach(function (item, i) {
@@ -1051,10 +1294,17 @@
 
       if (item.type === 'follow-up') {
         prompt += '*This is a follow-up on a previously implemented comment.*\n\n';
+        if (c.highlightedText) prompt += 'Find this text:\n> ' + c.highlightedText + '\n\n';
         prompt += 'Original comment: ' + c.note + '\n\n';
-        prompt += 'New follow-up replies:\n';
-        item.newReplies.forEach(function (r) { prompt += '- ' + r.text + '\n'; });
-        prompt += '\n';
+        // Include full thread history for context
+        if (c.replies && c.replies.length > 0) {
+          prompt += 'Full thread history:\n';
+          c.replies.forEach(function (r) {
+            var isNew = !r.implemented;
+            prompt += (isNew ? '- **[NEW]** ' : '- [previously seen] ') + r.text + '\n';
+          });
+          prompt += '\n';
+        }
       } else {
         if (c.highlightedText) prompt += 'Find this text:\n> ' + c.highlightedText + '\n\n';
         if (c.note) prompt += 'My comment: ' + c.note + '\n\n';
@@ -1097,6 +1347,231 @@
     feedbackEl.className = 'lh-feedback' + (isError ? ' lh-error' : '');
     setTimeout(function () { feedbackEl.textContent = ''; }, 3000);
   }
+
+  // ========== SCRATCH PAD ==========
+  var SCRATCHPAD_STORAGE_KEY = 'lhScratchPad_' + currentFile;
+
+  document.getElementById('lhAddScratchPadBtn').addEventListener('click', function () {
+    commentsDropdown.classList.remove('lh-drop-visible');
+    initScratchPad();
+  });
+
+  function initScratchPad() {
+    // Check if scratch pad tab already exists
+    if (document.getElementById('lh-scratchpad-tab')) return;
+
+    // Find the tab nav (if page has tabs)
+    var tabNav = document.querySelector('nav .nav-inner') || document.querySelector('.lh-sticky-tabs');
+    if (!tabNav) {
+      // No tab system — create a simple floating panel instead
+      createScratchPadPanel();
+      return;
+    }
+
+    // Add a tab button
+    var tabBtn = document.createElement('button');
+    tabBtn.className = 'tab-btn';
+    tabBtn.id = 'lh-scratchpad-tab';
+    tabBtn.setAttribute('data-tab', 'scratchpad');
+    tabBtn.textContent = 'Scratch Pad';
+    tabNav.appendChild(tabBtn);
+
+    // Create the tab content
+    var tabContent = document.createElement('div');
+    tabContent.id = 'scratchpad';
+    tabContent.className = 'tab-content';
+    tabContent.innerHTML = buildScratchPadHTML();
+
+    // Insert after the last tab-content div
+    var lastTabContent = document.querySelector('.tab-content:last-of-type');
+    if (lastTabContent && lastTabContent.parentNode) {
+      lastTabContent.parentNode.insertBefore(tabContent, lastTabContent.nextSibling);
+    } else {
+      document.querySelector('.container').appendChild(tabContent);
+    }
+
+    // Wire up the tab button to the existing tab system
+    tabBtn.addEventListener('click', function () {
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+      tabBtn.classList.add('active');
+      tabContent.classList.add('active');
+      // Hide sub-navs
+      document.querySelectorAll('.ch1-subnav').forEach(function (nav) { nav.style.display = 'none'; });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    setupScratchPadEvents(tabContent);
+    loadScratchPadNotes(tabContent);
+    showToast('Scratch Pad added');
+  }
+
+  function createScratchPadPanel() {
+    // For pages without tabs — create a section at the bottom
+    var section = document.createElement('section');
+    section.id = 'scratchpad';
+    section.style.cssText = 'max-width:900px;margin:2rem auto;padding:0 1.5rem;';
+    section.innerHTML = buildScratchPadHTML();
+    document.body.insertBefore(section, document.querySelector('footer') || document.body.lastChild);
+    setupScratchPadEvents(section);
+    loadScratchPadNotes(section);
+    showToast('Scratch Pad added');
+  }
+
+  function buildScratchPadHTML() {
+    return '' +
+      '<h2 style="font-family:Arial,sans-serif;font-size:1.5rem;margin-bottom:0.3rem;">' + guideTitle + ' — Scratch Pad</h2>' +
+      '<p style="color:#5f6368;font-size:0.9rem;margin-bottom:1.5rem;">Personal notes for this page. Saved directly into the page source when the server is running.</p>' +
+      '<div class="lh-sp-form">' +
+        '<textarea class="lh-sp-input" id="lhSpInput" placeholder="Type a note..."></textarea>' +
+        '<button class="lh-sp-add-btn" id="lhSpAddBtn">Add Note</button>' +
+      '</div>' +
+      '<div class="lh-sp-notes" id="lhSpNotes"></div>';
+  }
+
+  function setupScratchPadEvents(container) {
+    var input = container.querySelector('#lhSpInput');
+    var addBtn = container.querySelector('#lhSpAddBtn');
+    var notesList = container.querySelector('#lhSpNotes');
+
+    addBtn.addEventListener('click', function () {
+      var text = input.value.trim();
+      if (!text) { input.focus(); return; }
+
+      var note = {
+        id: 'sp-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+        rev: 1,
+        text: text,
+        timestamp: new Date().toISOString()
+      };
+
+      var notes = getScratchPadNotes();
+      notes.push(note);
+      saveScratchPadNotes(notes, notesList);
+      input.value = '';
+      input.focus();
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addBtn.click(); }
+    });
+  }
+
+  function getScratchPadNotes() {
+    // First check the HTML source for embedded notes
+    var embedded = [];
+    document.querySelectorAll('#lh-scratchpad-data .lh-scratchpad-note').forEach(function (el) {
+      embedded.push({
+        id: el.getAttribute('data-id'),
+        rev: parseInt(el.getAttribute('data-rev') || '1', 10),
+        text: el.textContent,
+        timestamp: el.getAttribute('data-timestamp')
+      });
+    });
+
+    // Merge with localStorage (localStorage may have newer notes not yet saved to file)
+    var local = [];
+    try { local = JSON.parse(localStorage.getItem(SCRATCHPAD_STORAGE_KEY) || '[]'); }
+    catch (e) {}
+
+    // Merge: use localStorage version if rev is higher, otherwise use embedded
+    var merged = {};
+    embedded.forEach(function (n) { merged[n.id] = n; });
+    local.forEach(function (n) {
+      if (!merged[n.id] || n.rev > merged[n.id].rev) merged[n.id] = n;
+    });
+
+    return Object.keys(merged).map(function (k) { return merged[k]; })
+      .sort(function (a, b) { return (a.timestamp || '').localeCompare(b.timestamp || ''); });
+  }
+
+  function saveScratchPadNotes(notes, notesList) {
+    // Save to localStorage immediately (instant UI update)
+    localStorage.setItem(SCRATCHPAD_STORAGE_KEY, JSON.stringify(notes));
+    renderScratchPadNotes(notes, notesList);
+
+    // Save to file via server (permanent storage)
+    var filePath = isInSubfolder ? 'AI_study_guides/' + currentFile : currentFile;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/save-scratchpad', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 5000;
+    xhr.onload = function () {
+      if (xhr.status !== 200) {
+        showToast('Note saved locally (server unavailable for permanent save)');
+      }
+    };
+    xhr.onerror = function () {
+      showToast('Note saved locally (server unavailable)');
+    };
+    xhr.send(JSON.stringify({ file: filePath, notes: notes }));
+  }
+
+  function loadScratchPadNotes(container) {
+    var notesList = container.querySelector('#lhSpNotes');
+    var notes = getScratchPadNotes();
+    renderScratchPadNotes(notes, notesList);
+  }
+
+  function renderScratchPadNotes(notes, notesList) {
+    if (!notesList) return;
+    if (notes.length === 0) {
+      notesList.innerHTML = '<p style="color:#9aa0a6;font-style:italic;padding:1rem 0;">No notes yet.</p>';
+      return;
+    }
+
+    var html = '';
+    notes.forEach(function (note) {
+      var time = note.timestamp ? new Date(note.timestamp).toLocaleString() : '';
+      html += '<div class="lh-sp-note" data-id="' + note.id + '">';
+      html += '<div class="lh-sp-note-text" contenteditable="true">' + escapeHtml(note.text) + '</div>';
+      html += '<div class="lh-sp-note-meta">';
+      html += '<span>' + time + ' (rev ' + note.rev + ')</span>';
+      html += '<button class="lh-sp-delete" data-id="' + note.id + '">&times;</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+
+    notesList.innerHTML = html;
+
+    // Edit handlers (contenteditable blur)
+    notesList.querySelectorAll('.lh-sp-note-text').forEach(function (el) {
+      el.addEventListener('blur', function () {
+        var noteId = this.parentElement.getAttribute('data-id');
+        var newText = this.textContent.trim();
+        var notes = getScratchPadNotes();
+        var target = notes.find(function (n) { return n.id === noteId; });
+        if (target && target.text !== newText) {
+          target.text = newText;
+          target.rev = (target.rev || 1) + 1;
+          saveScratchPadNotes(notes, notesList);
+        }
+      });
+    });
+
+    // Delete handlers
+    notesList.querySelectorAll('.lh-sp-delete').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var noteId = this.getAttribute('data-id');
+        var notes = getScratchPadNotes().filter(function (n) { return n.id !== noteId; });
+        saveScratchPadNotes(notes, notesList);
+      });
+    });
+  }
+
+  // Auto-init scratch pad if the page already has embedded notes
+  if (document.getElementById('lh-scratchpad-data')) {
+    setTimeout(initScratchPad, 300);
+  }
+
+  // ========== DYNAMIC CONTENT CHANGE LISTENER ==========
+  // Re-render markers when dynamic content (like queue items) changes
+  document.addEventListener('lh-content-changed', function () {
+    setTimeout(function () {
+      renderCommentMarkers();
+      updateBadge();
+    }, 50);
+  });
 
   // ========== SEARCH ==========
   var searchTimeout;
@@ -1239,6 +1714,7 @@
   updateBadge();
   setTimeout(function () {
     scanForImplemented();
+    scanForQueueUpdates();
     renderCommentMarkers();
     updateBadge();
   }, 200);

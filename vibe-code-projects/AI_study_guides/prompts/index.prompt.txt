@@ -14,3 +14,29 @@
 
 ### Implementation IDs
 mnb2pmar95momr, mnb2qbcu1rjthb, mnb2qlwxomgix3, mnb2r84pbeunx2, mnb2sj76wv76p2, mnb2tw57d035yz
+
+---
+
+## Edit: 2026-03-28 — Comment marker + queue fixes
+
+### Queue item fixes
+- Added `data-id` attribute to queue-item `<li>` elements for reliable marker detection
+- Added `position: relative; overflow: visible;` to `.queue-item` CSS
+- Changed edit workflow to preserve item ID (in-place update instead of delete+recreate)
+- Exposed `renderQueue` as `window.renderQueue` so learning-hub.js can trigger re-renders
+- Added `lh-content-changed` event dispatch after queue DOM changes
+
+### Comment marker fixes
+- Fixed markers stacking on same queue item (offset tracking with `containerMarkerCounts`)
+- Fixed markers appearing outside queue items (container detection + `isConnected` check)
+- Improved text matching with shorter snippets (40 chars) and whitespace normalization
+- Added DOM TreeWalker fallback for finding HTML comments when `innerHTML` strips them
+
+### Queue update system (new)
+- Built `scanForQueueUpdates()` — reads `<!-- lh-queue-update: {...} -->` markers from HTML and applies title/notes/links changes to localStorage
+- Fixed critical bug: `if (!update.id) return;` skipped title-only matches → changed to `if (!update.id && !update.title) return;`
+- Added `window.renderQueue()` call after applying updates so UI refreshes
+- Added queue update instructions to batch export prompts
+
+### Implementation IDs
+mnb3kxqthdf8l7, mnb3mp43b0rylx, mnb3uxzjk7imn9, mnb4c001iuylo6, mnb8dtplb2s4tv, mnb8fda70dy5o5

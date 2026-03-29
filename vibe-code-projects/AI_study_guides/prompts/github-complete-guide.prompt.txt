@@ -159,3 +159,47 @@ Topic: "GitHub, how to use it, icons, architecture, total tech novice, outline f
 - Chapter 2 includes its own quick reference table
 - Updated comment system to handle orphaned tab references gracefully
 - Added Restructuring Safety Rules to ARCHITECTURE.md
+
+---
+
+## Edit: 2026-03-28 — Screenshot Integration (Chapter 1)
+
+Added real screenshot images throughout Chapter 1 using images from `images/github-guide/`.
+
+### GitHub Interface section:
+- `gh-repo-main.png` — after "What You See When You Open a Repository" heading
+- `gh-issues-tab.png` — after Issues tab explanation
+- `gh-pull-requests.png` — after Pull Requests tab explanation
+- `gh-pr-detail.png` — inside a pull request view
+- `gh-pr-diff.png` — Files Changed / diff view
+- `gh-actions-tab.png` — after Actions tab explanation
+- `gh-branches.png` — after Branch Dropdown explanation
+- `gh-commit-history.png` — after Commit History explanation
+
+### Tools section (Big Picture tab):
+- `vscode-homepage.png` — VS Code website
+- `vscode-git-panel.png` — VS Code Source Control panel docs
+- `vscode-terminal.png` — VS Code terminal docs
+- `cursor-website.png` — Cursor website
+- `gh-codespaces-feature.png` — Codespaces feature page
+- `gh-desktop-website.png` — GitHub Desktop website
+
+### GitHub Pages section:
+- `gh-pages-docs.png` — GitHub Pages documentation
+
+### Tools & Setup section:
+- `homebrew-website.png` — Homebrew website
+
+### Placeholder spots (dashed border, gray background):
+1. After GitHub Desktop description — app main interface
+2. Core Workflow commit/push section — making a commit in GitHub Desktop
+3. Core Workflow clone section — cloning a repository in GitHub Desktop
+
+All images use consistent styling: max-width:100%, 1px border, 8px border-radius, subtle box shadow, and a caption below. No `lh-new-content` spans added (images are supplementary).
+
+---
+
+## Edit: 2026-03-28 — Comment mnb7mggn2c9mba (Subnav layout fix)
+
+### Chapter 1 & Chapter 2 Sub-navigation Bar
+- **mnb7mggn2c9mba**: Fixed the section sub-navigation bars (blue "Big Picture, Interface, Workflow..." ribbon) to match the chapter tab bar's full-width layout. Moved both `<nav class="ch1-subnav">` elements (ch1Subnav and ch2Subnav) out of the `.container` div and placed them between the chapter tab bar and the container, so the blue background stretches edge-to-edge. Added `.ch1-subnav-inner` wrapper div (mirrors `.nav-inner` pattern from the chapter tabs) with `max-width: 1200px; margin: 0 auto` to center the links. Removed `display: flex` from `.ch1-subnav` (now on the inner wrapper). Updated JS tab-switching to use `'block'` instead of `'flex'` for the outer nav display toggle.

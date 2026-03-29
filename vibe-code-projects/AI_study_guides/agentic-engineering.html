@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic Engineering: A Complete Guide — Learning Hub</title>
+  <style>
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #ffffff;
+      min-height: 100vh;
+      color: #2c2c2c;
+      line-height: 1.7;
+      font-size: 16px;
+      padding-top: 56px;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 2.5rem 3rem;
+      border-bottom: 4px solid #e94560;
+    }
+
+    header h1 {
+      font-family: 'Arial', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.8);
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+
+    /* ============================================
+       TAB NAVIGATION
+       ============================================ */
+    .tab-nav {
+      background-color: #f6f8fa;
+      border-bottom: none !important;
+      box-shadow: none !important;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.82rem;
+      padding: 0.9rem 1.1rem;
+      background: transparent;
+      color: #57606a;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #24292e;
+      background-color: #eaeef2;
+    }
+
+    .tab-btn.active {
+      color: #24292e;
+      font-weight: 600;
+      border-bottom: 3px solid #e94560;
+      background-color: #ffffff;
+    }
+
+    /* ============================================
+       CHAPTER SUB-NAVIGATION
+       ============================================ */
+    .ch1-subnav {
+      position: sticky;
+      top: 104px;
+      z-index: 999995;
+      background: #1a73e8;
+      margin: 0;
+      padding: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .ch1-subnav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      padding: 0 1rem;
+    }
+
+    .ch1-subnav-link {
+      font-family: Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 0.55rem 1.1rem;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .ch1-subnav-link:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .ch1-subnav-link.active {
+      color: #fff;
+      font-weight: 600;
+      border-bottom-color: #fff;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 3rem 4rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+    h2 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.9rem;
+      color: #24292e;
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #eaeef2;
+    }
+
+    h2:first-child {
+      margin-top: 0;
+    }
+
+    h3 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.4rem;
+      color: #24292e;
+      margin: 1.8rem 0 0.8rem;
+    }
+
+    h4 {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.1rem;
+      color: #57606a;
+      margin: 1.2rem 0 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       OUTLINE / INDENTATION SYSTEM
+       ============================================ */
+    .outline {
+      margin: 1rem 0;
+    }
+
+    .outline-item {
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.3rem;
+      border-left: 3px solid #d0d7de;
+      background: #f6f8fa;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .outline-item .label {
+      font-family: 'Arial', sans-serif;
+      font-weight: 600;
+      color: #24292e;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .outline-item .desc {
+      color: #57606a;
+      font-size: 0.95rem;
+    }
+
+    .outline-sub {
+      margin-left: 2rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .outline-sub .outline-item {
+      border-left-color: #a8d8ea;
+      background: #eef6fc;
+    }
+
+    .outline-sub .outline-sub .outline-item {
+      border-left-color: #d4edda;
+      background: #f0faf3;
+    }
+
+    /* ============================================
+       KEY INSIGHT CALLOUT
+       ============================================ */
+    .key-insight {
+      background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+      border: 1px solid #ffc107;
+      border-left: 5px solid #ffc107;
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+      font-style: italic;
+    }
+
+    .key-insight::before {
+      content: "Key Insight";
+      display: block;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      font-style: normal;
+      color: #856404;
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ============================================
+       INFO CALLOUT
+       ============================================ */
+    .info-box {
+      background: #f0f7ff;
+      border: 1px solid #b6d4fe;
+      border-left: 5px solid #0d6efd;
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .info-box .info-label {
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      color: #084298;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       WARNING CALLOUT
+       ============================================ */
+    .warning-box {
+      background: #fff5f5;
+      border: 1px solid #f5c2c7;
+      border-left: 5px solid #dc3545;
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .warning-box .warning-label {
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      color: #842029;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       CODE BLOCKS
+       ============================================ */
+    .code-block {
+      background: #24292e;
+      color: #e1e4e8;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      padding: 1.2rem 1.5rem;
+      border-radius: 6px;
+      margin: 1rem 0;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    .code-block .comment {
+      color: #6a737d;
+    }
+
+    .code-block .command {
+      color: #79b8ff;
+    }
+
+    .code-block .prompt {
+      color: #85e89d;
+    }
+
+    .code-block .string {
+      color: #9ecbff;
+    }
+
+    .code-block .keyword {
+      color: #f97583;
+    }
+
+    code {
+      background: #eff1f3;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+      color: #cf222e;
+    }
+
+    /* ============================================
+       COMPARISON TABLES
+       ============================================ */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    .comparison-table th {
+      font-family: 'Arial', sans-serif;
+      background: #24292e;
+      color: white;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid #d0d7de;
+      vertical-align: top;
+    }
+
+    .comparison-table tr:nth-child(even) {
+      background: #f6f8fa;
+    }
+
+    /* ============================================
+       FLOW DIAGRAMS (CSS)
+       ============================================ */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .flow-box {
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      font-family: 'Arial', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: #57606a;
+    }
+
+    .flow-box-local {
+      background: #ddf4ff;
+      border: 2px solid #0969da;
+      color: #0969da;
+    }
+
+    .flow-box-action {
+      background: #fff8c5;
+      border: 2px solid #d4a72c;
+      color: #7c4d12;
+    }
+
+    .flow-box-remote {
+      background: #dcffe4;
+      border: 2px solid #2ea44f;
+      color: #116329;
+    }
+
+    .flow-box-danger {
+      background: #fff5f5;
+      border: 2px solid #dc3545;
+      color: #842029;
+    }
+
+    /* ============================================
+       SIDE-BY-SIDE COMPARISON
+       ============================================ */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .side-by-side > div {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .side-by-side h4 {
+      margin-top: 0;
+    }
+
+    /* ============================================
+       DIAGRAM BOX
+       ============================================ */
+    .diagram {
+      background: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .diagram-label {
+      font-family: 'Arial', sans-serif;
+      font-size: 0.8rem;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    /* ============================================
+       CHECKLIST
+       ============================================ */
+    .checklist {
+      list-style: none;
+      margin-left: 0;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 0.3rem;
+      border-left: 3px solid #2ea44f;
+      background: #f0faf3;
+      border-radius: 0 4px 4px 0;
+      font-size: 0.95rem;
+    }
+
+    .checklist li::before {
+      content: "\2610 ";
+      font-size: 1.1em;
+      margin-right: 0.3rem;
+    }
+
+    /* ============================================
+       QUICK REFERENCE
+       ============================================ */
+    .quick-ref {
+      margin: 3rem 0 2rem;
+      padding-top: 2rem;
+      border-top: 3px solid #24292e;
+    }
+
+    /* ============================================
+       SECTION DIVIDER
+       ============================================ */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #eaeef2;
+      margin: 2rem 0;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 768px) {
+      .side-by-side {
+        grid-template-columns: 1fr;
+      }
+      header {
+        padding: 1.5rem;
+      }
+      .container {
+        padding: 1.5rem;
+      }
+      .nav-inner {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       HEADER
+       ========================================== -->
+  <header>
+    <h1>Agentic Engineering</h1>
+    <p class="subtitle">How to build software with AI agents -- a complete guide for the architect mindset.</p>
+  </header>
+
+  <!-- ==========================================
+       TAB NAVIGATION
+       ========================================== -->
+  <nav class="tab-nav">
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="chapter-1">Chapter 1: Foundations</button>
+      <button class="tab-btn" data-tab="chapter-2">Chapter 2: Patterns in Practice</button>
+      <button class="tab-btn" data-tab="quick-ref">Quick Reference</button>
+    </div>
+  </nav>
+
+  <!-- Chapter 1 Sub-Navigation -->
+  <nav class="ch1-subnav" id="ch1Subnav">
+    <div class="ch1-subnav-inner">
+      <a href="#sec-what-is" class="ch1-subnav-link active" data-section="sec-what-is">What Is It?</a>
+      <a href="#sec-feedback-loop" class="ch1-subnav-link" data-section="sec-feedback-loop">Feedback Loop</a>
+      <a href="#sec-debug" class="ch1-subnav-link" data-section="sec-debug">Debug &amp; Log</a>
+      <a href="#sec-comments" class="ch1-subnav-link" data-section="sec-comments">Change Tracking</a>
+      <a href="#sec-reuse" class="ch1-subnav-link" data-section="sec-reuse">Reuse</a>
+      <a href="#sec-ilities" class="ch1-subnav-link" data-section="sec-ilities">The "-ilities"</a>
+      <a href="#sec-security" class="ch1-subnav-link" data-section="sec-security">Security</a>
+      <a href="#sec-placeholder" class="ch1-subnav-link" data-section="sec-placeholder">Placeholders</a>
+    </div>
+  </nav>
+
+  <!-- Chapter 2 Sub-Navigation -->
+  <nav class="ch1-subnav" id="ch2Subnav" style="display:none;">
+    <div class="ch1-subnav-inner">
+      <a href="#sec-prompt-eng" class="ch1-subnav-link active" data-section="sec-prompt-eng">Prompt Engineering</a>
+      <a href="#sec-version-control" class="ch1-subnav-link" data-section="sec-version-control">Version Control</a>
+      <a href="#sec-testing" class="ch1-subnav-link" data-section="sec-testing">Testing</a>
+      <a href="#sec-context-limits" class="ch1-subnav-link" data-section="sec-context-limits">Context Limits</a>
+      <a href="#sec-multi-agent" class="ch1-subnav-link" data-section="sec-multi-agent">Multi-Agent</a>
+      <a href="#sec-anti-patterns" class="ch1-subnav-link" data-section="sec-anti-patterns">Anti-Patterns</a>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- ==========================================
+         CHAPTER 1: FOUNDATIONS
+         ========================================== -->
+    <div class="tab-content active" id="chapter-1">
+
+      <!-- SECTION 1: What Is Agentic Engineering? -->
+      <h2 id="sec-what-is">1. What Is Agentic Engineering?</h2>
+
+      <p>Agentic engineering is a new way of building software. Instead of writing every line of code yourself, you direct AI agents -- tools like Claude Code, Cursor, and GitHub Copilot -- that can write, edit, and refactor code on your behalf. Your job shifts from being the person who types code to being the person who <em>designs systems, reviews output, and makes decisions</em>.</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">The old model: you are the bricklayer</span>
+          <span class="desc">You open a blank file, type code character by character, run it, see an error, fix it, run it again. Every line passes through your fingers. Your speed is limited by how fast you can type and how much syntax you can remember.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">The new model: you are the architect</span>
+          <span class="desc">You describe what you want built. The agent writes the code. You review it, test it, and refine your instructions. Your speed is limited by how clearly you can communicate intent and how well you can evaluate output.</span>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Common AI coding agents</span>
+        </div>
+        <div class="outline-sub">
+          <div class="outline-item"><span class="desc"><strong>Claude Code</strong> -- Anthropic's CLI agent. Reads your project files, understands architecture, makes multi-file edits. Works from the terminal.</span></div>
+          <div class="outline-item"><span class="desc"><strong>Cursor</strong> -- An AI-native code editor (based on VS Code). Has chat, autocomplete, and agent modes built into the IDE.</span></div>
+          <div class="outline-item"><span class="desc"><strong>GitHub Copilot</strong> -- GitHub's AI pair programmer. Suggests code inline as you type, plus a chat mode for larger questions.</span></div>
+          <div class="outline-item"><span class="desc"><strong>Windsurf, Aider, Cline</strong> -- other agents in the ecosystem, each with different approaches to how they interact with your codebase.</span></div>
+        </div>
+      </div>
+
+      <p>The patterns in this guide apply regardless of which agent you use. The principles of clear communication, structured feedback, and systematic review are universal. Simon Willison, a prominent developer and writer on AI tooling, calls this "AI-assisted programming" and emphasizes that the human remains responsible for understanding and validating every change the agent makes.</p>
+
+      <div class="key-insight">Writing code is cheap now. Designing systems, reviewing output, and maintaining quality is where the human value is.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 2: The Feedback Loop -->
+      <h2 id="sec-feedback-loop">2. The Feedback Loop</h2>
+
+      <p>Every interaction with an AI agent follows a loop. Understanding this loop is the single most important concept in agentic engineering, because it changes how you think about getting work done.</p>
+
+      <div class="diagram">
+        <span class="diagram-label">The Core Agent Loop</span>
+        <div class="flow-row">
+          <div class="flow-box flow-box-local">Prompt</div>
+          <div class="flow-arrow">&#8594;</div>
+          <div class="flow-box flow-box-action">Agent Acts</div>
+          <div class="flow-arrow">&#8594;</div>
+          <div class="flow-box flow-box-remote">Review</div>
+          <div class="flow-arrow">&#8594;</div>
+          <div class="flow-box flow-box-danger">Refine</div>
+          <div class="flow-arrow">&#8635;</div>
+        </div>
+      </div>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Step 1: Prompt</span>
+          <span class="desc">You describe what you want. The more specific your description, the better the result. Include context (what files exist, what the architecture looks like), constraints (what NOT to do), and expected output format.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Step 2: Agent Acts</span>
+          <span class="desc">The agent reads your prompt, reads relevant files, and produces code changes. It might create files, edit existing ones, run commands, or ask clarifying questions.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Step 3: Review</span>
+          <span class="desc">You read what the agent produced. Does it do what you asked? Did it break anything? Did it follow the project conventions? This is the most critical step -- never skip it.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Step 4: Refine</span>
+          <span class="desc">If the output is not right, you give feedback. "The button should be blue, not red." "You forgot to handle the error case." "This works but it's too verbose -- simplify it." Then the loop repeats.</span>
+        </div>
+      </div>
+
+      <p>Iteration matters more than getting it right the first time. A mediocre first prompt followed by three rounds of refinement almost always produces better results than spending twenty minutes crafting the "perfect" prompt. The agent learns from your feedback within the conversation.</p>
+
+      <h3>Before and After: The Power of Specificity</h3>
+
+      <div class="side-by-side">
+        <div>
+          <h4 style="color:#dc3545;">Vague Prompt</h4>
+          <div class="code-block">
+<span class="comment"># What you might type on your first try:</span>
+Make me a login page.
+          </div>
+          <p style="font-size:0.9rem;color:#57606a;">The agent has no idea what technology you use, what it should look like, what happens after login, or where it fits in your project. It will guess -- and it will guess wrong.</p>
+        </div>
+        <div>
+          <h4 style="color:#2ea44f;">Precise Prompt</h4>
+          <div class="code-block">
+<span class="comment"># A much better version:</span>
+Create a login page in React using our
+existing AuthContext from src/context/.
+Use the same styling pattern as the
+signup page (src/pages/Signup.jsx).
+Fields: email and password.
+On success, redirect to /dashboard.
+On failure, show the error message
+from the API response below the form.
+Do NOT create a new CSS file -- use
+the existing styles in global.css.
+          </div>
+          <p style="font-size:0.9rem;color:#57606a;">The agent knows the tech stack, where to find existing patterns, what fields to include, what happens on success and failure, and what NOT to do.</p>
+        </div>
+      </div>
+
+      <div class="key-insight">A good prompt is worth more than a good programmer. The skill of agentic engineering is not knowing syntax -- it is knowing how to describe what you want with enough precision that an agent can build it correctly.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 3: Debug, Log, and Diagnose -->
+      <h2 id="sec-debug">3. Debug, Log, and Diagnose</h2>
+
+      <p>When something goes wrong in agent-built code, the quality of your error messages determines how quickly the problem gets fixed -- by you or by the agent in the next iteration. This is Best Practice #1: every project should have a robust debug and logging strategy.</p>
+
+      <h3>Why Agents Need Readable Errors</h3>
+
+      <p>AI agents read error messages the same way you do -- as text. If an error message says <code>Error: undefined</code>, neither you nor the agent can figure out what happened. If it says <code>Error: User.findById() received null -- expected a valid ObjectId string but got undefined. Check that the request includes a userId parameter.</code>, both you and the agent know exactly what to fix.</p>
+
+      <h3>Good vs Bad Error Messages</h3>
+
+      <div class="side-by-side">
+        <div>
+          <h4 style="color:#dc3545;">Bad Error Messages</h4>
+          <div class="code-block">
+<span class="comment">// Unhelpful -- tells you nothing</span>
+<span class="keyword">throw new</span> Error(<span class="string">"Something went wrong"</span>);
+
+<span class="comment">// Generic -- which operation failed?</span>
+<span class="keyword">catch</span> (err) {
+  console.log(<span class="string">"Error"</span>);
+}
+
+<span class="comment">// Silent failure -- worst of all</span>
+<span class="keyword">catch</span> (err) {
+  <span class="comment">// do nothing</span>
+}
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#2ea44f;">Good Error Messages</h4>
+          <div class="code-block">
+<span class="comment">// Specific -- names the operation and input</span>
+<span class="keyword">throw new</span> Error(
+  <span class="string">`Failed to load user profile: `</span> +
+  <span class="string">`userId="${id}" returned 404 from API`</span>
+);
+
+<span class="comment">// Context-rich -- includes what was attempted</span>
+<span class="keyword">catch</span> (err) {
+  console.error(
+    <span class="string">`[saveComment] Failed to save:`</span>,
+    { commentId, text, error: err.message }
+  );
+}
+          </div>
+        </div>
+      </div>
+
+      <h3>Best Practice #3: Errors for People AND Agents</h3>
+
+      <p>Every error message in your project should be interpretable by both a human reading a browser console and an AI agent reading the error text in a prompt. This means:</p>
+
+      <ul>
+        <li><strong>Name the function or operation</strong> that failed (e.g., <code>[saveComment]</code>, <code>[fetchUserProfile]</code>)</li>
+        <li><strong>Include the input</strong> that caused the failure (e.g., <code>userId="abc123"</code>)</li>
+        <li><strong>Describe what was expected vs what happened</strong> (e.g., "expected 200 OK, got 404 Not Found")</li>
+        <li><strong>Never swallow errors silently</strong> -- an empty <code>catch</code> block is a bug waiting to happen</li>
+      </ul>
+
+      <h3>The DOM Dump Technique</h3>
+
+      <p>Sometimes visual debugging fails. The page looks fine but behaves wrong, or the agent cannot "see" the page at all (since agents work with text, not screenshots). The DOM dump technique solves this: you serialize the relevant part of the page's DOM as a text string and paste it into the conversation so the agent can analyze the structure.</p>
+
+      <div class="code-block">
+<span class="comment">// Dump the DOM of a specific element as text</span>
+<span class="comment">// Paste the output into your prompt for the agent</span>
+console.log(
+  document.querySelector(<span class="string">'.problematic-section'</span>).outerHTML
+);
+
+<span class="comment">// For a compact version, strip whitespace:</span>
+console.log(
+  document.querySelector(<span class="string">'.sidebar'</span>)
+    .outerHTML.replace(/\s+/g, <span class="string">' '</span>)
+);
+      </div>
+
+      <p>This gives the agent the actual HTML structure to analyze, which is far more useful than you trying to describe what the DOM looks like in words.</p>
+
+      <div class="key-insight">If an error message doesn't tell you AND the agent what went wrong, it's not an error message -- it's noise.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 4: The Commenting & Change Tracking System -->
+      <h2 id="sec-comments">4. The Commenting and Change Tracking System</h2>
+
+      <p>AI agents have no memory between sessions. Every time you start a new conversation, the agent starts fresh -- it does not remember what it built yesterday, what bugs it fixed last week, or what decisions were made about the architecture. This is why change tracking is not optional -- it is essential infrastructure.</p>
+
+      <h3>Best Practice #2: The Commenting Mechanism</h3>
+
+      <p>A commenting system lets you mark specific parts of your project that need changes and export those annotations as structured prompts. The Learning Hub itself uses this pattern: you highlight text, leave a comment, and export all comments as a batch prompt for Claude Code. The key insight is that comments are the bridge between "what the human sees on screen" and "what the agent receives as instructions."</p>
+
+      <h3>Best Practice #6: The Judicious Change Log</h3>
+
+      <p>Every significant change to a project should be recorded somewhere persistent -- a file on disk that survives session resets. This serves as the project's institutional memory.</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Why changelogs matter</span>
+          <span class="desc">Context windows reset. Sessions end. Agents forget. Without a written record of what was changed and why, you will repeat mistakes, rebuild features that already exist, and lose track of architectural decisions.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Architecture files as persistent memory</span>
+          <span class="desc">An architecture file (like ARCHITECTURE.md) serves as the project's "brain." It tells every new agent session what the project is, how files connect, what conventions to follow, and what has already been decided. The first instruction in every prompt should be: "Read ARCHITECTURE.md before doing anything."</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">The prompt changelog pattern</span>
+          <span class="desc">For each study guide or major file, keep a corresponding <code>.prompt.txt</code> file that records the original generation prompt plus dated addenda for every subsequent edit. This creates a complete history of how the file evolved. The Learning Hub stores these in <code>AI_study_guides/prompts/</code>.</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">Example: Prompt Changelog Entry</div>
+        <div class="code-block" style="margin-top:0.5rem;">
+<span class="comment">## 2025-03-15 — User comment batch</span>
+<span class="comment">## Changes requested:</span>
+- Added comparison table for Git vs GitHub
+- Expanded the "What is a branch?" section
+- Fixed broken anchor link in sub-nav
+<span class="comment">## Methodology note:</span>
+- User prefers inline expansion over callout boxes
+        </div>
+      </div>
+
+      <div class="key-insight">An agent without a changelog is an agent that repeats mistakes. Invest in your project's persistent memory and every future session starts smarter.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 5: Reuse, Don't Rebuild -->
+      <h2 id="sec-reuse">5. Reuse, Don't Rebuild</h2>
+
+      <p>One of the most common mistakes in agentic engineering is asking the agent to build something from scratch when a perfectly good solution already exists. This applies to libraries, existing features in your project, and patterns you have already established.</p>
+
+      <h3>Best Practice #4: Judicious Use of Libraries</h3>
+
+      <p>The JavaScript ecosystem (and most programming ecosystems) has millions of pre-built packages available through package managers like npm. Before asking an agent to build a date formatter, a color picker, a markdown parser, or a chart library, check whether a well-maintained package already does what you need.</p>
+
+      <h3>Best Practice #5: Don't Remake Existing Features</h3>
+
+      <p>This one is subtle. Within your own project, you may already have a component, function, or pattern that does exactly what the agent is about to build from scratch. Agents do not always know that your project already has a <code>formatDate()</code> utility in <code>utils/helpers.js</code>. You need to tell them.</p>
+
+      <h3>Decision Flowchart: Build vs Reuse</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>If Yes</th>
+            <th>If No</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Does this exact feature already exist in your project?</td>
+            <td>Use it. Point the agent to the file.</td>
+            <td>Continue to next question.</td>
+          </tr>
+          <tr>
+            <td>Is there a well-maintained library that does this?</td>
+            <td>Install it. Tell the agent to use it.</td>
+            <td>Continue to next question.</td>
+          </tr>
+          <tr>
+            <td>Is this a common pattern with known best practices?</td>
+            <td>Give the agent a reference implementation to follow.</td>
+            <td>Continue to next question.</td>
+          </tr>
+          <tr>
+            <td>Is this truly unique to your project?</td>
+            <td>Now build it from scratch -- with clear specs.</td>
+            <td>You probably missed something above. Search again.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box">
+        <div class="info-label">Cross-Reference: npm and package.json</div>
+        <p>If you are not familiar with npm (Node Package Manager) and how JavaScript projects manage dependencies, see the GitHub Complete Guide in this Learning Hub. It covers <code>package.json</code>, <code>node_modules</code>, and how libraries are installed and managed in JavaScript projects.</p>
+      </div>
+
+      <div class="key-insight">Before asking an agent to build something, ask: does this already exist? The fastest code is code you never have to write.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 6: The "-ilities" -->
+      <h2 id="sec-ilities">6. The "-ilities" -- Non-Functional Quality</h2>
+
+      <p>When most people think about software quality, they think about "does it work?" But working code is the bare minimum. Best Practice #7 asks you to plan for all relevant quality measures -- the set of "-ilities" that determine whether software is actually good, not just functional.</p>
+
+      <p>Each of these qualities is something you should be thinking about when you review agent-generated code. The agent will not think about them unless you ask.</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Quality ("-ility")</th>
+            <th>One-Sentence Definition</th>
+            <th>Example</th>
+            <th>What the Agent Should Do</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Accessibility</strong></td>
+            <td>Can everyone use it, including people with disabilities?</td>
+            <td>Screen readers can navigate the page; images have alt text; forms have labels.</td>
+            <td>Use semantic HTML, add ARIA attributes, ensure sufficient color contrast.</td>
+          </tr>
+          <tr>
+            <td><strong>Testability</strong></td>
+            <td>Can you verify it works without manually clicking through everything?</td>
+            <td>Each function can be tested independently; no hidden side effects.</td>
+            <td>Write pure functions where possible; separate logic from UI; add test hooks.</td>
+          </tr>
+          <tr>
+            <td><strong>Reliability</strong></td>
+            <td>Does it work consistently, even under stress?</td>
+            <td>The app handles network failures gracefully instead of crashing.</td>
+            <td>Add error handling, retry logic, fallback states, and loading indicators.</td>
+          </tr>
+          <tr>
+            <td><strong>Security</strong></td>
+            <td>Can bad actors exploit it?</td>
+            <td>User input is sanitized; API keys are not exposed in client code.</td>
+            <td>Sanitize inputs, use environment variables for secrets, validate on the server side.</td>
+          </tr>
+          <tr>
+            <td><strong>Maintainability</strong></td>
+            <td>Can someone else understand and modify this code in six months?</td>
+            <td>Variables have clear names; functions do one thing; architecture is documented.</td>
+            <td>Use descriptive names, add comments for "why" (not "what"), follow project conventions.</td>
+          </tr>
+          <tr>
+            <td><strong>Observability</strong></td>
+            <td>Can you see what is happening inside the system when it runs?</td>
+            <td>Logs show which API calls were made; errors include context; performance can be measured.</td>
+            <td>Add structured logging, include request IDs in error messages, log state transitions.</td>
+          </tr>
+          <tr>
+            <td><strong>Scalability</strong></td>
+            <td>Does it work with 10x more users or data?</td>
+            <td>The search feature works with 100 items and with 100,000 items.</td>
+            <td>Use pagination, avoid loading everything into memory, index database queries.</td>
+          </tr>
+          <tr>
+            <td><strong>Usability</strong></td>
+            <td>Is it intuitive for the person using it?</td>
+            <td>Buttons look clickable; error messages tell users what to do next; the layout makes sense.</td>
+            <td>Follow platform conventions, provide feedback for every action, use clear labels.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>You do not need to optimize for all eight qualities on every project. A quick internal tool might only need reliability and usability. A public-facing application needs all of them. The point is to <em>consciously decide</em> which qualities matter, rather than discovering gaps after launch.</p>
+
+      <div class="key-insight">Most bugs are not in the code that runs -- they are in the qualities nobody tested. An agent will build you a feature that works. It is your job to make sure it works <em>well</em>.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 7: Security Audit Mindset -->
+      <h2 id="sec-security">7. Security Audit Mindset</h2>
+
+      <p>Best Practice #8 is the security audit. AI agents generate code that works, but they do not inherently understand what "safe" means in your context. An agent will happily hardcode an API key, accept unsanitized user input, or create a form that submits data over an unencrypted connection -- unless you specifically tell it not to.</p>
+
+      <h3>Common Vulnerabilities in Agent-Generated Code</h3>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Cross-Site Scripting (XSS)</span>
+          <span class="desc">When user-provided text is inserted directly into HTML without sanitization, a malicious user can inject scripts that run in other users' browsers. Agents often use <code>innerHTML</code> instead of <code>textContent</code> -- always check.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Exposed API Keys</span>
+          <span class="desc">Agents sometimes place API keys, database credentials, or secret tokens directly in source code. If that code is pushed to a public GitHub repository, those secrets are exposed to the entire internet.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">SQL Injection</span>
+          <span class="desc">When user input is concatenated directly into a database query string, a malicious user can modify the query to read, modify, or delete data they should not have access to.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Missing Input Validation</span>
+          <span class="desc">Agents often trust that input will be well-formed. They may not check for empty strings, overly long inputs, unexpected data types, or values outside expected ranges.</span>
+        </div>
+      </div>
+
+      <h3>The .env Pattern</h3>
+
+      <p>Secrets (API keys, database URLs, private tokens) should never appear in your source code. Instead, store them in a <code>.env</code> file at the root of your project, add <code>.env</code> to your <code>.gitignore</code> so it is never committed to version control, and access the values through environment variables in your code.</p>
+
+      <div class="code-block">
+<span class="comment"># .env file (NEVER commit this)</span>
+API_KEY=sk-abc123xyz789
+DATABASE_URL=postgres://user:pass@localhost/mydb
+
+<span class="comment"># .gitignore (tells Git to ignore the .env file)</span>
+.env
+node_modules/
+      </div>
+
+      <div class="code-block">
+<span class="comment">// In your code, read from environment variables:</span>
+<span class="keyword">const</span> apiKey = process.env.API_KEY;
+<span class="comment">// NEVER do this:</span>
+<span class="keyword">const</span> apiKey = <span class="string">"sk-abc123xyz789"</span>; <span class="comment">// EXPOSED!</span>
+      </div>
+
+      <h3>Security Review Checklist for Agent-Generated Code</h3>
+
+      <ul class="checklist">
+        <li>No API keys, tokens, or passwords hardcoded in source files</li>
+        <li><code>.env</code> is listed in <code>.gitignore</code></li>
+        <li>User input is sanitized before being inserted into HTML (use <code>textContent</code>, not <code>innerHTML</code>)</li>
+        <li>Database queries use parameterized statements, not string concatenation</li>
+        <li>Forms submit over HTTPS, not HTTP</li>
+        <li>Authentication tokens are stored securely (httpOnly cookies, not localStorage)</li>
+        <li>Error messages do not leak internal system details to end users</li>
+        <li>File uploads are validated (type, size, extension) before processing</li>
+        <li>Dependencies are up to date (run <code>npm audit</code> periodically)</li>
+      </ul>
+
+      <div class="key-insight">Agents do not understand secrets. They will happily commit your API key to a public repo. Every piece of agent-generated code needs a security review -- even if it is just running through the checklist above.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 8: The Placeholder Strategy -->
+      <h2 id="sec-placeholder">8. The Placeholder Strategy</h2>
+
+      <p>Best Practice #9 is placeholder text and incremental implementation. AI agents have context limits -- they can only process a certain amount of text at once (measured in "tokens," which are roughly word-sized chunks). If you ask an agent to build a 3,000-line page in one go, it will hit its limit partway through and either truncate the output, lose coherence, or start repeating itself.</p>
+
+      <h3>The Roadmap-First Approach</h3>
+
+      <p>Instead of asking for everything at once, build in passes:</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">Pass 1: Outline</span>
+          <span class="desc">Ask the agent to create the full file structure with all sections, headings, and navigation -- but with placeholder text like "Content for this section will be added in a future pass." This establishes the skeleton.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Pass 2: Fill in sections</span>
+          <span class="desc">Go section by section: "Now fill in section 3 with the content about debugging. Here is the existing file -- only modify section 3." Each pass is small enough to stay within context limits.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Pass 3: Iterate and refine</span>
+          <span class="desc">Review each section, leave comments, and refine through the feedback loop. Fix issues section by section rather than rewriting the whole page.</span>
+        </div>
+      </div>
+
+      <h3>Example: Building a Large Page</h3>
+
+      <div class="code-block">
+<span class="comment"># Pass 1 prompt:</span>
+Create a study guide page with 8 sections.
+Set up all the HTML structure, tab navigation,
+and section headings. For section content, put
+placeholder text: "TODO: Content for [section name]".
+Follow the structure in ARCHITECTURE.md.
+
+<span class="comment"># Pass 2 prompt:</span>
+Read the file you just created. Fill in ONLY
+section 3 ("Debug, Log, and Diagnose") with
+full content. Do not touch other sections.
+
+<span class="comment"># Pass 3 prompt:</span>
+Now fill in section 4 ("Change Tracking").
+Do not modify sections 1-3 or 5-8.
+      </div>
+
+      <div class="key-insight">Don't ask the agent to build a mansion in one go. Give it the blueprints, let it pour the foundation, then add rooms one at a time. Each pass stays focused, stays within context limits, and produces reviewable output.</div>
+
+    </div><!-- end chapter-1 -->
+
+
+    <!-- ==========================================
+         CHAPTER 2: PATTERNS IN PRACTICE
+         ========================================== -->
+    <div class="tab-content" id="chapter-2">
+
+      <!-- SECTION 1: Prompt Engineering for Agents -->
+      <h2 id="sec-prompt-eng">1. Prompt Engineering for Agents</h2>
+
+      <p>Prompt engineering is the skill of writing instructions that produce the output you want. For AI coding agents, this means structuring your requests so the agent has enough context to act correctly without enough rope to go off the rails.</p>
+
+      <h3>Anatomy of a Good Agent Prompt</h3>
+
+      <p>A well-structured prompt has four parts:</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">1. Context Setting</span>
+          <span class="desc">Tell the agent what files to read, what the project architecture looks like, and what already exists. The Learning Hub uses a "FIRST: Read ARCHITECTURE.md" pattern at the top of every prompt to ensure the agent starts with the right mental model.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">2. Task Description</span>
+          <span class="desc">Clearly state what you want done. Be specific about inputs, outputs, and behavior. "Add a login form" is vague. "Add a login form with email and password fields that posts to /api/auth/login and displays server-side validation errors" is precise.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">3. Constraint Specification</span>
+          <span class="desc">Tell the agent what NOT to do. This is often more important than what you ask it to do. "Do NOT create a new CSS file -- use the existing styles." "Do NOT modify the database schema." "Do NOT install new dependencies."</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">4. Output Format Expectations</span>
+          <span class="desc">Tell the agent what the result should look like. "Follow the same pattern as the existing UserCard component." "Use the comparison-table class from the style guide." "Include a Key Insight callout box at the end of each section."</span>
+        </div>
+      </div>
+
+      <h3>The "FIRST: Read..." Pattern</h3>
+
+      <p>The Learning Hub's exported prompts always begin with an instruction to read the architecture file. This pattern is broadly useful for any project:</p>
+
+      <div class="code-block">
+<span class="comment"># Start of every prompt:</span>
+FIRST: Read ARCHITECTURE.md in the project root.
+It tells you what every file does, how the systems
+connect, and what conventions to follow.
+
+THEN: [your actual task here]
+      </div>
+
+      <p>This ensures the agent has the project's full context before it starts making changes. Without it, the agent operates blind and is more likely to violate conventions or duplicate existing functionality.</p>
+
+      <h3>Writing Effective Constraints</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Weak Constraint</th>
+            <th>Strong Constraint</th>
+            <th>Why It Matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Keep it simple"</td>
+            <td>"Use no more than 3 files and 0 new dependencies"</td>
+            <td>Agents interpret "simple" differently than you do.</td>
+          </tr>
+          <tr>
+            <td>"Follow best practices"</td>
+            <td>"Follow the naming pattern in src/components/ -- PascalCase for components, camelCase for utilities"</td>
+            <td>Best practices vary. Point to your project's specific conventions.</td>
+          </tr>
+          <tr>
+            <td>"Don't break anything"</td>
+            <td>"Run the existing tests after your changes and verify they still pass"</td>
+            <td>Gives the agent a concrete verification step.</td>
+          </tr>
+          <tr>
+            <td>"Make it look good"</td>
+            <td>"Use the same card layout as index.html with the .card-grid class"</td>
+            <td>Points to a concrete visual reference.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">The best prompts are not the longest. They are the ones that give the agent exactly enough context to succeed and exactly enough constraints to avoid going off track.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 2: Version Control Integration -->
+      <h2 id="sec-version-control">2. Version Control Integration</h2>
+
+      <p>Git is your safety net when working with AI agents. Because agents can make sweeping changes across multiple files in seconds, the ability to revert to a known good state is not just useful -- it is essential.</p>
+
+      <h3>The Branch-Per-Experiment Pattern</h3>
+
+      <p>Before asking an agent to make a significant change, create a new branch. If the experiment works, merge it. If it does not, delete the branch and nothing is lost.</p>
+
+      <div class="code-block">
+<span class="comment"># Before a risky agent task:</span>
+<span class="prompt">$</span> <span class="command">git checkout -b experiment/new-login-page</span>
+
+<span class="comment"># Let the agent make its changes...</span>
+<span class="comment"># Review the results...</span>
+
+<span class="comment"># If it worked:</span>
+<span class="prompt">$</span> <span class="command">git checkout main</span>
+<span class="prompt">$</span> <span class="command">git merge experiment/new-login-page</span>
+
+<span class="comment"># If it didn't work:</span>
+<span class="prompt">$</span> <span class="command">git checkout main</span>
+<span class="prompt">$</span> <span class="command">git branch -D experiment/new-login-page</span>
+      </div>
+
+      <h3>Commit Early, Commit Often</h3>
+
+      <p>After each successful agent iteration, commit the changes. This creates checkpoints you can return to. If the agent's third round of changes breaks something the second round got right, you can revert to the second commit without losing everything.</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">The rhythm</span>
+          <span class="desc">Prompt the agent. Review the output. If it looks good, commit. Then prompt again for the next change. Each commit is a save point.</span>
+        </div>
+      </div>
+
+      <h3>When to Revert vs When to Fix Forward</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Situation</th>
+            <th>Action</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Agent made a small mistake in one file</td>
+            <td>Fix forward -- tell the agent what to correct</td>
+            <td>Faster than reverting and re-doing</td>
+          </tr>
+          <tr>
+            <td>Agent restructured multiple files incorrectly</td>
+            <td>Revert to last good commit</td>
+            <td>Untangling a multi-file mess is harder than starting over</td>
+          </tr>
+          <tr>
+            <td>Agent's approach is fundamentally wrong</td>
+            <td>Revert and re-prompt with a different approach</td>
+            <td>Iterating on a bad foundation wastes time</td>
+          </tr>
+          <tr>
+            <td>You're not sure if the changes are good</td>
+            <td>Commit to a branch, test thoroughly, then decide</td>
+            <td>Preserves the work while you evaluate</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">Treat Git as your "undo" button for agent work. Branches are cheap, commits are free, and the safety net they provide is priceless when an agent goes sideways.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 3: Testing with Agents -->
+      <h2 id="sec-testing">3. Testing with Agents</h2>
+
+      <p>Testing is where the architect mindset matters most. An agent can write code that looks correct but fails in edge cases you did not think to describe. A disciplined testing approach catches these gaps.</p>
+
+      <h3>Red/Green TDD with Agents</h3>
+
+      <p>Test-Driven Development (TDD) works surprisingly well with agents:</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">1. Write the test first (Red)</span>
+          <span class="desc">Tell the agent: "Write a test that verifies a user can log in with valid credentials and gets redirected to /dashboard." The test will fail because the feature does not exist yet -- this is the "red" state.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">2. Implement the feature (Green)</span>
+          <span class="desc">Tell the agent: "Now implement the login feature so that the test passes." The agent has a clear target -- make the test green.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">3. Refactor (Clean)</span>
+          <span class="desc">Tell the agent: "The test passes. Now clean up the implementation -- remove any redundant code, improve naming, and ensure it follows our project conventions." The test acts as a safety net during refactoring.</span>
+        </div>
+      </div>
+
+      <h3>The "Before AND After" Rule</h3>
+
+      <p>Always run your test suite before the agent makes changes (to establish a baseline) and after (to verify nothing broke). Include this in your prompts:</p>
+
+      <div class="code-block">
+<span class="comment"># Include in your prompt:</span>
+Before making any changes, run the existing tests
+to confirm they pass. After your changes, run them
+again and verify nothing broke. If any test fails
+after your changes, fix it before finishing.
+      </div>
+
+      <h3>Manual Testing Through Agent-Browser</h3>
+
+      <p>For visual features that automated tests cannot easily cover, use agent-browser tools to take screenshots and verify the UI. The Learning Hub project uses <code>agent-browser</code> for this purpose -- a headless browser that can navigate to pages, take screenshots, and extract text.</p>
+
+      <h3>Screenshot Verification</h3>
+
+      <p>After the agent makes UI changes, take a screenshot and review it. This is especially important for CSS changes, layout modifications, and responsive design. The agent cannot "see" the page the way you can -- it works with code, not pixels.</p>
+
+      <div class="key-insight">Tests are the contract between you and the agent. If the tests pass, the agent delivered what you asked for. If they fail, something needs fixing. Without tests, you are flying blind.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 4: Working with Context Limits -->
+      <h2 id="sec-context-limits">4. Working with Context Limits</h2>
+
+      <p>Every AI agent has a context window -- the maximum amount of text it can process in a single conversation. This is measured in tokens (roughly, one token equals one word or partial word). When a conversation exceeds the context limit, the agent starts "forgetting" earlier parts of the conversation.</p>
+
+      <h3>How Context Windows Work</h3>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">What counts as tokens</span>
+          <span class="desc">Everything in the conversation: your prompts, the agent's responses, file contents the agent reads, and any system instructions. A 100,000-token context window sounds large, but reading three or four source files can consume half of it.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">What happens when you hit the limit</span>
+          <span class="desc">The agent begins dropping earlier messages from its working memory. It may "forget" instructions you gave at the start of the conversation, or lose track of changes it made earlier in the session.</span>
+        </div>
+      </div>
+
+      <h3>The Architecture File as Persistent Memory</h3>
+
+      <p>Because context windows reset between sessions, you need a way to carry knowledge forward. An architecture file (like <code>ARCHITECTURE.md</code>) serves this purpose. At the start of every new session, the agent reads the file and immediately has the full project context -- without needing you to re-explain everything.</p>
+
+      <h3>Breaking Large Tasks into Agent-Sized Chunks</h3>
+
+      <p>If a task requires reading or producing more text than the context window allows, break it into smaller pieces. Each piece should be self-contained enough that the agent can complete it in one session without needing to remember previous sessions.</p>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">The "if you haven't already" pattern</span>
+          <span class="desc">When writing prompts that might be used across multiple sessions, include conditional instructions: "If you haven't already in this conversation, read ARCHITECTURE.md and the target file first." This prevents redundant reading if the agent already has the context, while ensuring it gets the context if it is starting fresh.</span>
+        </div>
+      </div>
+
+      <div class="key-insight">Context limits are not a bug -- they are a design constraint. Structure your work around them: keep sessions focused, use architecture files for persistent memory, and break large tasks into small passes.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 5: Multi-Agent Workflows -->
+      <h2 id="sec-multi-agent">5. Multi-Agent Workflows</h2>
+
+      <p>As your projects grow in complexity, you may find that a single agent conversation is not enough. Multi-agent workflows use multiple AI sessions -- sometimes in parallel -- to tackle different aspects of a problem.</p>
+
+      <h3>Using Subagents for Specialized Tasks</h3>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">What is a subagent?</span>
+          <span class="desc">A subagent is a secondary AI session spawned by the primary agent (or by you) to handle a specific subtask. For example, the main agent might spawn a subagent to research an API's documentation while it continues working on the implementation.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">When subagents help</span>
+          <span class="desc">Complex tasks where different parts require different kinds of expertise. One agent might be great at writing tests while another is better at designing UI components. Splitting the work lets each session stay focused.</span>
+        </div>
+      </div>
+
+      <h3>Agent Orchestration Patterns</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>How It Works</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Sequential</strong></td>
+            <td>One agent finishes, its output becomes the next agent's input</td>
+            <td>Pipeline tasks (generate code, then test it, then document it)</td>
+          </tr>
+          <tr>
+            <td><strong>Parallel</strong></td>
+            <td>Multiple agents work on independent tasks at the same time</td>
+            <td>Unrelated features that do not touch the same files</td>
+          </tr>
+          <tr>
+            <td><strong>Supervisor</strong></td>
+            <td>One agent coordinates, delegating subtasks to specialist agents</td>
+            <td>Complex projects where a "project manager" agent tracks overall progress</td>
+          </tr>
+          <tr>
+            <td><strong>Review</strong></td>
+            <td>One agent generates, another agent reviews and critiques</td>
+            <td>Quality-sensitive work where a second opinion catches mistakes</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>One Long Session vs Multiple Short Ones</h3>
+
+      <div class="outline">
+        <div class="outline-item">
+          <span class="label">One long session</span>
+          <span class="desc">The agent accumulates context over the conversation. Good for tightly coupled changes where each step depends on the previous one. Risk: hitting context limits and losing early context.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">Multiple short sessions</span>
+          <span class="desc">Each session starts fresh with a focused task. Good for independent changes. Risk: losing continuity if the architecture file is not kept up to date.</span>
+        </div>
+        <div class="outline-item">
+          <span class="label">The sweet spot</span>
+          <span class="desc">Use one session per logical unit of work. A "logical unit" is a set of changes that makes sense together -- implementing a feature, fixing a bug, or refactoring a module. When the unit is complete, commit and start a new session for the next unit.</span>
+        </div>
+      </div>
+
+      <div class="key-insight">Multi-agent workflows are not about using more AI -- they are about using AI more effectively. Match the number and type of sessions to the shape of the problem.</div>
+
+      <hr class="section-divider">
+
+      <!-- SECTION 6: Common Anti-Patterns -->
+      <h2 id="sec-anti-patterns">6. Common Anti-Patterns</h2>
+
+      <p>An anti-pattern is something that seems like a good idea at first but consistently leads to bad outcomes. Here are the most common mistakes people make when working with AI coding agents.</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Anti-Pattern</th>
+            <th>Why It Happens</th>
+            <th>What to Do Instead</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>"Just fix it"</strong> (no context)</td>
+            <td>You know what is broken, so you assume the agent does too.</td>
+            <td>Always include: what the expected behavior is, what actually happens, and where the relevant code lives.</td>
+          </tr>
+          <tr>
+            <td><strong>Rebuilding from scratch every session</strong></td>
+            <td>No architecture file or changelog, so each session starts blind.</td>
+            <td>Maintain ARCHITECTURE.md and prompt changelog files. The agent reads these first and picks up where the last session left off.</td>
+          </tr>
+          <tr>
+            <td><strong>Trusting agent output without review</strong></td>
+            <td>The code looks right at a glance. The agent seems confident.</td>
+            <td>Read every change. Run the tests. Check for the -ilities. Agent confidence is not the same as agent correctness.</td>
+          </tr>
+          <tr>
+            <td><strong>Ignoring error messages</strong></td>
+            <td>"It's probably not important." Or: "I'll fix it later."</td>
+            <td>Paste the error into the conversation. Let the agent diagnose and fix it immediately. Unresolved errors compound.</td>
+          </tr>
+          <tr>
+            <td><strong>Not using version control</strong></td>
+            <td>"It's just a small project." Or: "I'll set up Git later."</td>
+            <td>Initialize Git before writing any code. Commit after every successful agent iteration. The cost of NOT having Git is one bad agent run away from losing hours of work.</td>
+          </tr>
+          <tr>
+            <td><strong>Over-engineering simple tasks</strong></td>
+            <td>Agent suggests an elaborate solution; you accept it because it looks impressive.</td>
+            <td>Ask yourself: "Is this the simplest thing that could work?" If a 5-line script solves the problem, you do not need a 200-line module with three abstraction layers.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warning-box">
+        <div class="warning-label">The Most Dangerous Anti-Pattern</div>
+        <p>The single most dangerous habit is <strong>not reading what the agent produced</strong>. Speed is the whole point of AI-assisted development, but speed without review is recklessness. The agent is a powerful tool, but you are the one responsible for what ships.</p>
+      </div>
+
+      <div class="key-insight">Anti-patterns are easy to fall into because they feel efficient in the moment. The discipline of agentic engineering is doing the boring parts -- reviewing, testing, documenting -- even when the agent makes everything else fast.</div>
+
+      <!-- Chapter 2 Quick Reference -->
+      <details class="quick-ref" style="margin-top:3rem;">
+        <summary style="font-family:Arial,sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;padding:0.75rem 0;color:#24292e;">Chapter 2 Quick Reference -- click to expand</summary>
+        <table class="comparison-table">
+          <thead><tr><th>Concept</th><th>One-Line Summary</th></tr></thead>
+          <tbody>
+            <tr><td>Prompt Anatomy</td><td>Context + Task + Constraints + Output Format</td></tr>
+            <tr><td>"FIRST: Read..."</td><td>Start every prompt by pointing the agent to the architecture file</td></tr>
+            <tr><td>Branch-per-experiment</td><td>Create a new Git branch before each risky agent task</td></tr>
+            <tr><td>Commit rhythm</td><td>Prompt, review, commit. Each commit is a save point.</td></tr>
+            <tr><td>Red/Green TDD</td><td>Write the test first, then let the agent implement until the test passes</td></tr>
+            <tr><td>Before AND After</td><td>Run tests before and after every agent change</td></tr>
+            <tr><td>Context windows</td><td>Agents have a token limit; plan your sessions around it</td></tr>
+            <tr><td>Architecture file</td><td>Persistent memory that survives session resets</td></tr>
+            <tr><td>Subagents</td><td>Secondary AI sessions for specialized subtasks</td></tr>
+            <tr><td>Anti-patterns</td><td>Common mistakes: no context, no review, no version control</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+    </div><!-- end chapter-2 -->
+
+
+    <!-- ==========================================
+         QUICK REFERENCE TAB
+         ========================================== -->
+    <div class="tab-content" id="quick-ref">
+
+      <h2>The 10 Best Practices of Agentic Engineering</h2>
+
+      <p>This table summarizes the ten core best practices referenced throughout this guide. Use it as a checklist when starting a new project or reviewing an existing one.</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Best Practice</th>
+            <th>One-Line Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1</strong></td>
+            <td>Debug / Logging / DOM Dump</td>
+            <td>Build robust error reporting so both humans and agents can diagnose problems from the error text alone.</td>
+          </tr>
+          <tr>
+            <td><strong>2</strong></td>
+            <td>Commenting Mechanism</td>
+            <td>Use a structured annotation system to mark what needs changing and export those annotations as agent prompts.</td>
+          </tr>
+          <tr>
+            <td><strong>3</strong></td>
+            <td>Errors for People AND Agents</td>
+            <td>Every error message should name the operation, include the input, and describe expected vs actual behavior.</td>
+          </tr>
+          <tr>
+            <td><strong>4</strong></td>
+            <td>Judicious Use of Libraries</td>
+            <td>Check for existing, well-maintained packages before asking the agent to build from scratch.</td>
+          </tr>
+          <tr>
+            <td><strong>5</strong></td>
+            <td>Don't Remake Existing Features</td>
+            <td>Search your own project for existing components and utilities before letting the agent create duplicates.</td>
+          </tr>
+          <tr>
+            <td><strong>6</strong></td>
+            <td>Judicious Change Log</td>
+            <td>Record every significant change in a persistent file so future sessions start with full context.</td>
+          </tr>
+          <tr>
+            <td><strong>7</strong></td>
+            <td>Plan for the "-ilities"</td>
+            <td>Consciously decide which non-functional qualities matter (accessibility, security, reliability, etc.) and build for them.</td>
+          </tr>
+          <tr>
+            <td><strong>8</strong></td>
+            <td>Security Audit</td>
+            <td>Review every piece of agent-generated code for exposed secrets, unsanitized input, and common vulnerabilities.</td>
+          </tr>
+          <tr>
+            <td><strong>9</strong></td>
+            <td>Placeholder / Incremental Implementation</td>
+            <td>Build large features in passes (outline, then fill, then refine) to stay within context limits.</td>
+          </tr>
+          <tr>
+            <td><strong>10</strong></td>
+            <td>Review Everything</td>
+            <td>Never ship agent-generated code without reading it. You are the architect; the agent is the builder. The architect signs off on the blueprints.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="key-insight">These ten practices are not about slowing you down. They are about making sure the speed of AI-assisted development does not come at the cost of quality, security, or sanity. Fast and broken is worse than slow and solid.</div>
+
+    </div><!-- end quick-ref -->
+
+  </div><!-- end .container -->
+
+  <!-- ==========================================
+       TAB SWITCHING SCRIPT
+       ========================================== -->
+  <script>
+    (function() {
+      var tabButtons = document.querySelectorAll('.tab-btn');
+      var tabContents = document.querySelectorAll('.tab-content');
+
+      tabButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var targetTab = this.getAttribute('data-tab');
+
+          // Remove active from all buttons and contents
+          tabButtons.forEach(function(b) { b.classList.remove('active'); });
+          tabContents.forEach(function(c) { c.classList.remove('active'); });
+
+          // Add active to clicked button and matching content
+          this.classList.add('active');
+          var targetContent = document.getElementById(targetTab);
+          if (targetContent) {
+            targetContent.classList.add('active');
+          }
+
+          // Scroll to top of content area
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+    })();
+
+    // ========== SECTION SCROLL SPY (both chapters) ==========
+    (function() {
+      var ch1Subnav = document.getElementById('ch1Subnav');
+      var ch2Subnav = document.getElementById('ch2Subnav');
+
+      // Set up observers for both subnavs
+      function setupScrollSpy(navEl) {
+        var links = navEl.querySelectorAll('.ch1-subnav-link');
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              var id = entry.target.id;
+              links.forEach(function(l) {
+                l.classList.toggle('active', l.getAttribute('data-section') === id);
+              });
+            }
+          });
+        }, { rootMargin: '-170px 0px -60% 0px', threshold: 0 });
+
+        links.forEach(function(l) {
+          var el = document.getElementById(l.getAttribute('data-section'));
+          if (el) observer.observe(el);
+        });
+      }
+
+      setupScrollSpy(ch1Subnav);
+      setupScrollSpy(ch2Subnav);
+
+      // Show/hide the correct subnav when switching chapters
+      ch2Subnav.style.display = 'none'; // chapter 1 is active by default
+
+      document.addEventListener('click', function(e) {
+        if (e.target.classList && e.target.classList.contains('tab-btn')) {
+          var tab = e.target.getAttribute('data-tab');
+          ch1Subnav.style.display = (tab === 'chapter-1') ? 'block' : 'none';
+          ch2Subnav.style.display = (tab === 'chapter-2') ? 'block' : 'none';
+        }
+      });
+    })();
+  </script>
+
+  <!-- Learning Hub Integration -->
+  <link rel="stylesheet" href="../learning-hub.css">
+  <script src="../learning-hub.js"></script>
+</body>
+</html>

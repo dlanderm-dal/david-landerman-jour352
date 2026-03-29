@@ -520,6 +520,8 @@ body.hub-page {
 .queue-item {
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--lh-border-light);
+  position: relative;
+  overflow: visible;
 }
 
 .queue-item:last-child { border-bottom: none; }
@@ -1482,6 +1484,104 @@ body.lh-comment-mode::before {
 }
 
 .lh-resolved-close:hover { background: #1557b0 !important; }
+
+/* ============================================
+   SCRATCH PAD
+   ============================================ */
+
+.lh-sp-form {
+  display: flex !important;
+  gap: 0.5rem !important;
+  margin-bottom: 1.5rem !important;
+  align-items: flex-start !important;
+}
+
+.lh-sp-input {
+  flex: 1 !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 8px !important;
+  padding: 0.65rem 0.85rem !important;
+  font-size: 0.92rem !important;
+  font-family: Georgia, serif !important;
+  color: #202124 !important;
+  min-height: 44px !important;
+  resize: vertical !important;
+  line-height: 1.5 !important;
+}
+
+.lh-sp-input:focus {
+  outline: none !important;
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.15) !important;
+}
+
+.lh-sp-input::placeholder { color: #9aa0a6 !important; }
+
+.lh-sp-add-btn {
+  background: #1a73e8 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  font-family: Arial, sans-serif !important;
+  white-space: nowrap !important;
+}
+
+.lh-sp-add-btn:hover { background: #1557b0 !important; }
+
+.lh-sp-notes {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+}
+
+.lh-sp-note {
+  background: #fff !important;
+  border: 1px solid #e8eaed !important;
+  border-left: 3px solid #1a73e8 !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.lh-sp-note-text {
+  font-size: 0.92rem !important;
+  color: #202124 !important;
+  line-height: 1.6 !important;
+  min-height: 1.4em !important;
+  outline: none !important;
+  word-wrap: break-word !important;
+}
+
+.lh-sp-note-text:focus {
+  background: #f8f9fa !important;
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
+  margin: -2px -4px !important;
+}
+
+.lh-sp-note-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: 0.4rem !important;
+  font-size: 0.7rem !important;
+  color: #9aa0a6 !important;
+  font-family: Arial, sans-serif !important;
+}
+
+.lh-sp-delete {
+  background: none !important;
+  border: none !important;
+  color: #9aa0a6 !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  padding: 0 4px !important;
+}
+
+.lh-sp-delete:hover { color: #d93025 !important; }
 
 /* ============================================
    TOAST

@@ -176,6 +176,65 @@ Comments go through four states:
 - The next "Export Comments" will include those replies as follow-ups, with context about the original comment.
 - The exported prompt will note: "This is a follow-up on a previously implemented comment."
 
+## The localStorage Bridge Pattern
+
+Claude Code edits files on disk. The browser stores user data (comments, queue items, settings) in localStorage. These are separate systems that cannot directly communicate. The "localStorage bridge" uses HTML comment markers as a one-way message channel from Claude Code to the browser:
+
+1. Claude Code writes an HTML comment marker into a file (e.g., `<!-- lh-implemented: id1 -->`)
+2. The browser loads the file and the Learning Hub JS scans for markers
+3. The JS applies the marker's instructions to localStorage
+4. The UI updates to reflect the change
+
+### Two types of markers
+
+| Marker | Purpose | Persistent? | Remove after use? |
+|--------|---------|-------------|-------------------|
+| `<!-- lh-implemented: id1, id2 -->` | Marks comments as implemented | YES — leave forever | No, never remove |
+| `<!-- lh-queue-update: {...} -->` | Updates queue item data | NO — one-shot | **YES — Claude Code must remove in the SAME edit session** |
+
+**Why the difference:** Implementation markers are idempotent (setting `status = 'implemented'` twice has no effect). Queue update markers with `appendNotes` are NOT idempotent (they append text, so re-applying duplicates content). The JS has a guard (`indexOf` check to prevent duplicate appends), but the proper fix is to remove the marker after one refresh cycle.
+
+### Queue update marker workflow (step by step)
+
+1. User leaves a comment on a queue item asking to change its notes/title
+2. User exports comments → Claude Code receives the prompt
+3. Claude Code writes `<!-- lh-queue-update: {"title":"Item Name","appendNotes":"new text"} -->` before `</body>`
+4. Claude Code also writes `<!-- lh-implemented: commentId -->` for the comment
+5. **Claude Code then immediately removes the `lh-queue-update` marker from the file** (in the same edit session)
+6. User is told to refresh the browser
+7. On refresh: JS finds the marker (from the server's cached response), applies the update to localStorage, triggers `renderQueue()`
+8. Next refresh: marker is gone from the file, no re-application
+
+**If Claude Code forgets to remove the marker:** The `appendNotes` guard (`indexOf` check) prevents duplicate appends, but `notes` (full replacement) would overwrite user edits. Always remove.
+
+### Queue update syntax
+
+```html
+<!-- Append to notes (use when adding items to a list): -->
+<!-- lh-queue-update: {"title":"Item Name","appendNotes":"text to add"} -->
+
+<!-- Replace notes entirely: -->
+<!-- lh-queue-update: {"id":"abc123","notes":"full replacement"} -->
+
+<!-- Update title: -->
+<!-- lh-queue-update: {"id":"abc123","title":"New Title"} -->
+```
+
+Match by `id` (from `data-id` on `.queue-item` in DOM) or by `title`. Must have at least one.
+
+### Known issues and fixes
+
+| Issue | Root Cause | Fix |
+|-------|-----------|-----|
+| Queue notes not updating | `if (!update.id) return;` skipped title-only matches | Changed to `if (!update.id && !update.title) return;` |
+| Queue UI not refreshing | `renderQueue()` ran before scan applied updates | Added `window.renderQueue()` call after scan |
+| Duplicate appends on refresh | `lh-queue-update` marker left in file | Added `indexOf` guard in JS + documented that Claude Code must remove markers |
+| Scan not finding comments | `innerHTML` strips comments in some browsers | Added DOM TreeWalker fallback |
+| Markers outside queue items | Container detection not matching `.queue-item` | Added `data-id`, `position: relative`, fixed `closest()` |
+| Markers stacking | All got `top: 50%` | Offset tracker, 20px spacing |
+| Comments lost on edit | Edit deleted item, created new ID | In-place update preserving ID |
+| Long code blocks breaking page layout | `<pre>` with `overflow-x:auto` stretches parent containers | Use `white-space:pre-wrap;word-break:break-all;` on `<pre>` blocks. Add `overflow:hidden` to parent containers. Always add a Copy button for long code blocks so users don't need to select/copy manually. |
+
 ## Comment Processing Methodology
 
 When processing user comments on study guides, follow these rules:
@@ -195,8 +254,8 @@ When processing user comments on study guides, follow these rules:
 
 ## Key Design Decisions
 
-1. **No server required** — everything runs from file:// protocol
-2. **No build tools** — pure HTML/CSS/JS, no npm/webpack
+1. **Server optional** — basic features work from file:// protocol, but image uploads require `node image-server.js` (localhost:3000). The image server also serves static files, replacing `python -m http.server`.
+2. **No build tools** — pure HTML/CSS/JS, no npm/webpack (node_modules in the project root is for Puppeteer thumbnails only)
 3. **localStorage for persistence** — no database, no accounts
 4. **lh- CSS prefix** — all injected styles use `lh-` prefix with `!important` to avoid conflicts with guide styles
 5. **Comment Mode** — disables page links so text can be highlighted on clickable elements
@@ -210,7 +269,70 @@ When processing user comments on study guides, follow these rules:
    - Highlights the current section as the user scrolls (use Intersection Observer)
    - Hides when the user switches to a different tab
    - Links use anchor IDs to scroll to sections
-   - CSS class: `.ch1-subnav` (or similar per-chapter naming)
+   - CSS class: `.ch1-subnav` (reuse this class for all chapter sub-navs)
+   - Each chapter gets its own `<nav>` with a unique ID (e.g., `ch1Subnav`, `ch2Subnav`)
+   - The tab-switching JS shows/hides the correct sub-nav when chapters are switched
+   - The scroll-spy JS must be set up for each sub-nav independently (use a shared `setupScrollSpy` function)
+   - When adding a new chapter: add a `<nav class="ch1-subnav" id="chNSubnav">`, hide it by default, and register it in the tab-switch and scroll-spy code
+
+## Image System
+
+Images in the Learning Hub are handled in two ways:
+
+### With image server running (`node image-server.js`)
+- User drops an image into a comment → it's resized, uploaded to `/upload-image` endpoint → saved to `images/` folder → comment stores the file path (`images/comment-12345.png`)
+- When Claude Code implements the comment, it references the image at its file path
+- Images persist as real files on disk — no localStorage limits
+
+### Without image server (file:// protocol)
+- User drops an image → it's resized and stored as base64 in localStorage with the comment
+- Works but limited by localStorage size (~5MB total)
+- The exported prompt includes the base64 inline
+
+### When Claude Code processes an image comment
+- If the image is a file path (e.g., `images/comment-12345.png`), reference it directly in the HTML
+- If the image is base64, decode it, save to `images/`, and reference the saved file
+- Use agent-browser (`agent-browser navigate [url] && agent-browser screenshot [path]`) for fetching screenshots from websites efficiently
+
+### Agent-Browser
+Installed globally. Fast headless browser for AI agents. Use for:
+- Taking screenshots of websites: `agent-browser navigate [url] && agent-browser screenshot [path]`
+- Extracting content from web pages: `agent-browser navigate [url] && agent-browser text`
+- Getting accessibility snapshots: `agent-browser navigate [url] && agent-browser snapshot`
+
+## Scratch Pad
+
+The scratch pad is a per-page note-taking system. Unlike comments (which drive changes to the page content), scratch pad notes are personal user notes that live IN the page source.
+
+**How it works:**
+1. User clicks "Add Scratch Pad" in the Comments dropdown → a new "Scratch Pad" tab appears
+2. User types a note and clicks "Add Note"
+3. The note is saved to localStorage immediately (instant UI) AND written to the HTML file via the image server's `/save-scratchpad` endpoint
+4. Notes are stored in the HTML file inside a `<!-- lh-scratchpad-start -->` / `<!-- lh-scratchpad-end -->` block
+5. On page load, notes are read from both the HTML source and localStorage, merged by ID (highest revision wins)
+6. Notes are editable (contenteditable) — editing increments the rev number
+7. Notes can be deleted
+
+**Server requirement:** Notes only save permanently when the image server (`node image-server.js`) is running. Without the server, notes save to localStorage only (temporary, per-origin).
+
+**Note object structure:**
+```json
+{
+  "id": "sp-m1abc2def3",
+  "rev": 1,
+  "text": "the note content",
+  "timestamp": "2026-03-29T00:00:00.000Z"
+}
+```
+
+**HTML storage format:**
+```html
+<!-- lh-scratchpad-start -->
+<div id="lh-scratchpad-data" class="tab-content" style="display:none;">
+  <div class="lh-scratchpad-note" data-id="sp-abc" data-rev="1" data-timestamp="...">Note text here</div>
+</div>
+<!-- lh-scratchpad-end -->
+```
 
 ## Restructuring Safety Rules
 

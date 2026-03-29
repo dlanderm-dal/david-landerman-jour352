@@ -52,7 +52,8 @@
        ============================================ */
     nav {
       background-color: #f6f8fa;
-      border-bottom: 1px solid #d0d7de;
+      border-bottom: none !important;
+      box-shadow: none !important;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -96,13 +97,20 @@
        ============================================ */
     .ch1-subnav {
       position: sticky;
-      top: 112px; /* navbar (56px) + tab bar (~56px) */
+      top: 104px; /* navbar (56px) + tab bar (~48px) */
       z-index: 999995;
       background: #1a73e8;
+      margin: 0;
+      padding: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .ch1-subnav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
       display: flex;
       gap: 0;
       overflow-x: auto;
-      margin: 0;
       padding: 0 1rem;
     }
 
@@ -970,20 +978,32 @@
     </div>
   </nav>
 
+  <nav class="ch1-subnav" id="ch1Subnav">
+    <div class="ch1-subnav-inner">
+      <a href="#sec-big-picture" class="ch1-subnav-link active" data-section="sec-big-picture">Big Picture</a>
+      <a href="#sec-interface" class="ch1-subnav-link" data-section="sec-interface">Interface</a>
+      <a href="#sec-workflow" class="ch1-subnav-link" data-section="sec-workflow">Workflow</a>
+      <a href="#sec-branches" class="ch1-subnav-link" data-section="sec-branches">Branches</a>
+      <a href="#sec-local-remote" class="ch1-subnav-link" data-section="sec-local-remote">Local/Remote</a>
+      <a href="#sec-pages" class="ch1-subnav-link" data-section="sec-pages">Pages</a>
+      <a href="#sec-tools" class="ch1-subnav-link" data-section="sec-tools">Tools</a>
+      <a href="#sec-best-practices" class="ch1-subnav-link" data-section="sec-best-practices">Practices</a>
+    </div>
+  </nav>
+  <nav class="ch1-subnav" id="ch2Subnav" style="display:none;">
+    <div class="ch1-subnav-inner">
+      <a href="#sec-adv-branching" class="ch1-subnav-link active" data-section="sec-adv-branching">Branching</a>
+      <a href="#sec-actions" class="ch1-subnav-link" data-section="sec-actions">Actions</a>
+      <a href="#sec-code-review" class="ch1-subnav-link" data-section="sec-code-review">Code Review</a>
+      <a href="#sec-orgs" class="ch1-subnav-link" data-section="sec-orgs">Orgs &amp; Teams</a>
+      <a href="#sec-advanced-git" class="ch1-subnav-link" data-section="sec-advanced-git">Advanced Git</a>
+      <a href="#sec-open-source" class="ch1-subnav-link" data-section="sec-open-source">Open Source</a>
+    </div>
+  </nav>
+
   <div class="container">
 
     <div class="tab-content active" id="chapter-1">
-
-      <nav class="ch1-subnav" id="ch1Subnav">
-        <a href="#sec-big-picture" class="ch1-subnav-link active" data-section="sec-big-picture">Big Picture</a>
-        <a href="#sec-interface" class="ch1-subnav-link" data-section="sec-interface">Interface</a>
-        <a href="#sec-workflow" class="ch1-subnav-link" data-section="sec-workflow">Workflow</a>
-        <a href="#sec-branches" class="ch1-subnav-link" data-section="sec-branches">Branches</a>
-        <a href="#sec-local-remote" class="ch1-subnav-link" data-section="sec-local-remote">Local/Remote</a>
-        <a href="#sec-pages" class="ch1-subnav-link" data-section="sec-pages">Pages</a>
-        <a href="#sec-tools" class="ch1-subnav-link" data-section="sec-tools">Tools</a>
-        <a href="#sec-best-practices" class="ch1-subnav-link" data-section="sec-best-practices">Practices</a>
-      </nav>
 
       <h2 id="sec-big-picture">The Big Picture</h2>
 <p>Before diving into buttons and commands, let's understand what GitHub actually <em>is</em> and why it exists. If you only read one tab, read this one.</p>
@@ -1155,6 +1175,18 @@
               <text x="330" y="278" font-family="Arial,sans-serif" font-size="8" fill="#666666" text-anchor="middle">Built-in Terminal</text>
             </svg>
           </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <img src="../images/github-guide/vscode-homepage.png" alt="VS Code website homepage showing download options" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">VS Code — free, open-source code editor by Microsoft.</p>
+          </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <img src="../images/github-guide/vscode-git-panel.png" alt="VS Code Source Control panel documentation showing Git integration" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">VS Code's built-in Source Control panel for Git operations.</p>
+          </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <img src="../images/github-guide/vscode-terminal.png" alt="VS Code integrated terminal documentation" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">VS Code's integrated terminal — run commands without leaving the editor.</p>
+          </div>
           <div class="outline-item">
             <span class="label">Cursor</span>
             <span class="desc">Cursor is VS Code but with AI built directly into it. It looks identical to VS Code, uses all the same features, but adds the ability to chat with an AI about your code and have it write/edit code for you. It's essentially "VS Code + ChatGPT in one app." By comparison, VS Code with an AI extension (like Claude, GitHub Copilot, or Microsoft Copilot) gives you a chat sidebar and inline suggestions, but Cursor goes further -- the AI is woven into every part of the editor, able to read your entire project, edit multiple files at once, and understand the full context of what you're building. Think of VS Code + Copilot as having a helpful assistant sitting next to you, while Cursor is more like the assistant has their hands on the keyboard. The Tools &amp; Setup tab explores these options in more detail.</span>
@@ -1233,6 +1265,10 @@
             </svg>
             <div style="text-align:center;margin-top:0.3rem;font-size:0.75rem;font-style:italic;color:#57606a;font-family:'Arial',sans-serif;">Same as VS Code, plus an AI chat panel on the right</div>
           </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <img src="../images/github-guide/cursor-website.png" alt="Cursor website showing the AI-powered code editor" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">Cursor — an AI-powered code editor built on VS Code.</p>
+          </div>
           <div class="outline-item">
             <span class="label">GitHub Codespaces</span>
             <span class="desc">VS Code running in your web browser. You don't install anything -- you just go to a GitHub repository, click a button, and a full IDE opens in your browser tab. Great for getting started quickly or when you're on someone else's computer. Because Codespaces is VS Code running in your browser, the buttons, menus, and shortcuts are identical to the desktop version. The Tools &amp; Setup tab walks through the VS Code interface in detail.</span> <a href="https://docs.github.com/en/codespaces/overview" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
@@ -1305,12 +1341,26 @@
             </svg>
             <div style="text-align:center;margin-top:0.3rem;font-size:0.75rem;font-style:italic;color:#57606a;font-family:'Arial',sans-serif;">VS Code running inside your browser -- no installation needed</div>
           </div>
+          <div style="margin:1rem 0;text-align:center;">
+            <img src="../images/github-guide/gh-codespaces-feature.png" alt="GitHub Codespaces feature page showing VS Code in the browser" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">GitHub Codespaces — VS Code running in your browser, no installation needed.</p>
+          </div>
         </div>
 
         <div class="outline-item">
           <span class="label">GitHub Desktop (not an IDE -- it's a visual Git client)</span>
           <span class="desc">A simplified visual app made by GitHub. It's not for writing code -- it's for managing your Git operations (committing, pushing, pulling, switching branches) without using the Terminal. Think of it as a visual remote control for Git. You use it alongside an IDE, not instead of one. GitHub Desktop handles the most common Git operations -- commit, push, pull, branch, merge, view history, and resolve conflicts -- covering roughly 95% of what beginners need. Some advanced operations like rebasing or cherry-picking still require the terminal.</span> <a href="https://docs.github.com/en/desktop/overview/about-github-desktop" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
         </div>
+      </div>
+
+      <div style="margin:1rem 0;text-align:center;">
+        <img src="../images/github-guide/gh-desktop-website.png" alt="GitHub Desktop website showing download options for Mac and Windows" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">GitHub Desktop — a visual Git client for Mac and Windows.</p>
+      </div>
+
+      <div style="margin:1rem 0;text-align:center;padding:2rem;background:#f8f9fa;border:2px dashed #dadce0;border-radius:8px;">
+        <p style="color:#9aa0a6;font-size:0.85rem;">Screenshot needed: GitHub Desktop app — the main interface showing repo list, branch selector, and commit history</p>
+        <p style="color:#9aa0a6;font-size:0.75rem;">Drop a screenshot into the comment system to fill this spot.</p>
       </div>
 
       <div class="key-insight">
@@ -1329,6 +1379,11 @@
 
       <h3>What You See When You Open a Repository</h3>
       <p>Below is a visual mock-up of a typical GitHub repository page. Each element is labeled and explained beneath it.</p>
+
+      <div style="margin:1rem 0;text-align:center;">
+        <img src="../images/github-guide/gh-repo-main.png" alt="A real GitHub repository page showing the VS Code repo with tabs for Code, Issues, Pull Requests, and Actions" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">A real GitHub repository page (VS Code's repo). Notice the tabs at the top: Code, Issues, Pull Requests, Actions.</p>
+      </div>
 
       <!-- GITHUB MOCK-UP -->
       <div class="gh-mock">
@@ -1386,15 +1441,35 @@
           <span class="label">&#9888; Issues Tab</span>
           <span class="desc">A built-in bug tracker and discussion board. Anyone can open an "issue" to report a bug, request a feature, or ask a question. Think of it like a to-do list for the project. Each issue can be assigned to someone, labeled, and discussed.</span> <a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues" target="_blank" style="font-size:0.8em;color:#1a73e8;margin-left:4px;">(docs)</a>
         </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-issues-tab.png" alt="GitHub Issues tab showing a list of bug reports and feature requests" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">The Issues tab — a list of bug reports and feature requests.</p>
+        </div>
 
         <div class="outline-item">
           <span class="label">&#128256; Pull Requests Tab</span>
           <span class="desc">This is where proposed changes live. When someone makes changes on a branch and wants to merge them into the main version, they open a "pull request" (PR). It's like saying "Hey, I made some edits -- can you review them before we combine them into the real version?"</span>
         </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-pull-requests.png" alt="GitHub Pull Requests tab showing proposed changes waiting for review" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">The Pull Requests tab — proposed changes waiting for review.</p>
+        </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-pr-detail.png" alt="Inside a pull request showing the conversation, commits, and review status" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">Inside a pull request — the conversation, commits, and review status.</p>
+        </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-pr-diff.png" alt="The Files Changed view in a pull request showing green added lines and red removed lines" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">The Files Changed view — green lines were added, red lines were removed.</p>
+        </div>
 
         <div class="outline-item">
           <span class="label">&#9654; Actions Tab</span>
           <span class="desc">Automated tasks that run when certain things happen. For example: "Every time someone pushes code, automatically check for errors." You probably won't use this as a beginner, but it's good to know it exists.</span>
+        </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-actions-tab.png" alt="GitHub Actions tab showing automated workflows running" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">GitHub Actions running automated workflows.</p>
         </div>
 
         <div class="outline-item">
@@ -1423,10 +1498,18 @@
           <span class="label">&#127796; Branch Dropdown</span>
           <span class="desc">Shows which branch you're currently viewing and lets you switch to a different one. By default, you're looking at the "main" branch. (More on branches in the Branches tab.)</span>
         </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-branches.png" alt="GitHub branches page showing all active branches in a repository" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">The branches page showing all active branches in a repository.</p>
+        </div>
 
         <div class="outline-item">
           <span class="label">Commit History</span>
           <span class="desc">You can find this by clicking "X commits" near the top of the file list. It shows a timeline of every save point (commit) ever made, who made it, and when. It's the "time machine" view of your project.</span>
+        </div>
+        <div style="margin:1rem 0;text-align:center;">
+          <img src="../images/github-guide/gh-commit-history.png" alt="GitHub commit history showing every save point with its message, author, and timestamp" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">Commit history — every save point with its message, author, and timestamp.</p>
         </div>
       </div>
 
@@ -1591,6 +1674,10 @@
             <div class="step">Type a commit message in the "Summary" box at the bottom left</div>
             <div class="step">Click the blue "Commit to main" button</div>
             <div class="step">Click "Push origin" in the top bar to send it to GitHub</div>
+          </div>
+          <div style="margin:1rem 0;text-align:center;padding:2rem;background:#f8f9fa;border:2px dashed #dadce0;border-radius:8px;">
+            <p style="color:#9aa0a6;font-size:0.85rem;">Screenshot needed: GitHub Desktop — making a commit (staging files, writing message, clicking Commit)</p>
+            <p style="color:#9aa0a6;font-size:0.75rem;">Drop a screenshot into the comment system to fill this spot.</p>
           </div>
         </div>
         <div>
@@ -1970,6 +2057,10 @@
             <div class="step">Click the green "Code" button and copy the URL</div>
             <div class="step">Open Terminal and run <code>git clone [URL]</code></div>
             <div class="step">In GitHub Desktop, cloning is even simpler: click File → Clone Repository, paste the repository URL or search your GitHub repos by name, choose where to save it on your Mac, and click Clone. GitHub Desktop downloads everything and opens the project — no Terminal required.</div>
+            <div style="margin:1rem 0;text-align:center;padding:2rem;background:#f8f9fa;border:2px dashed #dadce0;border-radius:8px;">
+              <p style="color:#9aa0a6;font-size:0.85rem;">Screenshot needed: GitHub Desktop — cloning a repository (File → Clone Repository dialog)</p>
+              <p style="color:#9aa0a6;font-size:0.75rem;">Drop a screenshot into the comment system to fill this spot.</p>
+            </div>
             <div class="step">A folder appears on your Mac -- that's the repo</div>
             <div class="step">Edit, commit, and push as normal</div>
           </div>
@@ -2106,6 +2197,11 @@
         <div class="step">Wait 1-2 minutes, then visit <code>https://YOUR-USERNAME.github.io/REPO-NAME/</code></div>
       </div>
 
+      <div style="margin:1rem 0;text-align:center;">
+        <img src="../images/github-guide/gh-pages-docs.png" alt="GitHub Pages documentation showing how to configure your publishing source" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">GitHub Pages documentation — how to configure your publishing source.</p>
+      </div>
+
       <div class="info-box">
         <div class="info-label">What gets published?</div>
         <p>Every HTML file in your main branch becomes a page on your site. <code>index.html</code> is the homepage. <code>about.html</code> would be at <code>/REPO-NAME/about.html</code>. Subfolders work too: if you have <code>projects/gallery.html</code>, it becomes <code>/REPO-NAME/projects/gallery.html</code>.</p>
@@ -2187,6 +2283,11 @@
 
       <div class="finder-analogy">
         Think of Terminal as talking to your Mac through text messages instead of tapping on icons. And Homebrew is like texting "install Node.js" to your Mac and it just does it.
+      </div>
+
+      <div style="margin:1rem 0;text-align:center;">
+        <img src="../images/github-guide/homebrew-website.png" alt="Homebrew website showing the package manager for macOS" style="max-width:100%;border:1px solid #dadce0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <p style="font-size:0.78rem;color:#57606a;margin-top:0.4rem;">Homebrew — the package manager for macOS.</p>
       </div>
 
       <hr class="section-divider">
@@ -2785,18 +2886,6 @@
       <h2>Chapter 2: Going Deeper</h2>
       <p>Now that you understand the fundamentals, these intermediate topics will help you work more effectively with Git and GitHub on real projects.</p>
 
-      <nav style="background:#f8f9fa;padding:1rem;border-radius:8px;margin-bottom:2rem;">
-        <strong>In this chapter:</strong>
-        <ol style="margin:0.5rem 0 0 1.5rem;line-height:2;">
-          <li><a href="#sec-adv-branching">Advanced Branching Strategies</a></li>
-          <li><a href="#sec-actions">GitHub Actions &amp; Automation</a></li>
-          <li><a href="#sec-code-review">Code Review</a></li>
-          <li><a href="#sec-orgs">Organizations &amp; Teams</a></li>
-          <li><a href="#sec-advanced-git">Advanced Git Commands</a></li>
-          <li><a href="#sec-open-source">Contributing to Open Source</a></li>
-        </ol>
-      </nav>
-
       <!-- SECTION 1: Advanced Branching -->
       <h2 id="sec-adv-branching">1. Advanced Branching Strategies</h2>
 
@@ -3062,35 +3151,42 @@
       });
     })();
 
-    // ========== SECTION SCROLL SPY ==========
+    // ========== SECTION SCROLL SPY (both chapters) ==========
     (function() {
-      var links = document.querySelectorAll('.ch1-subnav-link');
-      var sectionIds = [];
-      links.forEach(function(l) { sectionIds.push(l.getAttribute('data-section')); });
+      var ch1Subnav = document.getElementById('ch1Subnav');
+      var ch2Subnav = document.getElementById('ch2Subnav');
 
-      var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            var id = entry.target.id;
-            links.forEach(function(l) {
-              l.classList.toggle('active', l.getAttribute('data-section') === id);
-            });
-          }
+      // Set up observers for both subnavs
+      function setupScrollSpy(navEl) {
+        var links = navEl.querySelectorAll('.ch1-subnav-link');
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              var id = entry.target.id;
+              links.forEach(function(l) {
+                l.classList.toggle('active', l.getAttribute('data-section') === id);
+              });
+            }
+          });
+        }, { rootMargin: '-170px 0px -60% 0px', threshold: 0 });
+
+        links.forEach(function(l) {
+          var el = document.getElementById(l.getAttribute('data-section'));
+          if (el) observer.observe(el);
         });
-      }, { rootMargin: '-170px 0px -60% 0px', threshold: 0 });
+      }
 
-      sectionIds.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) observer.observe(el);
-      });
+      setupScrollSpy(ch1Subnav);
+      setupScrollSpy(ch2Subnav);
 
-      // Hide subnav when Chapter 2 is active
-      var ch1Tab = document.querySelector('[data-tab="chapter-1"]');
-      var subnav = document.getElementById('ch1Subnav');
+      // Show/hide the correct subnav when switching chapters
+      ch2Subnav.style.display = 'none'; // chapter 1 is active by default
+
       document.addEventListener('click', function(e) {
         if (e.target.classList && e.target.classList.contains('tab-btn')) {
           var tab = e.target.getAttribute('data-tab');
-          subnav.style.display = (tab === 'chapter-1') ? 'flex' : 'none';
+          ch1Subnav.style.display = (tab === 'chapter-1') ? 'block' : 'none';
+          ch2Subnav.style.display = (tab === 'chapter-2') ? 'block' : 'none';
         }
       });
     })();
@@ -3110,5 +3206,7 @@
 <!-- lh-implemented: mnb42admg14utw -->
 <!-- lh-implemented: mnb43ufm24x0xz -->
 <!-- lh-implemented: mnb47erb6amg7w -->
+<!-- lh-implemented: mnb79ax9e3uouz -->
+<!-- lh-implemented: mnb7mggn2c9mba -->
 </body>
 </html>

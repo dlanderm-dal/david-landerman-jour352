@@ -13,9 +13,9 @@
     <p class="topic-subtitle">Upload an existing HTML study guide and generate a prompt that will add Learning Hub navigation, commenting, and styling.</p>
 
     <div class="topic-field-group">
-      <label for="convertFile">Select an HTML file</label>
-      <input type="file" accept=".html,.htm" id="convertFile" style="margin-bottom:0.5rem;">
-      <div id="convertFileName" style="font-size:0.82rem;color:#5f6368;"></div>
+      <label for="convertFile">File path</label>
+      <p class="topic-hint">Paste the full path to the HTML file on your computer. You can drag a file from Finder into this box, or right-click a file in VS Code and select "Copy Path."</p>
+      <input type="text" class="topic-input" id="convertFile" placeholder="e.g. /Users/you/Documents/my-guide.html">
     </div>
 
     <div class="topic-field-group">
@@ -34,30 +34,21 @@
 
   <script>
     var fileInput = document.getElementById('convertFile');
-    var fileNameEl = document.getElementById('convertFileName');
     var buildBtn = document.getElementById('convertBuildBtn');
     var output = document.getElementById('convertOutput');
     var outputText = document.getElementById('convertOutputText');
     var copyBtn = document.getElementById('convertCopyBtn');
     var notesEl = document.getElementById('convertNotes');
 
-    var selectedFileName = '';
-
-    fileInput.addEventListener('change', function () {
-      if (this.files[0]) {
-        selectedFileName = this.files[0].name;
-        fileNameEl.textContent = 'Selected: ' + selectedFileName;
-      }
-    });
-
     buildBtn.addEventListener('click', function () {
-      if (!selectedFileName) { alert('Select an HTML file first.'); return; }
+      var filePath = fileInput.value.trim();
+      if (!filePath) { alert('Enter a file path first.'); fileInput.focus(); return; }
 
       var notes = notesEl.value.trim();
       var customInstructions = (localStorage.getItem('learningHubCustomInstructions') || '').trim();
 
       var prompt = 'FIRST (if you haven\'t already in this conversation): Read `vibe-code-projects/ARCHITECTURE.md` — it is the single source of truth for this project. Follow its conventions.\n\n';
-      prompt += 'Convert the file `' + selectedFileName + '` to conform to Learning Hub standards.\n\n';
+      prompt += 'Convert the file at `' + filePath + '` to conform to Learning Hub standards.\n\n';
       prompt += 'Required changes:\n';
       prompt += '- Move the file to `vibe-code-projects/AI_study_guides/` if it isn\'t there already\n';
       prompt += '- Add these two lines before </body>:\n';

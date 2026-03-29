@@ -1,0 +1,41 @@
+# Agentic Engineering — Prompt Changelog
+
+## Original Creation: 2026-03-29
+
+Created via Learning Hub New Topic builder.
+
+Topic: "Agentic Engineering"
+Source reference: https://simonwillison.net/guides/agentic-engineering-patterns/
+
+Structure: 3 tabs
+- Chapter 1: Foundations (8 sections)
+  1. What Is Agentic Engineering?
+  2. The Feedback Loop
+  3. Debug, Log, and Diagnose
+  4. The Commenting & Change Tracking System
+  5. Reuse, Don't Rebuild
+  6. The "-ilities" — Non-Functional Quality
+  7. Security Audit Mindset
+  8. The Placeholder Strategy
+
+- Chapter 2: Patterns in Practice (6 sections)
+  1. Prompt Engineering for Agents
+  2. Version Control Integration
+  3. Testing with Agents
+  4. Working with Context Limits
+  5. Multi-Agent Workflows
+  6. Common Anti-Patterns
+
+- Quick Reference (collapsible table of all 10 best practices)
+
+Student's 10 best practices incorporated:
+1. Debug/logging/dom dump
+2. Commenting mechanism
+3. Ensuring all errors interpretable by people AND agents
+4. Judicious use of libraries/canned solutions
+5. Don't remake existing features
+6. Judicious change log
+7. Plan for all -ilities (accessibility, testability, reliability, security, maintainability, observability, scalability, usability)
+8. Security audit
+9. Placeholder text / incremental implementation strategy
+10. Test (TDD, manual testing, screenshot verification)

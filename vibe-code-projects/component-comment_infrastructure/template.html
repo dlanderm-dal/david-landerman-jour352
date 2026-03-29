@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comment System Demo</title>
+  <link rel="stylesheet" href="comment-system.css">
+  <style>
+    body {
+      font-family: 'Google Sans', Arial, sans-serif;
+      color: #202124;
+      line-height: 1.7;
+      margin: 0;
+      background: #fff;
+    }
+    .demo-container {
+      max-width: 760px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    .demo-notice {
+      background: #e8f0fe;
+      border-left: 4px solid #1a73e8;
+      padding: 0.75rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.88rem;
+      color: #174ea6;
+      margin-bottom: 2rem;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.3rem; margin-top: 2rem; color: #202124; }
+    p { font-size: 0.95rem; color: #3c4043; }
+    ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.4rem; font-size: 0.92rem; color: #3c4043; }
+    code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+
+<div class="demo-container">
+
+  <div class="demo-notice">
+    This is a demo of the standalone comment system component. Highlight any text on this page to see the Quick Fix / Comment floating bar. Use the Comments dropdown in the navbar to manage comments.
+  </div>
+
+  <h1>Sample Article: Web Development Basics</h1>
+
+  <p>Web development involves building and maintaining websites. It encompasses several aspects including web design, web publishing, web programming, and database management. The field has grown rapidly over the past two decades.</p>
+
+  <h2>HTML Structure</h2>
+
+  <p>HTML (HyperText Markup Language) is the standard markup language for creating web pages. It describes the structure of a web page using a series of elements that tell the browser how to display content. Elements are represented by tags such as headings, paragraphs, and links.</p>
+
+  <p>A well-structured HTML document includes a doctype declaration, head section with metadata, and a body section containing the visible content. Semantic elements like <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, and <code>&lt;footer&gt;</code> help convey the meaning of the content.</p>
+
+  <h2>CSS Styling</h2>
+
+  <p>CSS (Cascading Style Sheets) controls the visual presentation of HTML elements. It allows you to set colors, fonts, spacing, layouts, and responsive designs. Modern CSS includes powerful features like Flexbox, Grid, and custom properties (variables).</p>
+
+  <ul>
+    <li><strong>Flexbox</strong> is ideal for one-dimensional layouts (rows or columns)</li>
+    <li><strong>CSS Grid</strong> excels at two-dimensional layouts (rows and columns together)</li>
+    <li><strong>Custom properties</strong> enable reusable values that can be changed dynamically</li>
+    <li><strong>Media queries</strong> allow responsive designs that adapt to different screen sizes</li>
+  </ul>
+
+  <h2>JavaScript Interactivity</h2>
+
+  <p>JavaScript adds interactivity to web pages. It can manipulate the DOM, handle events, make network requests, and create dynamic user experiences. Modern JavaScript (ES6+) introduced features like arrow functions, template literals, destructuring, and modules.</p>
+
+  <p>Frameworks and libraries such as React, Vue, and Angular have become popular tools for building complex user interfaces. However, understanding vanilla JavaScript remains essential for any web developer.</p>
+
+</div>
+
+<script src="comment-system.js"></script>
+<script>
+  CommentSystem.init({
+    storageKey: 'demoComments',
+    instructionsKey: 'demoCustomInstructions',
+    pageTitle: 'Comment System Demo',
+    projectRoot: 'component-comment_infrastructure/',
+    tabSelector: null,
+    dynamicContainers: [],
+    promptFilePrefix: 'prompts/',
+    architectureFile: null
+  });
+</script>
+
+</body>
+</html>
