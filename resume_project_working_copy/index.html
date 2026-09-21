@@ -20,28 +20,40 @@
         crossorigin="anonymous"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" type="text/css" href="style.css?v=10">
+    <link rel="stylesheet" type="text/css" href="style.css?v=118">
 
 </head>
 
 <body>
     <!-- Desktop Sidebar Navigation -->
-    <nav class="sidebar d-none d-lg-flex flex-column bg-light">
-        <a href="#" class="sidebar-logo-link">
-            <img src="resume_images/5.png" class="sidebar-logo sidebar-logo-light" alt="David Landerman Logo">
-            <img src="resume_images/logo.dark.png" class="sidebar-logo sidebar-logo-dark" alt="David Landerman Logo">
-        </a>
+    <nav class="sidebar d-none d-md-flex flex-column bg-light">
+        <div class="sidebar-portrait-frame">
+            <img src="headshot_background.jpg" class="sidebar-portrait" alt="David Landerman">
+        </div>
+        <div class="sidebar-identity">
+            <div class="sidebar-identity-head">
+                <p class="sidebar-name">David Landerman</p>
+                <p class="sidebar-role">Investigative Journalist</p>
+            </div>
+            <p class="sidebar-role-former">fmr Mechanical Engineer</p>
+            <p class="sidebar-bio">A second-career professional with a wide range of experiences and the
+                passion to dig deep on opaque bureaucracy. Eager to learn.</p>
+            <div class="sidebar-quick-links">
+                <a href="landerman_resume.pdf" download="landerman_resume.pdf" class="sidebar-icon-link"
+                    title="Download my resume" aria-label="Download my resume">
+                    <img src="resume_images/resume_vector.svg" class="sidebar-icon-img" alt="">
+                </a>
+                <a href="mailto:dlanderm@umd.edu" class="sidebar-icon-link"
+                    title="Email me" aria-label="Email me">
+                    <i class="bi bi-envelope-fill"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/david-landerman/" target="_blank" rel="noopener"
+                    class="sidebar-icon-link" title="LinkedIn" aria-label="LinkedIn">
+                    <i class="bi bi-linkedin"></i>
+                </a>
+            </div>
+        </div>
         <ul class="nav nav-pills flex-column">
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-house-door me-2"></i>Top
-                </a>
-            </li>
-            <li>
-                <a href="landerman_resume.pdf" class="nav-link" download>
-                    <i class="bi bi-file-earmark-text me-2"></i>Download Resume
-                </a>
-            </li>
             <li>
                 <a href="#articles" class="nav-link">
                     <i class="bi bi-newspaper me-2"></i>Articles
@@ -67,11 +79,6 @@
                     <i class="bi bi-person-circle me-2"></i>More About Me
                 </a>
             </li>
-            <li>
-                <a href="#contact" class="nav-link">
-                    <i class="bi bi-envelope me-2"></i>Let's Talk
-                </a>
-            </li>
         </ul>
         <!-- DARK MODE TOGGLE DISABLED
         <div class="theme-toggle-wrapper">
@@ -86,7 +93,7 @@
     </nav>
 
     <!-- Mobile Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light d-lg-none fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light d-md-none fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">David Landerman</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav"
@@ -96,49 +103,50 @@
             <div class="collapse navbar-collapse" id="mobileNav">
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
-                            <i class="bi bi-house-door me-2"></i>Top
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-house-door me-2"></i>Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="landerman_resume.pdf" download="landerman_resume.pdf">
-                            <i class="bi bi-file-earmark-text me-2"></i>Download Resume
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#articles" data-bs-toggle="collapse"
-                            data-bs-target=".navbar-collapse.show">
+                        <a class="nav-link" href="#articles">
                             <i class="bi bi-newspaper me-2"></i>Articles
                         </a>
                     </li>
                     <li class="nav-item">
-             <a class="nav-link" href="#design-projects" data-bs-toggle="collapse"
-                 data-bs-target=".navbar-collapse.show">
-                 <i class="bi bi-palette me-2"></i>Design Projects
-             </a>
-         </li>
+                        <a class="nav-link" href="#design-projects">
+                            <i class="bi bi-palette me-2"></i>Design
+                        </a>
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#experience" data-bs-toggle="collapse"
-                            data-bs-target=".navbar-collapse.show">
+                        <a class="nav-link" href="#experience">
                             <i class="bi bi-briefcase me-2"></i>Work Experience
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#education" data-bs-toggle="collapse"
-                            data-bs-target=".navbar-collapse.show">
+                        <a class="nav-link" href="#education">
                             <i class="bi bi-mortarboard me-2"></i>Education
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#more-about-me" data-bs-toggle="collapse"
-                            data-bs-target=".navbar-collapse.show">
-                            <i class="bi bi-person-circle me-2"></i>More About Me
+                        <a class="nav-link" href="#more-about-me">
+                            <i class="bi bi-person-circle me-2"></i>About Me
+                        </a>
+                    </li>
+                    <!-- Row 3: direct actions, not in-page links -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="mailto:dlanderm@umd.edu">
+                            <i class="bi bi-envelope me-2"></i>Email
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#contact" data-bs-toggle="collapse"
-                            data-bs-target=".navbar-collapse.show">
-                            <i class="bi bi-envelope me-2"></i>Let's Talk
+                        <a class="nav-link" href="landerman_resume.pdf" download="landerman_resume.pdf">
+                            <i class="bi bi-file-text me-2"></i>Resume
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.linkedin.com/in/david-landerman/"
+                            target="_blank" rel="noopener">
+                            <i class="bi bi-linkedin me-2"></i>LinkedIn
                         </a>
                     </li>
                 </ul>
@@ -161,11 +169,10 @@
         <!-- Hero Section -->
         <div class="title-container">
             <div class="title-panel">
-                <img class="main-image main-image-light" src="resume_images/headshot.png" alt="David Landerman">
-                <img class="main-image main-image-dark" src="resume_images/headshot.dark.png" alt="David Landerman">
+                <img class="main-image main-image-light" src="resume_images/headshot_full.jpg" alt="David Landerman">
                 <div id="titletext">
-                    <h1 class="title-text section-subheader">Former Mechanical Engineer,<br> Current Journalist</h1>
-                    <p class="hero-subtitle">A second career professional with a wide range of experiences and the passion to dig deep on opaque bureaucracy. Eager to learn.</p>
+                    <h1 class="title-text section-subheader"><span class="title-text-name">David Landerman</span><br>Investigative Journalist<br><span class="title-text-former">fmr Mechanical Engineer</span></h1>
+                    <p class="hero-subtitle">A second-career professional with a wide range of experiences and the passion to dig deep on opaque bureaucracy. Eager to learn.</p>
                     <div class="hero-resume-link">
                         <a href="landerman_resume.pdf" download="landerman_resume.pdf">
                             <img src="resume_images/resume_vector.svg" class="hero-resume-icon" alt="Resume Download">
@@ -183,125 +190,103 @@
         </div>
         <div class="divider"></div>
 
-        <!-- Articles Section (MOVED UP) -->
+        <!-- Articles Section -->
         <!-- ============================================
-     HOW TO ADD A NEW ARTICLE TO THE CAROUSEL
+     HOW TO ADD A NEW ARTICLE TILE
      ============================================
-     
-     STEP 1: Add a new indicator button
-     - Find the <div class="carousel-indicators"> section
-     - Copy this template and paste it after the last button:
-     
-         <button type="button" data-bs-target="#articlesCarousel" data-bs-slide-to="X"
-             aria-label="Slide X"></button>
-     
-     - Change BOTH "X" values to the next number (0, 1, 2, 3...)
-     - Example: If you have slides 0 and 1, the new one is 2
-     
-     
-     STEP 2: Add the new slide
-     - Find the <div class="carousel-inner"> section
-     - Copy this template and paste it after the last </div> of the last carousel-item:
-     
-         <div class="carousel-item">
-             <img src="YOUR_IMAGE.jpg" class="d-block w-100" alt="IMAGE DESCRIPTION">
-             <div class="carousel-caption d-md-block">
-                 <h5>YOUR ARTICLE HEADLINE</h5>
-                 <p>
-                     <a href="YOUR_ARTICLE_URL"
-                         target="_blank" class="article-link">PUBLICATION NAME</a>
-                 </p>
-             </div>
-         </div>
-     
-     - Change these 5 things:
-       1. YOUR_IMAGE.jpg      → Your image filename
-       2. IMAGE DESCRIPTION   → Alt text for accessibility
-       3. YOUR ARTICLE HEADLINE → The article title
-       4. YOUR_ARTICLE_URL    → Full URL to the article
-       5. PUBLICATION NAME    → Name of the publication
-     
-     
-     NOTE: Only the FIRST slide has class="carousel-item active"
-           All other slides are just class="carousel-item"
+
+     Copy one whole block below (from <div class="article-cell">
+     down to its matching </div>) and paste it after the last one.
+     Then change these five things:
+
+       1. href="..."          -> the full URL of the article
+       2. src="..."           -> the image file, in resume_images/
+       3. alt="..."           -> a plain description of the image
+       4. article-publication -> the outlet name
+       5. article-headline    -> the headline
+
+     The <p class="article-credit"> line is OPTIONAL. Keep it only when
+     someone else wrote the piece or you want to note your contribution;
+     delete the whole line otherwise.
+
+     Tiles sit two per row and stretch to equal height on their own, so
+     there is nothing to renumber when you add one. Images are cropped to
+     16:9 automatically, so they do not all have to be the same shape.
      ============================================ -->
         <section id="articles" class="content-section">
             <div class="section-header">
                 <h2>Articles</h2>
+                <!-- Only while the phone hero is on screen; the script below
+                     hides it the moment the hero scrolls away. -->
+                <button type="button" class="section-jump" id="heroJump"
+                        aria-label="Scroll down to articles" hidden>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </button>
             </div>
             <div class="section-content">
-                <div id="articlesCarousel" class="carousel slide" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <img src="resume_images/food-image.jpg" class="d-block w-100" alt="IMAGE DESCRIPTION">
-                            <div class="carousel-caption d-md-block">
-                                <h5>Takoma Park Council Weighs Food Insecurity Amid Shutdown</h5>
-                                <p>
-                                    <a href="https://www.sourceofthespring.com/takoma-park-news/2885774/takoma-park-council-weighs-food-insecurity-amid-shutdown/" target="_blank" class="article-link">Source of The Spring</a>
-                                </p>
+                <div class="article-grid">
+                    <div class="article-cell">
+                        <a href="https://cnsmaryland.org/interactives/spring2026/public-funded-candidates/index.html" target="_blank" rel="noopener" class="article-card-link">
+                            <div class="article-card site-card">
+                                <img src="resume_images/match.png" class="article-image" alt="Chart showing how Montgomery County matches a small campaign donation across tiers">
+                                <div class="article-content">
+                                    <p class="article-publication">Capital News Service</p>
+                                    <h4 class="article-headline">Five most populous Maryland counties offer public financing in campaigns</h4>
+                                                                    <div class="article-tags"><span class="article-tag">Solo enterprise reporting</span><span class="article-tag">Data visualization</span><span class="article-tag">Flourish</span><span class="article-tag">AI-assisted coding</span><span class="article-tag">Scrollytelling</span></div>
+</div>
                             </div>
-                        </div>
-                        <div class="carousel-item">
-                            <img src="resume_images/cheltenham.png" class="d-block w-100" alt="grave of cheltenham inmate">
-                            <div class="carousel-caption d-md-block">
-                                <h5>'Not fit for a dog': Maryland reformatory boys died through years of disease, neglect</h5>
-                                <p>
-                                    Article by Nicole Ramos<br>Data Journalism Contribution by David Landerman
-                                </p>
-                                <p>
-                                    <a href="https://cnsmaryland.org/2025/12/10/cheltenham_mainbar/" target="_blank" class="article-link">Capital News Service</a>
-                                </p>
-                            </div>
-                        </div>
-                        <div class="carousel-item">
-                            <img src="resume_images/library.jpg" class="d-block w-100" alt="Takoma Park Library">
-                            <div class="carousel-caption d-md-block">
-                                <h5>Takoma Park Library Reopens to Community After Major Renovation</h5>
-                                <p>
-                                    <a href="https://www.sourceofthespring.com/takoma-park-news/2879549/takoma-park-library-reopens-to-community-after-major-renovation/"
-                                        target="_blank" class="article-link">Source of The Spring</a>
-                                </p>
-                            </div>
-                        </div>
-                        <div class="carousel-item">
-                            <img src="resume_images/No_Kings.jpg" class="d-block w-100" alt="No Kings rally">
-                            <div class="carousel-caption d-md-block">
-                                <h5>DC's No Kings rally brings out peaceful protesters</h5>
-                                <p>
-                                    Article by Isabella Gonzalez<br>Photo Credit: David Landerman
-                                </p>
-                                <p>
-                                    <a href="https://cnsmaryland.org/2025/10/20/dcs-no-kings-rally-brings-out-peaceful-protesters/"
-                                        target="_blank" class="article-link">Capital News Service</a>
-                                </p>
-                            </div>
-                        </div>
+                        </a>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#articlesCarousel"
-                        data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#articlesCarousel"
-                        data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-                <!-- Thumbnail Navigation -->
-                <div class="carousel-thumbnails">
-                    <button type="button" data-bs-target="#articlesCarousel" data-bs-slide-to="0" class="thumbnail-btn active" aria-label="Slide 1">
-                        <img src="resume_images/food-image.jpg" alt="Food Insecurity article">
-                    </button>
-                    <button type="button" data-bs-target="#articlesCarousel" data-bs-slide-to="1" class="thumbnail-btn" aria-label="Slide 2">
-                        <img src="resume_images/cheltenham.png" alt="Cheltenham article">
-                    </button>
-                    <button type="button" data-bs-target="#articlesCarousel" data-bs-slide-to="2" class="thumbnail-btn" aria-label="Slide 3">
-                        <img src="resume_images/library.jpg" alt="Library article">
-                    </button>
-                    <button type="button" data-bs-target="#articlesCarousel" data-bs-slide-to="3" class="thumbnail-btn" aria-label="Slide 4">
-                        <img src="resume_images/No_Kings.jpg" alt="No Kings article">
-                    </button>
+                    <div class="article-cell">
+                        <a href="https://www.sourceofthespring.com/takoma-park-news/2885774/takoma-park-council-weighs-food-insecurity-amid-shutdown/" target="_blank" rel="noopener" class="article-card-link">
+                            <div class="article-card site-card">
+                                <img src="resume_images/food-image.jpg" class="article-image" alt="Boxed food donations including canned goods, grains and produce">
+                                <div class="article-content">
+                                    <p class="article-publication">Source of The Spring</p>
+                                    <h4 class="article-headline">Takoma Park Council Weighs Food Insecurity Amid Shutdown</h4>
+                                                                    <div class="article-tags"><span class="article-tag">Local government</span><span class="article-tag">Federal government</span></div>
+</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="article-cell">
+                        <a href="https://cnsmaryland.org/2025/12/10/cheltenham_mainbar/" target="_blank" rel="noopener" class="article-card-link">
+                            <div class="article-card site-card">
+                                <img src="resume_images/cheltenham.png" class="article-image" alt="Grave of a Cheltenham reformatory inmate">
+                                <div class="article-content">
+                                    <p class="article-publication">Capital News Service</p>
+                                    <h4 class="article-headline">&lsquo;Not fit for a dog&rsquo;: Maryland reformatory boys died through years of disease, neglect</h4>
+                                    <p class="article-credit">Article by Nicole Ramos<br>Data Journalism Contribution by David Landerman</p>
+                                                                    <div class="article-tags"><span class="article-tag">Data Journalism</span><span class="article-tag">Group collaboration</span></div>
+</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="article-cell">
+                        <a href="https://www.sourceofthespring.com/takoma-park-news/2879549/takoma-park-library-reopens-to-community-after-major-renovation/" target="_blank" rel="noopener" class="article-card-link">
+                            <div class="article-card site-card">
+                                <img src="resume_images/library.jpg" class="article-image" alt="The renovated Takoma Park Library">
+                                <div class="article-content">
+                                    <p class="article-publication">Source of The Spring</p>
+                                    <h4 class="article-headline">Takoma Park Library Reopens to Community After Major Renovation</h4>
+                                                                    <div class="article-tags"><span class="article-tag">Public interest</span></div>
+</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="article-cell">
+                        <a href="https://cnsmaryland.org/2025/10/20/dcs-no-kings-rally-brings-out-peaceful-protesters/" target="_blank" rel="noopener" class="article-card-link">
+                            <div class="article-card site-card">
+                                <img src="resume_images/No_Kings.jpg" class="article-image" alt="Protesters at the No Kings rally in Washington, D.C.">
+                                <div class="article-content">
+                                    <p class="article-publication">Capital News Service</p>
+                                    <h4 class="article-headline">DC&rsquo;s No Kings rally brings out peaceful protesters</h4>
+                                    <p class="article-credit">Article by Isabella Gonzalez<br>Photo Credit: David Landerman</p>
+                                                                    <div class="article-tags"><span class="article-tag">Photojournalism</span></div>
+</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -312,168 +297,279 @@
                  <h2>Design Projects</h2>
              </div>
              <div class="section-content">
-                 <div class="row g-4">
-                     <div class="col-md-6 card-col">
-                         <a href="revlimid/indexClaudeRevA.html" target="_blank" class="project-card-link">
-                             <div class="project-card site-card">
-                                 <img src="resume_images/revlimid-topper.png" class="project-image" alt="PROJECT 1 IMAGE DESCRIPTION">
-                                 <div class="project-content">
-                                     <h4 class="project-title">The Desperation Tax:<br>"What The Market Will Bear" To Treat Cancer</h4>
-                                     <p class="project-description">
-                                         This unpublished work was a class assignment to take <strong>an already published article</strong> and use HTML and CSS to make it more engaging to readers. I chose <strong>The Price of Remission by David Armstrong of Propublica</strong>. Besides altering the presentation, I added: 
-                                         <ul>
-                                            <li>New headline, subhead, lede</li>
-                                            <li>Data visualizations comprised of data not included in the original article</li>
-
-                                         </ul>As part of the assignment I sourced drug pricing history and expenditures from the Micromedex Redbook and Medicare Part D database.<br>
-                                         After submission, I used AI to clean up the code and tune it to accomplish some of the more ambitious design elements that my skill hadn't caught up to yet. Both versions are included.
-                                     </p>
-                                     <div class="project-skills">
-                                         <span class="skill-tag">R</span>
-                                         <span class="skill-tag">HTML</span>
-                                         <span class="skill-tag">CSS</span>
-                                         <span class="skill-tag">Bootstrap</span>
-                                         <span class="skill-tag">Datawrapper</span>
+                 <!-- Built like the Articles tiles (image, title, tags) and
+                      opened like the Work Experience ones: the write-up is
+                      kept out of the grid and only appears in the panel, so
+                      the section costs a couple of tiles instead of two
+                      full-length write-ups. -->
+                 <div class="project-stage">
+                     <div class="project-grid">
+                         <div class="article-cell">
+                             <button type="button" class="project-card-link" id="proj-tile-0"
+                                     aria-expanded="false" aria-controls="proj-panel-0">
+                                 <div class="article-card site-card">
+                                     <img src="resume_images/revlimid-topper.png" class="article-image" alt="Headline graphic reading The Desperation Tax above a pile of pill capsules, each labeled 1 day, $1069, spilling off a wooden shelf">
+                                     <div class="article-content">
+                                         <p class="article-publication">Course assignment</p>
+                                         <h4 class="article-headline">Published Article Redesign: The Price of Remission by David Armstrong of ProPublica</h4>
+                                         <div class="article-tags"><span class="article-tag">R</span><span class="article-tag">HTML</span><span class="article-tag">CSS</span><span class="article-tag">Bootstrap</span><span class="article-tag">Datawrapper</span></div>
                                      </div>
                                  </div>
-                             </div>
-                         </a>
+                             </button>
+                         </div>
+                         <div class="article-cell">
+                             <button type="button" class="project-card-link" id="proj-tile-1"
+                                     aria-expanded="false" aria-controls="proj-panel-1">
+                                 <div class="article-card site-card">
+                                     <img src="resume_images/original-resume.png" class="article-image" alt="Screenshot of the original version of this resume site, showing a navy and orange logo, a sidebar menu, and an orange About section heading">
+                                     <div class="article-content">
+                                         <p class="article-publication">Course assignment</p>
+                                         <h4 class="article-headline">This Resume Website!</h4>
+                                         <div class="article-tags"><span class="article-tag">HTML</span><span class="article-tag">CSS</span><span class="article-tag">Bootstrap</span></div>
+                                     </div>
+                                 </div>
+                             </button>
+                         </div>
                      </div>
-                     <div class="col-md-6 card-col">
-                         <a href="original_resume/original_index.html" target="_blank" class="project-card-link">
-                             <div class="project-card site-card">
-                                 <img src="resume_images/original-resume.png" class="project-image project-image-fixed" alt="PROJECT 2 IMAGE DESCRIPTION">
-                                 <div class="project-content">
-                                     <h4 class="project-title">This Resume Website!</h4>
-                                     <p class="project-description">
-                                         This resume website was originally a course assignment. After submission, I used AI to clean up the code, tweak the aesthetics to look cleaner, and implement feedback from the professor until it became what you're looking at now. I then used it to analyze the knowledge gaps inherent to those improvements and create visually pleasing, interactive study guides to aid me in my future HTML/CSS projects. I present both versions to you to demonstrate not only my proficiency with use of AI, but also to demonstrate my mindset that it is a tool to augment work, not replace it. Click this link to view the original.
-                                     </p>
-                                     <div class="project-skills">
-                                         <span class="skill-tag">HTML</span>
-                                         <span class="skill-tag">CSS</span>
-                                         <span class="skill-tag">Bootstrap</span>
-                                     </div>
-                                 </div>
+
+                     <!-- Panel copy lives here until a tile is opened; the
+                          script clones it into the shared dialog. -->
+                     <div class="project-panel" id="proj-panel-0" role="region"
+                          aria-labelledby="proj-tile-0" hidden>
+                         <div class="project-panel-inner">
+                             <p class="project-description">
+                                 This unpublished work was a class assignment to take <strong>an already published article</strong> and use HTML and CSS to make it more engaging to readers. I chose <strong>The Price of Remission by David Armstrong of ProPublica</strong>. Besides altering the presentation, I added:
+                             </p>
+                             <ul class="project-list">
+                                 <li>New headline, subhead, lede</li>
+                                 <li>Data visualizations comprised of data not included in the original article</li>
+                             </ul>
+                             <p class="project-description">
+                                 As part of the assignment I sourced drug pricing history and expenditures from the Micromedex Redbook and Medicare Part D database.
+                             </p>
+                             <p class="project-description">
+                                 After submission, I used AI to clean up the code and accomplish some more ambitious design elements.
+                             </p>
+                             <a href="revlimid/indexClaudeRevA.html" class="project-link-btn" target="_blank" rel="noopener">
+                                 <i class="bi bi-arrow-right-circle me-2"></i>View the redesign
+                             </a>
+                         </div>
+                     </div>
+                     <div class="project-panel" id="proj-panel-1" role="region"
+                          aria-labelledby="proj-tile-1" hidden>
+                         <div class="project-panel-inner">
+                             <p class="project-description">
+                                 This resume website was originally a course assignment. After submission, I used AI to clean up the code, tweak the aesthetics to look cleaner, implement feedback, and continuously improve upon it. Click this link to view the original.
+                             </p>
+                             <a href="original_resume/original_index.html" class="project-link-btn" target="_blank" rel="noopener">
+                                 <i class="bi bi-arrow-right-circle me-2"></i>View the original
+                             </a>
+                         </div>
+                     </div>
+
+                     <!-- Same chrome as the Work Experience overlay. -->
+                     <div class="project-overlay" hidden>
+                         <div class="project-backdrop" data-proj-close></div>
+                         <button type="button" class="exp-nav exp-nav-prev" aria-label="Previous project">
+                             <span class="exp-nav-icon" aria-hidden="true"></span>
+                         </button>
+                         <div class="project-dialog" role="dialog" aria-modal="true"
+                              aria-labelledby="projDialogName" tabindex="-1">
+                             <button type="button" class="exp-close" aria-label="Close" data-proj-close>
+                                 <i class="bi bi-x-lg" aria-hidden="true"></i>
+                             </button>
+                             <div class="exp-dialog-head"></div>
+                             <div class="exp-dialog-body"></div>
+                             <div class="exp-dialog-foot">
+                                 <button type="button" class="exp-foot-nav" data-proj-step="-1">
+                                     <i class="bi bi-arrow-left" aria-hidden="true"></i> Previous
+                                 </button>
+                                 <span class="exp-counter" aria-hidden="true"></span>
+                                 <button type="button" class="exp-foot-nav" data-proj-step="1">
+                                     Next <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                                 </button>
                              </div>
-                         </a>
+                         </div>
+                         <button type="button" class="exp-nav exp-nav-next" aria-label="Next project">
+                             <span class="exp-nav-icon" aria-hidden="true"></span>
+                         </button>
+                         <p class="exp-live visually-hidden" aria-live="polite"></p>
                      </div>
                  </div>
              </div>
          </section>
 
         <!-- Work Experience Section -->
-        <section id="experience" class="content-section">
-            <div class="section-header">
-                <h2>Work Experience</h2>
-            </div>
-            <div class="section-content">
-                <!-- Howard Center -->
-                <div class="experience-card site-card">
-                    <div class="card-header-row">
-                        <div class="company-logo">
-                            <img src="resume_images/howardcenter.jpeg" alt="Howard Center">
-                        </div>
-                        <div class="company-info">
-                            <h3 class="company-name">Howard Center for Investigative Journalism</h3>
-                            <h4 class="job-title">Fellow</h4>
-                        </div>
+                                        <section id="experience" class="content-section">
+                    <div class="section-header">
+                        <h2>Work Experience</h2>
                     </div>
-                    <p class="company-description">
-                        "The Howard Center, funded by the Scripps Howard Foundation, collaborates with professionals
-                        and students at The University of Maryland and around the country to publish impactful
-                        journalism."
-                    </p>
-                    <p class="job-description">
-                        The Howard Center for Investigative Journalism has published incredible enterprise journalism since its establishment in 2019. Months collaborations with outside newsrooms have led to deep exposes on topics such as rail safety, police brutality, and the urban heat effect. I began work in July of 2025 and have since been able to contribute to a brand new project currently in development.
-                    </p>
-                    <a href="https://cnsmaryland.org/the-howard-center-for-investigative-journalism/" class="project-link-btn" target="_blank">
-                        <i class="bi bi-arrow-right-circle me-2"></i>Howard Center Projects
-                    </a>
-                    <p class="employment-dates">July 2025-Present • <em>College Park, Maryland</em></p>
-                </div>
+                    <div class="section-content">
+                        <!-- ============================================
+             HOW TO ADD A JOB
+             ============================================
+             Each job is TWO pieces that must stay paired:
 
-                <!-- ASML -->
-                <div class="experience-card site-card">
-                    <div class="card-header-row">
-                        <div class="company-logo">
-                            <img src="resume_images/ASML_logo.png" alt="ASML">
-                        </div>
-                        <div class="company-info">
-                            <h3 class="company-name">ASML <a href="https://www.asml.com/en/products/euv-lithography-systems" target="_blank" class="company-visit-btn" title="Visit ASML"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
-                            <h4 class="job-title">Test Engineer</h4>
-                        </div>
-                    </div>
-                    <p class="company-description">
-                        ASML is a Dutch company which in laymans terms makes the machines that make microchips.
-                        Specifically, they make the machine that performs the most detailed part of the process,
-                        semiconductor lithography.
-                    </p>
-                    <p class="job-description">
-                        While a test engineer at ASML, my main duties involved keeping a lab running and assisting
+               1. a <button class="experience-card"> tile, and
+               2. a <div class="experience-panel"> holding its descriptions.
+
+             They are tied together by id: the button's aria-controls must
+             match the panel's id, and the panel's aria-labelledby must match
+             the button's id. Copy an existing pair, paste the button with the
+             other buttons and the panel with the other panels, and give both
+             a new matching number.
+
+             Tiles show three across and never move. Clicking one dims the
+             grid and floats a single shared dialog over it, filled from that
+             tile and its panel, with arrows to step between roles. The
+             .experience-panel divs are never displayed as-is; they are the
+             content source the script reads from.
+             ============================================ -->
+                        <div class="experience-stage">
+                            <div class="experience-grid">
+                            <button type="button" class="experience-card site-card" id="exp-tile-0"
+                                aria-expanded="false" aria-controls="exp-panel-0"
+                                aria-labelledby="exp-name-0 exp-role-0">
+                                <span class="experience-card-head">
+                                    <span class="company-logo logo-stack">
+                                        <img src="resume_images/howardcenter_tight.png" alt="Howard Center">
+                                    </span>
+                                    <span class="company-info">
+                                        <span class="company-name" id="exp-name-0">Howard Center for Investigative Journalism</span>
+                                        <span class="job-title" id="exp-role-0">Graduate Fellow</span>
+                                        <span class="employment-dates">July 2025-Present</span>
+                                        <span class="employment-location">College Park, Maryland</span>
+                                    </span>
+                                    <span class="experience-chevron" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                                </span>
+                                <span class="company-description">An investigative reporting newsroom located at The University of Maryland and funded generously by the Scripps-Howard Foundation.</span>
+                            </button>
+
+                            <button type="button" class="experience-card site-card" id="exp-tile-1"
+                                aria-expanded="false" aria-controls="exp-panel-1"
+                                aria-labelledby="exp-name-1 exp-role-1">
+                                <span class="experience-card-head">
+                                    <span class="company-logo">
+                                        <img src="resume_images/ASML_logo.png" alt="ASML">
+                                    </span>
+                                    <span class="company-info">
+                                        <span class="company-name" id="exp-name-1">ASML</span>
+                                        <span class="job-title" id="exp-role-1">Test Engineer</span>
+                                        <span class="employment-dates">September 2021-June 2025</span>
+                                        <span class="employment-location">San Diego, California</span>
+                                    </span>
+                                    <span class="experience-chevron" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                                </span>
+                                <span class="company-description">A Dutch company which, in layman's terms, makes the machines that make microchips. Specifically, they make the machine that performs the most detailed part of the process, semiconductor lithography.</span>
+                            </button>
+
+                            <button type="button" class="experience-card site-card" id="exp-tile-2"
+                                aria-expanded="false" aria-controls="exp-panel-2"
+                                aria-labelledby="exp-name-2 exp-role-2">
+                                <span class="experience-card-head">
+                                    <span class="company-logo logo-wide">
+                                        <img src="resume_images/smithnephew.png" alt="Smith &amp; Nephew">
+                                    </span>
+                                    <span class="company-info">
+                                        <span class="company-name" id="exp-name-2">Smith &amp; Nephew</span>
+                                        <span class="job-title" id="exp-role-2">R&amp;D Co-op, Knee Repair Division</span>
+                                        <span class="employment-dates">January 2018-June 2018</span>
+                                        <span class="employment-location">Mansfield, Massachusetts</span>
+                                    </span>
+                                    <span class="experience-chevron" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                                </span>
+                                <span class="company-description">A global medical device company.</span>
+                            </button>
+
+                            <button type="button" class="experience-card site-card" id="exp-tile-3"
+                                aria-expanded="false" aria-controls="exp-panel-3"
+                                aria-labelledby="exp-name-3 exp-role-3">
+                                <span class="experience-card-head">
+                                    <span class="company-logo logo-block">
+                                        <img src="resume_images/watts_tight.jpg" alt="Watts Water Technologies">
+                                    </span>
+                                    <span class="company-info">
+                                        <span class="company-name" id="exp-name-3">Watts Water Technologies</span>
+                                        <span class="job-title" id="exp-role-3">Engineering Co-op</span>
+                                        <span class="employment-dates">January 2016-June 2016</span>
+                                        <span class="employment-location">North Andover, Massachusetts</span>
+                                    </span>
+                                    <span class="experience-chevron" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                                </span>
+                                <span class="company-description">A global water technology company. Think valves and piping.</span>
+                            </button>
+
+                            <button type="button" class="experience-card site-card" id="exp-tile-4"
+                                aria-expanded="false" aria-controls="exp-panel-4"
+                                aria-labelledby="exp-name-4 exp-role-4">
+                                <span class="experience-card-head">
+                                    <span class="company-logo logo-emblem">
+                                        <img src="resume_images/masscec_tight.jpg" alt="Massachusetts Clean Energy Center">
+                                    </span>
+                                    <span class="company-info">
+                                        <span class="company-name" id="exp-name-4">Massachusetts Clean Energy Center</span>
+                                        <span class="job-title" id="exp-role-4">Wind Technology Testing Center Fellow</span>
+                                        <span class="employment-dates">January 2015-June 2015</span>
+                                        <span class="employment-location">Charlestown, Massachusetts</span>
+                                    </span>
+                                    <span class="experience-chevron" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                                </span>
+                                <span class="company-description">A quasi-state organization working to develop the clean energy sector in Massachusetts.</span>
+                            </button>
+
+                            <!-- Panels sit here until opened; the script moves one into its row. -->
+                            <div class="experience-panel" id="exp-panel-0" role="region"
+                                aria-labelledby="exp-tile-0" hidden>
+                                <div class="experience-panel-inner">
+                                    <p class="job-description">The Howard Center for Investigative Journalism has published incredible enterprise journalism since its establishment at the University of Maryland in 2019. Months-long collaborations with outside newsrooms have led to in-depth exposés on topics such as rail safety, police brutality, and the urban heat effect. I began work in July of 2025 and have since been able to contribute to a brand new project, currently in development.</p>
+                                    <a href="https://cnsmaryland.org/the-howard-center-for-investigative-journalism/" class="project-link-btn" target="_blank" rel="noopener">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Howard Center Projects
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="experience-panel" id="exp-panel-1" role="region"
+                                aria-labelledby="exp-tile-1" hidden>
+                                <div class="experience-panel-inner">
+                                    <p class="job-description">While a test engineer at ASML, my main duties involved keeping a lab running and assisting
                         other engineers construct/deconstruct their test setups and then assisting with the execution
                         of those tests. This could involve delicate vacuum systems, Helium leak checking, heater and
                         thermocouple placement, pneumatic valve operation, microscopy etc.<br><br>
                         My main passion project, which led me to journalism, was advocating for fiscally pragmatic and sustainable 401(k) fund options. This project deepened in scope when I learned about the problems in the sustainable investment space. Wanting to use my company's resources/market safety for good, I drafted petition letters and slide decks for tailored pitches to management. These pitch decks were vigorously researched from hundreds of pages of shareholder materials and other approved statements from management to synthesize cohesive arguments for concrete action to lobby in support of the SEC's campaign to end subjective climate disclosures and the false-advertising of sustainable investment funds, a practice known as greenwashing.<br><br>
                         I also researched and advocated for more transparency in our established 401(k) funds and better health insurance
-                        benefits.
-                    </p>
-                    <p class="employment-dates">September 2021-June 2025 • <em>San Diego, California</em></p>
-                </div>
-
-                <!-- Smith & Nephew -->
-                <div class="experience-card site-card">
-                    <div class="card-header-row">
-                        <div class="company-logo">
-                            <img src="resume_images/smithnephew.png" alt="Smith & Nephew">
-                        </div>
-                        <div class="company-info">
-                            <h3 class="company-name">Smith & Nephew <a href="https://www.smith-nephew.com/en-us/" target="_blank" class="company-visit-btn" title="Visit Smith & Nephew"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
-                            <h4 class="job-title">R&D Co-op, Knee Repair Division</h4>
-                        </div>
-                    </div>
-                    <p class="company-description">
-                        Smith and Nephew is a global medical technology company. I worked in R&D for surgical devices
-                        on the Knee team.
-                    </p>
-                    <p class="job-description">
-                        I worked as an R & D Co-op on the Knee Repair team at Smith & Nephew. My primary project
+                        benefits.</p>
+                                    <a href="https://www.asml.com/en/products/euv-lithography-systems" class="project-link-btn" target="_blank" rel="noopener">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Visit ASML
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="experience-panel" id="exp-panel-2" role="region"
+                                aria-labelledby="exp-tile-2" hidden>
+                                <div class="experience-panel-inner">
+                                    <p class="job-description">I worked as an R&D Co-op on the Knee Repair team at Smith & Nephew. My primary project
                         revolved
                         around the design of a special new drill that facilitates knee ligament reconstruction (i.e.
                         ACL,
-                        PCL, small size meniscal root repairs, etc.). As part of a cross functional team, I generated
+                        PCL, small size meniscal root repairs, etc.). As part of a cross-functional team, I generated
                         new
                         parts and assemblies, iterated upon them, worked with machinists to produce prototypes, and
                         tested
-                        those prototypes. In addition to these efforts, in order to streamline snapfit design and spring
+                        those prototypes. In addition to these efforts, in order to streamline snap-fit design and spring
                         selection, I created semi-automated Microsoft Excel spreadsheets which calculated relevant
                         properties
                         and values and assisted in utilization of these components. This was accomplished using numerous
                         logic
                         commands, mathematical models, and Excel's VBA editor. While on this co-op, I gained experience
                         in test
-                        protocol and technical report drafting, as well as executing the tests themselves.
-                    </p>
-                    <p class="employment-dates">January 2018-June 2018 • <em>Mansfield, Massachusetts</em></p>
-                </div>
-
-                <!-- Watts Water -->
-                <div class="experience-card site-card">
-                    <div class="card-header-row">
-                        <div class="company-logo">
-                            <a href="https://www.watts.com" target="_blank"><img src="resume_images/watts.jpeg" alt="Watts Water Technology"></a>
-                        </div>
-                        <div class="company-info">
-                            <h3 class="company-name">Watts Water Technology <a href="https://www.watts.com" target="_blank" class="company-visit-btn" title="Visit Watts Water Technology"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
-                            <h4 class="job-title">Engineering Co-op</h4>
-                        </div>
-                    </div>
-                    <p class="company-description">
-                        Global water technology company. Think valves and piping.
-                    </p>
-                    <p class="job-description">
-                        While a co-op at Watts Water Technologies I took on many tasks. Principle of which was a cost
-                        saving
-                        measure to adapt one of our standard thermostatic mixing valves to perform
+                        protocol and technical report drafting, as well as executing the tests themselves.</p>
+                                    <a href="https://www.smith-nephew.com/en-us/" class="project-link-btn" target="_blank" rel="noopener">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Visit Smith & Nephew
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="experience-panel" id="exp-panel-3" role="region"
+                                aria-labelledby="exp-tile-3" hidden>
+                                <div class="experience-panel-inner">
+                                    <p class="job-description">While a co-op at Watts Water Technologies I took on many tasks. Principal among which was a cost-saving measure to adapt one of our standard thermostatic mixing valves to perform
                         the
                         function of one of our specialty mixing valves used for emergency equipment. Other tasks
                         included
@@ -483,32 +579,56 @@
                         a repair kit, coordinating nameplates for a group of valves and making sure their certifications
                         were
                         noted properly, assisting with lab set-up and testing, and other miscellaneous engineering
-                        projects.
-                    </p>
-                    <p class="employment-dates">January 2016-June 2016 • <em>North Andover, Massachusetts</em></p>
-                </div>
-
-                <!-- Massachusetts Clean Energy Center -->
-                <div class="experience-card site-card">
-                    <div class="card-header-row">
-                        <div class="company-logo">
-                            <img src="resume_images/masscec_logo.jpeg" alt="Massachusetts Clean Energy Center">
-                        </div>
-                        <div class="company-info">
-                            <h3 class="company-name">Massachusetts Clean Energy Center <a href="https://www.masscec.com/masscec-focus/offshore-wind/wind-technology-testing-center-wttc" target="_blank" class="company-visit-btn" title="Visit MassCEC"><i class="bi bi-arrow-right-circle-fill"></i></a></h3>
-                            <h4 class="job-title">Wind Technology Testing Center Fellow</h4>
+                        projects.</p>
+                                    <a href="https://www.watts.com" class="project-link-btn" target="_blank" rel="noopener">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Visit Watts Water Technologies
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="experience-panel" id="exp-panel-4" role="region"
+                                aria-labelledby="exp-tile-4" hidden>
+                                <div class="experience-panel-inner">
+                                    <p class="job-description">The Wind Technology Testing Center is a lab which structurally tests the integrity of full-scale wind turbine blades. The lab floor is around the size of a football field. Companies that make wind turbine blades send them to the WTTC where they are rigged up with equipment that measures the strength and deflection of the blade as it is pulled in different directions by high-powered cables. While a fellow there I assisted with day-to-day lab operations including blade static and fatigue testing, hard-point installation, winch operation, blade instrumentation, and small-scale equipment design projects.</p>
+                                    <a href="https://www.masscec.com/masscec-focus/offshore-wind/wind-technology-testing-center-wttc" class="project-link-btn" target="_blank" rel="noopener">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Visit Massachusetts Clean Energy Center
+                                    </a>
+                                </div>
+                            </div>
+                            </div>
+                            <!-- The panel. One dialog, refilled from whichever
+                                 tile you picked, floating over the dimmed grid.
+                                 Its contents are built by the script from the
+                                 tile and its matching .experience-panel. -->
+                            <div class="experience-overlay" hidden>
+                                <div class="experience-backdrop" data-exp-close></div>
+                                <button type="button" class="exp-nav exp-nav-prev" aria-label="Previous role">
+                                    <span class="exp-nav-icon" aria-hidden="true"></span>
+                                </button>
+                                <div class="experience-dialog" role="dialog" aria-modal="true"
+                                     aria-labelledby="expDialogName" tabindex="-1">
+                                    <button type="button" class="exp-close" aria-label="Close" data-exp-close>
+                                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                    </button>
+                                    <div class="exp-dialog-head"></div>
+                                    <div class="exp-dialog-body"></div>
+                                    <div class="exp-dialog-foot">
+                                        <button type="button" class="exp-foot-nav" data-exp-step="-1">
+                                            <i class="bi bi-arrow-left" aria-hidden="true"></i> Previous
+                                        </button>
+                                        <span class="exp-counter" aria-hidden="true"></span>
+                                        <button type="button" class="exp-foot-nav" data-exp-step="1">
+                                            Next <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="exp-nav exp-nav-next" aria-label="Next role">
+                                    <span class="exp-nav-icon" aria-hidden="true"></span>
+                                </button>
+                                <p class="exp-live visually-hidden" aria-live="polite"></p>
+                            </div>
                         </div>
                     </div>
-                    <p class="company-description">
-                        Quasi-state organization working to develop the clean energy sector in Massachusetts.
-                    </p>
-                    <p class="job-description">
-                        The Wind Technology Testing Center is a lab which structurally tests the integrity of full scale wind turbine blades. The lab floor is around the size of a football field. Companies that make wind turbine blades send them to the WTTC where they are rigged up with equipment that measures the strength and deflection of the blade as it is pulled in different directions by high powered cables. While a fellow there I assisted with day to day lab operations including blade static and fatigue testing, hard-point installation, winch operation, blade instrumentation, and small scale equipment design projects.
-                    </p>
-                    <p class="employment-dates">January 2015-June 2015 • <em>Charlestown, Massachusetts</em></p>
-                </div>
-            </div>
-        </section>
+                </section>
 
         <!-- Education Section -->
         <section id="education" class="content-section">
@@ -516,29 +636,35 @@
                 <h2>Education</h2>
             </div>
             <div class="section-content">
-                <div class="row g-4">
-                    <div class="col-md-6 card-col">
+                <div class="education-grid">
                         <div class="education-card site-card">
-                            <h4 class="school-name">Northeastern University</h4>
-                            <div class="education-card-body">
-                                <p class="school-location">Boston, Massachusetts</p>
-                                <p class="school-degree">BS: Mechanical Engineering</p>
-                                <p class="school-degree">Minor in Business Administration</p>
-                                <p class="school-dates">Graduated: <span class="date-highlight">July 2018</span>-<i>Cum Laude</i></p>
+                            <div class="school-header-row">
+                                <div class="school-logo"><img src="resume_images/umd_seal.png" alt="University of Maryland seal"></div>
+                                <div class="school-identity">
+                                    <h4 class="school-name">University of Maryland</h4>
+                                    <p class="school-location">College Park, Maryland</p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 card-col">
-                        <div class="education-card site-card">
-                            <h4 class="school-name">University of Maryland</h4>
                             <div class="education-card-body">
-                                <p class="school-location">College Park, Maryland</p>
-                                <p class="school-degree">MA: Multi-Platform Journalism</p>
+                                <p class="school-degree">Master of Journalism<br><span class="school-field">Multi-Platform Journalism</span></p>
                                 <p class="school-honors">Howard Center Fellow</p>
                                 <p class="school-dates">Expected Graduation: <span class="date-highlight">May 2027</span></p>
                             </div>
                         </div>
-                    </div>
+                        <div class="education-card site-card">
+                            <div class="school-header-row">
+                                <div class="school-logo"><img src="resume_images/northeastern_seal.png" alt="Northeastern University seal"></div>
+                                <div class="school-identity">
+                                    <h4 class="school-name">Northeastern University</h4>
+                                    <p class="school-location">Boston, Massachusetts</p>
+                                </div>
+                            </div>
+                            <div class="education-card-body">
+                                <p class="school-degree">Bachelor of Science<br><span class="school-field">Mechanical Engineering</span></p>
+                                <p class="school-minor">Minor in Business Administration</p>
+                                <p class="school-dates">Graduated: <span class="date-highlight">July 2018</span>-<i>Cum Laude</i></p>
+                            </div>
+                        </div>
                 </div>
             </div>
         </section>
@@ -595,7 +721,7 @@
                                     <div class="about-card-body">
                                         <div class="about-card-text">
                                             <p>
-                                                Coming from a completely different discipline means I was trained in a methodology of problem solving uncommon to life-long journalists. Among other subjects, I learned calculus, fluid mechanics, thermodynamics, measurement science, and control systems. Whether I held onto the salient details of those courses or would ever use the Thermal Resistance Circuits model in my day-to-day life is immaterial. The point is that all those concepts taught me how to learn and now form the basis for how I approach challenges today.
+                                                Coming from a completely different discipline means I was trained in a methodology of problem solving uncommon to lifelong journalists. Among other subjects, I learned calculus, fluid mechanics, thermodynamics, measurement science, and control systems. Whether I held onto the salient details of those courses or would ever use the Thermal Resistance Circuits model in my day-to-day life is immaterial. The point is that all those concepts taught me how to learn and now form the basis for how I approach challenges today.
                                             </p>
                                         </div>
                                         <div class="about-card-icon">
@@ -604,7 +730,7 @@
                                     </div>
                                     <div class="about-card-footer">
                                         <p><strong class="about-card-example-header">How This Helps Today: </strong><span class="about-card-example-subhead">Coding Languages</span><br>
-                                        Throughout school I learned the basics of <strong>Ruby, Python, C, VBA and Matlab.</strong> Despite the fact that today I can't write in any of those languages, learning them taught me to be deliberate and methodical with coding. This has proven to be a solid foundation on which to learn <strong>R, HTML, and CSS.</strong></p>
+                                        Throughout school I learned the basics of <strong>Ruby, Python, C, VBA and MATLAB.</strong> Despite the fact that today I can't write in any of those languages, learning them taught me to be deliberate and methodical with coding. This has proven to be a solid foundation on which to learn <strong>R, HTML, and CSS.</strong></p>
                                     </div>
                                 </div>
                             </div>
@@ -621,7 +747,7 @@
                                     <div class="about-card-body">
                                         <div class="about-card-text">
                                             <p>
-                                                Once you've been a Pedicab tour guide, dependent on tips, you develop people skills. For that job you need to talk to strangers to generate business, and be pleasant while you spend the day in the DC summer humidity. I've further developed those same skills working in restaurants. As far as exposure to people in different fields, I've been a bike mechanic, academic coach, camp counselor, construction worker, and pseudo assistant school teacher.
+                                                Once you've been a pedicab tour guide, dependent on tips, you develop people skills. For that job you need to talk to strangers to generate business, and be pleasant while you spend the day in the DC summer humidity. I've further developed those same skills working in restaurants. As far as exposure to people in different fields, I've been a bike mechanic, academic coach, camp counselor, construction worker, and pseudo-assistant school teacher.
                                             </p>
                                         </div>
                                         <div class="about-card-icon">
@@ -647,7 +773,7 @@
                                     <div class="about-card-body">
                                         <div class="about-card-text">
                                             <p>
-                                                As a 19-year-old, I thought a business minor would be a good way to give myself the tools to start my own company if I invented something cool. We all make wrong turns, because turns out I wanted the Engineering Entrepreneurship minor.<br>Best. Mistake. Ever.
+                                                As a 19-year-old, I thought a business minor would be a good way to give myself the tools to start my own company if I invented something cool. We all make wrong turns, because it turns out I wanted the Engineering Entrepreneurship minor.<br>Best. Mistake. Ever.
                                             </p>
                                         </div>
                                         <div class="about-card-icon">
@@ -656,7 +782,7 @@
                                     </div>
                                     <div class="about-card-footer">
                                         <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Interest in Business Reporting</span><br>
-                                        Learning the fundamentals of accounting, organizational behavior, and marketing have only become more useful since I pivoted to journalism.</p>
+                                        Learning the fundamentals of accounting, organizational behavior, and marketing has only become more useful since I pivoted to journalism.</p>
                                     </div>
                                 </div>
                             </div>
@@ -673,7 +799,7 @@
                                     <div class="about-card-body">
                                         <div class="about-card-text">
                                             <p>
-                                                The three years between graduating from Northeastern and landing my first full-time engineering job I deliberately refused to apply to industries that conflicted with my personal and professional ethics, even though they employed a large percentage of entry level mechanical engineers.
+                                                The three years between graduating from Northeastern and landing my first full-time engineering job I deliberately refused to apply to industries that conflicted with my personal and professional ethics, even though they employed a large percentage of entry-level mechanical engineers.
                                             </p>
                                             <p>
                                                 While consistently applying for more competitive engineering jobs and volunteering for Engineers Without Borders, I supported myself as a restaurant server, a busser, a food-runner, an academic coach, and a math tutor.
@@ -684,7 +810,7 @@
                                         </div>
                                     </div>
                                     <div class="about-card-footer">
-                                        <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Resilience and Growth</span><br>This decision was the easiest to make but the hardest to stand by as time went on. It taught me a lot about pride, principles, and who I choose to be when things aren't easy. It was the most worthwhile choice I've ever made.</p>
+                                        <p><strong class="about-card-example-header">How This Helps Today:</strong> <span class="about-card-example-subhead">Resilience and Growth</span><br>This decision was the easiest to make but the hardest to stand by as the years went on. It taught me a lot about ownership over the impact of my work, the distinction between pride and principles, and who I choose to be when things aren't easy. It was the most worthwhile choice I've ever made.</p>
                                     </div>
                                 </div>
                             </div>
@@ -701,10 +827,10 @@
                                     <div class="about-card-body">
                                         <div class="about-card-text">
                                             <p>
-                                                Employed with a full-time engineering position in San Diego, I found myself unhappy with where my effort was going day-to-day. In my spare time, I took on projects that had nothing to do with engineering with large research and communication components. I was way more productive and happy working on these projects than my job's actual duties.
+                                                Employed with a full-time engineering position in San Diego, I found myself unhappy with where my effort was going day-to-day. In my spare time, I took on projects that had nothing to do with engineering with large research and communication components. These projects made me happier and more productive than the rest of my job ever did.
                                             </p>
                                             <p>
-                                                After four years, plenty of soul searching, and a great deal of planning, I moved back to the east coast to begin a journalism program with no prior experience in humanties.
+                                                After four years, plenty of soul searching, and a great deal of planning, I moved back to the east coast to begin a journalism program with no prior experience in humanities. I now work in an industry where my passion doesn't work against me, where the people I work with care about caring and strive to operate with deeper empathy.
                                             </p>
                                         </div>
                                         <div class="about-card-icon">
@@ -762,7 +888,7 @@
                     <div class="col-md-4">
                         <div class="contact-item">
                             <a href="landerman_resume.pdf" download="landerman_resume.pdf">
-                                <img src="resume_images/resume_vector.svg" class="logo_image centered_image" alt="Resume Download">
+                                <img src="resume_images/resume_vector.svg" class="contact-icon" alt="Resume Download">
                             </a>
                             <p class="contact-label">Resume Download</p>
                         </div>
@@ -774,14 +900,6 @@
     </main>
 
     <script>
-        // Sync thumbnail active state with carousel slide
-        var articlesCarousel = document.getElementById('articlesCarousel');
-        articlesCarousel.addEventListener('slid.bs.carousel', function (event) {
-            var thumbnails = document.querySelectorAll('.thumbnail-btn');
-            thumbnails.forEach(function (btn) { btn.classList.remove('active'); });
-            thumbnails[event.to].classList.add('active');
-        });
-
         /* DARK MODE TOGGLE DISABLED
         // Dark Mode Toggle
         (function () {
@@ -882,6 +1000,512 @@
                 resizeTimer = setTimeout(sizeCarousel, 150);
             });
 
+        });
+    </script>
+    <!-- Sidebar current-section marker -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var links = Array.prototype.slice.call(
+                document.querySelectorAll('.sidebar .nav-link'));
+            if (!links.length) return;
+
+            var items = links.map(function (link) {
+                var href = link.getAttribute('href') || '';
+                return {
+                    link: link,
+                    section: (href && href !== '#') ? document.querySelector(href) : null
+                };
+            });
+            var sectioned = items.filter(function (i) { return i.section; });
+
+            function topOf(el) {
+                return el.getBoundingClientRect().top + window.pageYOffset;
+            }
+
+            function update() {
+                // A section counts as "current" once it crosses 30% down the viewport.
+                var marker = window.pageYOffset + window.innerHeight * 0.3;
+                var current = items[0]; // first section, until a later one crosses the line
+
+                sectioned.forEach(function (i) {
+                    if (topOf(i.section) <= marker) current = i;
+                });
+
+                // At the very bottom, the last section wins even if it never
+                // reaches the marker line on a short page.
+                var atBottom = window.innerHeight + window.pageYOffset >=
+                    document.documentElement.scrollHeight - 2;
+                if (atBottom && sectioned.length) {
+                    current = sectioned[sectioned.length - 1];
+                }
+
+                items.forEach(function (i) {
+                    i.link.classList.toggle('is-current', i === current);
+                });
+
+                updateBrand();
+            }
+
+            // On phones the hero carries the name and the resume/email links, so
+            // the navbar stays transparent, nameless and click-through until the
+            // hero has scrolled away. One class drives all three (see CSS 3.2).
+            var navbar = document.querySelector('.navbar.fixed-top');
+            var divider = document.querySelector('.divider');
+            var mobileNav = document.getElementById('mobileNav');
+
+            // While an in-page jump is in flight the bar holds whatever state we
+            // set at the moment of the tap. Without this it re-reads the live
+            // scroll position mid-flight: the menu finishes closing before the
+            // scroll does, the bar sees "still over the hero", flicks
+            // transparent, then snaps solid on arrival.
+            var navLock = false;
+            var navLockTimer = null;
+            var navLockTargetY = 0;
+
+            function releaseNavLock() {
+                clearTimeout(navLockTimer);
+                navLockTimer = null;
+                navLock = false;
+                updateBrand();
+            }
+
+            // Pin the bar solid for the whole trip to `hash`.
+            //
+            // Release is keyed to arriving at the destination, not to a timer.
+            // A timer has to guess how long the scroll takes, and the scroll can
+            // sit still for a moment before it starts — which is exactly how the
+            // flicker happened: the menu finished closing, nothing had moved
+            // yet, the bar re-read "still over the hero" and went transparent
+            // mid-flight before snapping back.
+            function lockNavFor(hash) {
+                var el = (hash && hash.length > 1) ? document.querySelector(hash) : null;
+                var navH = parseInt(getComputedStyle(document.documentElement)
+                    .getPropertyValue('--mobile-nav-h'), 10) || 60;
+                var maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+                var destY = el
+                    ? el.getBoundingClientRect().top + window.pageYOffset - navH
+                    : 0;
+
+                navLockTargetY = Math.min(Math.max(0, Math.round(destY)), maxY);
+                navLock = true;
+                navbar.classList.add('is-past-hero');
+
+                clearTimeout(navLockTimer);
+                navLockTimer = setTimeout(releaseNavLock, 3000); // safety net
+            }
+
+            function noteNavLockScroll() {
+                if (Math.abs(window.pageYOffset - navLockTargetY) <= 3) {
+                    releaseNavLock();
+                }
+            }
+
+            function updateBrand() {
+                if (!navbar || navLock) return;
+
+                // No hero (tablet/desktop) => nothing to defer to.
+                if (!divider || getComputedStyle(divider).display === 'none') {
+                    navbar.classList.add('is-past-hero');
+                    return;
+                }
+
+                var navH = parseInt(getComputedStyle(document.documentElement)
+                    .getPropertyValue('--mobile-nav-h'), 10) || 60;
+                var heroBottom = divider.getBoundingClientRect().bottom + window.pageYOffset;
+
+                // 4px of slack at the boundary. An anchor jump to the first
+                // section lands exactly on this threshold, so without slack a
+                // sub-pixel shortfall flips the bar for a frame on arrival.
+                // Wider than the arrival tolerance below, so the two can never
+                // disagree about where we ended up.
+                navbar.classList.toggle('is-past-hero',
+                    window.pageYOffset >= heroBottom - navH - 4);
+            }
+
+            var ticking = false;
+            function onScroll() {
+                if (navLock) noteNavLockScroll(); // unlocks once scrolling stops
+                if (ticking) return;
+                ticking = true;
+                window.requestAnimationFrame(function () {
+                    update();
+                    ticking = false;
+                });
+            }
+
+            // Close the phone menu when any item is tapped.
+            //
+            // Note there is deliberately no preventDefault and no manual
+            // scrolling here. The browser's own fragment navigation handles
+            // that (smoothly, via scroll-behavior, cleared of the navbar by
+            // scroll-margin-top), and it also covers someone arriving on a
+            // /#experience URL directly, which a click handler never sees.
+            //
+            // This is the one thing data-bs-toggle="collapse" could not do:
+            // Bootstrap's collapse data API calls preventDefault() on <a>
+            // triggers, which killed the links' navigation outright.
+            if (mobileNav && window.bootstrap && window.bootstrap.Collapse) {
+                mobileNav.addEventListener('click', function (e) {
+                    if (!e.target.closest('.nav-link')) return;
+
+                    // Pin it solid before anything moves, and hold that until
+                    // the scroll settles. Going Home this means the bar stays
+                    // solid on the way up and fades out once, on arrival,
+                    // instead of flashing partway.
+                    lockNavFor(e.target.closest('.nav-link').getAttribute('href'));
+
+                    if (!mobileNav.classList.contains('show')) return;
+
+                    // Deferred by one frame on purpose. Collapsing the menu in
+                    // the same tick cancels the fragment scroll the browser is
+                    // about to start, and the page never moves. Letting the
+                    // scroll begin first makes both happen.
+                    requestAnimationFrame(function () {
+                        window.bootstrap.Collapse.getOrCreateInstance(mobileNav).hide();
+                    });
+                });
+            }
+
+            /* ---- Hero "keep going" button ----
+               Lives on the Articles band, which sits just under the phone
+               hero. Shown only while the hero is on screen. On desktop the
+               hero is display:none, so it never intersects and the button
+               stays hidden without needing a width check. */
+            (function () {
+                var jump = document.getElementById('heroJump');
+                var hero = document.querySelector('.title-panel');
+                if (!jump || !hero) return;
+
+                /* One test, driven from three places. A hero that is
+                   display:none (desktop) has no box, so width/height of 0
+                   reads as "not visible" and the button stays hidden without
+                   needing a breakpoint check of its own. */
+                var bar = document.querySelector('.navbar.fixed-top');
+
+                function syncJump() {
+                    var r = hero.getBoundingClientRect();
+                    /* Measured live rather than read from the CSS variable,
+                       so it cannot fall out of step with the real bar. */
+                    var navH = bar ? bar.getBoundingClientRect().height : 0;
+                    /* Counted as gone once it is behind the navbar, not once
+                       it clears the viewport: after the button scrolls you to
+                       Articles the hero's last ~60px is still technically on
+                       screen, just hidden under the bar, and the button would
+                       sit there having apparently done nothing. */
+                    /* 8px, not 0: landing on Articles leaves the hero's
+                       bottom edge at 62.0 against a 61.8px bar, and a 0.2px
+                       sliver was enough to keep the button up. It has to be
+                       meaningfully visible to count. */
+                    var onScreen = r.width > 0 && r.height > 0 &&
+                                   r.bottom > navH + 8 &&
+                                   r.top < window.innerHeight;
+                    if (jump.hidden === onScreen) jump.hidden = !onScreen;
+                }
+
+                /* IntersectionObserver is the cheap path, but it is driven by
+                   the rendering loop and stops firing in a backgrounded tab,
+                   which would strand the button in whatever state it was in.
+                   The scroll and resize listeners cover that. */
+                if ('IntersectionObserver' in window) {
+                    new IntersectionObserver(syncJump, { threshold: 0 }).observe(hero);
+                }
+                window.addEventListener('scroll', syncJump, { passive: true });
+                window.addEventListener('resize', syncJump);
+                syncJump();
+
+                jump.addEventListener('click', function () {
+                    // section[id] carries scroll-margin-top for the fixed
+                    // navbar, so this lands clear of it on its own
+                    document.getElementById('articles')
+                        .scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            })();
+
+            // ---- Shared panel deck ----
+            // Flourish-style, used by both Work Experience and Design
+            // Projects. The tiles are a plain grid that never moves or
+            // reorders. Clicking one fades the grid back and raises a single
+            // dialog over it; arrows step through without closing.
+            //
+            // One dialog per section, not one per tile: the panels stay in
+            // the markup as the content source, so adding an entry is still
+            // just a tile and a panel with matching ids.
+            function el(tag, cls, text) {
+                var n = document.createElement(tag);
+                if (cls) n.className = cls;
+                if (text != null) n.textContent = text;
+                return n;
+            }
+
+            function textOf(root, sel) {
+                var n = root.querySelector(sel);
+                return n ? n.textContent.trim() : '';
+            }
+
+            function panelInto(box, tile) {
+                var src = document.getElementById(tile.getAttribute('aria-controls'));
+                var inner = src && src.querySelector('.panel-inner, .experience-panel-inner, .project-panel-inner');
+                if (!inner) return;
+                Array.prototype.forEach.call(inner.children, function (child) {
+                    box.appendChild(child.cloneNode(true));
+                });
+            }
+
+            // opts: { stage, tileSel, overlaySel, dialogSel, closeAttr,
+            //         stepAttr, fill(tile, head, body), label(tile) }
+            function mountPanelDeck(opts) {
+                var stage = opts.stage;
+                if (!stage) return;
+                var overlay = stage.querySelector(opts.overlaySel);
+                var dialog = overlay && overlay.querySelector(opts.dialogSel);
+                if (!overlay || !dialog) return;
+
+                var tiles = Array.prototype.slice.call(stage.querySelectorAll(opts.tileSel));
+                if (!tiles.length) return;
+
+                var head = dialog.querySelector('.exp-dialog-head');
+                var body = dialog.querySelector('.exp-dialog-body');
+                var counter = dialog.querySelector('.exp-counter');
+                var live = overlay.querySelector('.exp-live');
+                var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+                var current = -1;       // index on show, -1 when closed
+                var lastFocus = null;   // tile to hand focus back to
+
+                // Built from the tile rather than cloned, so the dialog
+                // cannot end up carrying a duplicate of the tile's ids.
+                function render(i) {
+                    head.textContent = '';
+                    body.textContent = '';
+                    opts.fill(tiles[i], head, body);
+
+                    counter.textContent = (i + 1) + ' / ' + tiles.length;
+                    tiles.forEach(function (t, k) {
+                        t.classList.toggle('is-current', k === i);
+                        t.setAttribute('aria-expanded', k === i ? 'true' : 'false');
+                    });
+                    if (live) {
+                        live.textContent = opts.label(tiles[i]) + ' ' +
+                            (i + 1) + ' of ' + tiles.length + '.';
+                    }
+                    current = i;
+                }
+
+                /* The overlay is out of flow, so the section would not grow
+                   for it and a long panel would run down over whatever is
+                   below. The stage is given the dialog's height instead, and
+                   a ResizeObserver keeps it right as the content or the
+                   window changes. */
+                function syncHeight() {
+                    if (current < 0) return;
+                    stage.style.minHeight = Math.ceil(
+                        dialog.getBoundingClientRect().height) + 'px';
+                }
+
+                var ro = window.ResizeObserver ? new ResizeObserver(syncHeight) : null;
+
+                function show(i, viaTile) {
+                    var first = current < 0;
+                    if (first) lastFocus = viaTile || null;
+
+                    render(i);
+
+                    if (first) {
+                        overlay.hidden = false;
+                        stage.classList.add('is-showing');
+                        if (ro) ro.observe(dialog);
+                        syncHeight();
+                        dialog.focus({ preventScroll: true });
+                        document.addEventListener('keydown', onKey, true);
+                        if (!reduce.matches) {
+                            dialog.animate(
+                                { opacity: [0, 1], transform: ['translateY(10px)', 'none'] },
+                                { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+                        }
+                    } else {
+                        syncHeight();
+                        if (!reduce.matches) {
+                            // a short crossfade so stepping reads as a change
+                            // of content, not a new panel
+                            dialog.animate({ opacity: [0.35, 1] },
+                                { duration: 160, easing: 'ease-out' });
+                        }
+                    }
+                }
+
+                function hide() {
+                    if (current < 0) return;
+                    if (ro) ro.unobserve(dialog);
+                    document.removeEventListener('keydown', onKey, true);
+                    stage.classList.remove('is-showing');
+                    stage.style.minHeight = '';
+                    tiles.forEach(function (t) {
+                        t.classList.remove('is-current');
+                        t.setAttribute('aria-expanded', 'false');
+                    });
+                    /* Back to the entry you were actually looking at, not the
+                       tile you first clicked -- after stepping with the arrows
+                       those are different, and landing on the one on screen is
+                       what the eye expects. */
+                    var back = tiles[current] || lastFocus;
+                    current = -1;
+                    lastFocus = null;
+
+                    if (reduce.matches) {
+                        overlay.hidden = true;
+                    } else {
+                        var a = dialog.animate(
+                            { opacity: [1, 0], transform: ['none', 'translateY(6px)'] },
+                            { duration: 160, easing: 'ease-in' });
+                        a.finished.then(function () {
+                            if (current < 0) overlay.hidden = true;
+                        }, function () { overlay.hidden = true; });
+                    }
+                    if (back) back.focus({ preventScroll: true });
+                }
+
+                function step(d) {
+                    if (current < 0) return;
+                    show((current + d + tiles.length) % tiles.length);
+                }
+
+                function onKey(e) {
+                    if (current < 0) return;
+                    if (e.key === 'Escape') { e.preventDefault(); hide(); return; }
+                    if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); return; }
+                    if (e.key === 'ArrowRight') { e.preventDefault(); step(1); return; }
+                    if (e.key !== 'Tab') return;
+
+                    // keep Tab inside the dialog while it is up
+                    var focusable = overlay.querySelectorAll(
+                        'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
+                    if (!focusable.length) return;
+                    var list = Array.prototype.filter.call(focusable, function (n) {
+                        return n.offsetParent !== null;
+                    });
+                    if (!list.length) return;
+                    var firstEl = list[0], lastEl = list[list.length - 1];
+                    var active = document.activeElement;
+                    if (e.shiftKey && (active === firstEl || active === dialog)) {
+                        e.preventDefault(); lastEl.focus();
+                    } else if (!e.shiftKey && active === lastEl) {
+                        e.preventDefault(); firstEl.focus();
+                    }
+                }
+
+                tiles.forEach(function (tile, i) {
+                    tile.addEventListener('click', function () {
+                        if (current === i) { hide(); return; }
+                        show(i, tile);
+                    });
+                });
+
+                overlay.addEventListener('click', function (e) {
+                    if (e.target.closest('[' + opts.closeAttr + ']')) { hide(); return; }
+                    var stepBtn = e.target.closest('[' + opts.stepAttr + ']');
+                    if (stepBtn) {
+                        step(parseInt(stepBtn.getAttribute(opts.stepAttr), 10));
+                        return;
+                    }
+                    if (e.target.closest('.exp-nav-prev')) { step(-1); return; }
+                    if (e.target.closest('.exp-nav-next')) { step(1); }
+                });
+
+                window.addEventListener('resize', syncHeight);
+            }
+
+            // ---- Work Experience ----
+            mountPanelDeck({
+                stage: document.querySelector('.experience-stage'),
+                tileSel: '.experience-card',
+                overlaySel: '.experience-overlay',
+                dialogSel: '.experience-dialog',
+                closeAttr: 'data-exp-close',
+                stepAttr: 'data-exp-step',
+                label: function (tile) {
+                    return textOf(tile, '.company-name') + ', ' + textOf(tile, '.job-title') + '.';
+                },
+                fill: function (tile, head, body) {
+                    var logo = tile.querySelector('.company-logo');
+                    var img = logo && logo.querySelector('img');
+
+                    // carry any logo-* sizing modifier across to the dialog
+                    var mods = logo ? Array.prototype.filter.call(logo.classList,
+                        function (c) { return c.indexOf('logo-') === 0; }).join(' ') : '';
+                    var rail = el('span', ('exp-dialog-logo ' + mods).trim());
+                    if (img) {
+                        var copy = document.createElement('img');
+                        copy.src = img.getAttribute('src');
+                        copy.alt = '';
+                        rail.appendChild(copy);
+                    }
+                    head.appendChild(rail);
+
+                    /* when and where ride on the logo's line, ranged right;
+                       who and what go on the line below it */
+                    var meta = el('span', 'exp-dialog-meta');
+                    meta.appendChild(el('span', 'exp-dialog-dates', textOf(tile, '.employment-dates')));
+                    meta.appendChild(el('span', 'exp-dialog-place', textOf(tile, '.employment-location')));
+                    head.appendChild(meta);
+
+                    var id = el('span', 'exp-dialog-id');
+                    var name = el('span', 'exp-dialog-name', textOf(tile, '.company-name'));
+                    name.id = 'expDialogName';
+                    id.appendChild(name);
+                    id.appendChild(el('span', 'exp-dialog-role', textOf(tile, '.job-title')));
+                    head.appendChild(id);
+
+                    /* In the head rather than the body: on a phone the company
+                       blurb sits between the location and the job title, and
+                       only siblings can be ordered against each other. */
+                    var blurb = textOf(tile, '.company-description');
+                    if (blurb) head.appendChild(el('p', 'exp-dialog-blurb', blurb));
+                    panelInto(body, tile);
+                }
+            });
+
+            // ---- Design Projects ----
+            // Same deck, simpler head: a title and the tile's own tags. The
+            // write-up and the link out to the project come from the panel.
+            mountPanelDeck({
+                stage: document.querySelector('.project-stage'),
+                tileSel: '.project-card-link',
+                overlaySel: '.project-overlay',
+                dialogSel: '.project-dialog',
+                closeAttr: 'data-proj-close',
+                stepAttr: 'data-proj-step',
+                label: function (tile) {
+                    return textOf(tile, '.article-headline') + '.';
+                },
+                fill: function (tile, head, body) {
+                    var shot = tile.querySelector('.article-image');
+                    if (shot) {
+                        var thumb = el('span', 'proj-dialog-thumb');
+                        var copy = document.createElement('img');
+                        copy.src = shot.getAttribute('src');
+                        copy.alt = '';
+                        thumb.appendChild(copy);
+                        head.appendChild(thumb);
+                    }
+
+                    var id = el('span', 'exp-dialog-id');
+                    var name = el('span', 'exp-dialog-name', textOf(tile, '.article-headline'));
+                    name.id = 'projDialogName';
+                    id.appendChild(name);
+                    var kicker = textOf(tile, '.article-publication');
+                    if (kicker) id.appendChild(el('span', 'exp-dialog-role', kicker));
+                    head.appendChild(id);
+
+                    var tags = tile.querySelector('.article-tags');
+                    if (tags) head.appendChild(tags.cloneNode(true));
+
+                    panelInto(body, tile);
+                }
+            });
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', onScroll);
+            update();
         });
     </script>
 </body>

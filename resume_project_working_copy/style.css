@@ -95,8 +95,32 @@
     --text-tertiary: #777;
     --text-body: #222;
     /* Primary/Accent: Orange | Secondary: Dark gray */
-    --color-accent: #ff6b35;
-    --color-accent-hover: #e85a25;
+    /* ---- accent tokens ----
+       Everything orange on the site resolves through these five. Swapping a
+       theme is editing this block, not hunting 25 literals through the file.
+         accent       fills: section bands, the open-panel bar, active states
+         accent-hover those fills on hover
+         accent-soft  the lighter fill: arrows and buttons at rest
+         accent-text  darkened until it clears 4.5:1 on white, for small text
+         accent-rgb   the same hue as components, for alpha washes
+       The palette page (color-themes.html) prints a ready-made set per
+       colour, including whether it needs a separate accent-text at all. */
+    --color-accent: #0F766E;
+    --color-accent-hover: #0B5650;
+    --color-accent-soft: #268D85;
+    --color-accent-text: #0F766E;
+    --color-accent-rgb: 15, 118, 110;
+    /* Those black SVG icons in More About Me are tinted by a filter chain,
+       which cannot take a colour — only a rotation. Roughly the accent's own
+       hue minus the ~35 degrees sepia() lands on. Approximate by nature; if
+       a theme sticks, those icons are better converted to mask-image, which
+       can take var(--color-accent) exactly. */
+    --accent-hue-rotate: 140deg;
+    /* What sits ON those fills. Hardcoding white works only while the accent
+       is dark; a pale accent needs dark text, and a two-colour scheme wants
+       its own pairing (e.g. lime type on a deep green band). */
+    --color-on-accent: #ffffff;
+    --color-on-soft: #ffffff;
     --color-secondary: #333333;
     --color-secondary-fill: rgba(0, 0, 0, 0.06);
     --color-secondary-light: rgba(0, 0, 0, 0.06);
@@ -125,6 +149,17 @@
     /* Primary/Accent: #E6BE64 gold | Secondary: #2E311C olive */
     --color-accent: #E6BE64;
     --color-accent-hover: #d4a84a;
+    /* the same five tokens as the light theme, or the soft fills and badge
+       text stay orange against this gold accent */
+    --color-accent-soft: #c9a552;
+    /* on a dark card the accent is already ~8:1, so it doubles as the
+       text shade — no darkening needed, that would only reduce contrast */
+    --color-accent-text: #E6BE64;
+    --color-accent-rgb: 230, 190, 100;
+    --accent-hue-rotate: 8deg;   /* gold sits near 43 degrees */
+    /* the gold accent is pale, so dark type sits on it */
+    --color-on-accent: #161411;
+    --color-on-soft: #161411;
     --color-secondary: #a8b06e;
     --color-secondary-fill: #2E311C;  /* dark olive — for backgrounds and fills */
     --color-secondary-light: rgba(46, 49, 28, 0.4);
@@ -136,6 +171,27 @@
     --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(230, 190, 100, 0.07);
     --shadow-accent: 0 2px 8px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(230, 190, 100, 0.1);
     --overlay: rgba(22, 20, 17, 0.9);
+}
+
+/* ------------------------------------
+   Phone accent: Emerald
+   ------------------------------------
+   The site runs Sea on desktop and Emerald on the phone. Same family, a
+   step greener and brighter, which holds up better on a small screen.
+
+   Scoped with :not([data-bs-theme="dark"]) on purpose: the dark block above
+   is an attribute selector at the same specificity as :root, so coming
+   later this would otherwise win and drag the gold accent green in dark
+   mode on a phone. */
+@media (max-width: 767.98px) {
+    :root:not([data-bs-theme="dark"]) {
+        --color-accent: #047857;
+        --color-accent-hover: #03553E;
+        --color-accent-soft: #169370;
+        --color-accent-text: #047857;
+        --color-accent-rgb: 4, 120, 87;
+        --accent-hue-rotate: 128deg;
+    }
 }
 
 /* ============================================
@@ -180,32 +236,127 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--bg-light); /* role: background-light */
 }
 
-/* Sidebar Logo */
-.sidebar-logo-link {
+/* Sidebar Portrait — headshot framed and centered in the sidebar */
+.sidebar-portrait-frame {
     display: block;
     width: 100%;
     margin: 0;
-    padding: 0;
-    position: relative;
-    cursor: pointer;
+    /* empty space around the photo so it sits centered in the sidebar */
+    padding: 1.15rem 1rem 0;
+    line-height: 0;
 }
 
-/* Invisible overlay ensures entire logo area is clickable */
-.sidebar-logo-link::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
-}
-
-.sidebar-logo {
-    width: 100%;
-    height: auto;
+.sidebar-portrait {
     display: block;
+    width: 170px;
+    max-width: 100%;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: 50% 22%;
+}
+
+/* ------------------------------------
+   3.1.0 Sidebar Identity Block
+   (role line, former-career line, quick-link icons)
+   ------------------------------------ */
+.sidebar-identity {
+    /* 0.5rem on the right rather than 1rem: those 8px are what let the name
+       stay on one line at this size */
+    padding: 0.85rem 0.5rem 0 2rem;
+}
+
+/* Accent rule beside the identity pair — echoes the title panel's orange bar.
+   Negative margin hangs the rule in the gutter at 16px so the text itself
+   still lands at 32px, flush with the nav icons below. */
+.sidebar-identity-head {
+    margin-left: -1rem;
+    border-left: 4px solid var(--color-accent); /* role: accent */
+    padding-left: 12px;
+}
+
+.sidebar-name {
     margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    /* as large as fits "David Landerman" on one line in the text column;
+       past this it breaks after "David" */
+    font-size: 1.82rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+    color: var(--text-primary); /* role: primary-text */
+}
+
+.sidebar-role {
+    margin: 0.2rem 0 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 1.36rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    color: var(--text-primary); /* role: primary-text */
+}
+
+.sidebar-role-former {
+    margin: 0.12rem 0 0;
+    /* indented to the right of the line above it */
+    margin-left: 0.75rem;
+    font-size: 1rem;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.2;
+    color: #636363; /* 4.6:1 on the #e0e0e0 sidebar — AA, still lighter than the bio */
+}
+
+.sidebar-bio {
+    margin: 0.6rem 0 0;
+    font-size: 1.08rem;
+    font-style: normal;
+    line-height: 1.48;
+    color: #5a5a5a; /* 5.2:1 on the #e0e0e0 sidebar — AA for small text */
+}
+
+.sidebar-quick-links {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* centered under the portrait */
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+    /* cancel the identity block's left indent so these center on the sidebar */
+    margin-left: -1rem;
+}
+
+.sidebar-icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--color-secondary); /* role: secondary */
+    color: var(--bg-main); /* role: background */
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color 0.25s ease, transform 0.25s ease;
+}
+
+.sidebar-icon-link:hover {
+    background-color: var(--color-accent); /* role: accent */
+    color: var(--color-on-accent);
+    transform: translateY(-2px);
+}
+
+.sidebar-icon-link i {
+    line-height: 1;
+}
+
+/* Resume artwork sits in the same bubble as the envelope, flipped to white */
+.sidebar-icon-img {
+    display: block;
+    width: 19px;
+    height: 19px;
+    object-fit: contain;
+    filter: invert(1) brightness(2);
 }
 
 /* Sidebar Navigation Links */
@@ -216,7 +367,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .sidebar .nav-link {
     color: var(--text-primary); /* role: primary-text */
-    padding: 0.75rem 1rem;
+    /* has to stay above the bio (1.08rem) or the supporting copy outweighs
+       the navigation */
+    font-size: 1.14rem;
+    /* 0.45rem, not 0.7: the bigger sidebar type added ~60px, and the last
+       nav item was dropping below the fold on a short laptop window. */
+    padding: 0.45rem 1rem;
     transition: all 0.3s ease;
     border-radius: 4px;
 }
@@ -224,6 +380,25 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar .nav-link:hover {
     background-color: var(--color-secondary-light); /* role: secondary-light */
     color: var(--color-secondary); /* role: secondary */
+}
+
+/* Current-section marker — a smaller sibling of the identity rule.
+   3px wide (vs 4px) and a short tick (vs the full 51px), sitting at the
+   same 16px gutter so the two line up vertically. */
+.sidebar .nav-link {
+    position: relative;
+}
+
+.sidebar .nav-link.is-current::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 58%;
+    border-radius: 0 2px 2px 0;
+    background-color: var(--color-accent); /* role: accent */
 }
 
 .sidebar .nav-link i {
@@ -250,14 +425,6 @@ h1, h2, h3, h4, h5, h6 {
     color: inherit;
 }
 
-/* Light mode: show light logo, hide dark logo */
-:root .sidebar .sidebar-logo-light {
-    display: block !important;
-}
-:root .sidebar .sidebar-logo-dark {
-    display: none !important;
-}
-
 :root .sidebar .theme-toggle-wrapper {
     color: #666;
 }
@@ -278,14 +445,6 @@ h1, h2, h3, h4, h5, h6 {
     color: #a8b06e;
 }
 
-/* Dark mode: show dark logo, hide light logo */
-[data-bs-theme="dark"] .sidebar .sidebar-logo-light {
-    display: none !important;
-}
-[data-bs-theme="dark"] .sidebar .sidebar-logo-dark {
-    display: block !important;
-}
-
 [data-bs-theme="dark"] .sidebar .theme-toggle-wrapper {
     color: #908d88;
 }
@@ -293,6 +452,192 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    3.2 Mobile Navigation
    ------------------------------------ */
+
+/* ---- Phone navbar over the hero ----
+   The hero already carries the name AND the resume/email links, so over it the
+   navbar is transparent and nameless. `.is-past-hero` (added by the scroll
+   handler in index.html) switches it to its solid state.
+
+   The click-through matters: a transparent bar still swallows taps in its
+   56px band, so the hero's "Download my resume" / "Email me" links would go
+   dead as they scroll underneath it. While transparent the bar is
+   pointer-events:none and only its real controls take input; once solid it
+   behaves like a normal bar again. */
+.navbar-brand {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.navbar.fixed-top.is-past-hero .navbar-brand {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Frosted glass, at every scroll position.
+   Translucent and blurred rather than opaque, so content stays visible
+   behind it instead of being chopped off — the blur is what tells you this
+   is a layer sitting on top. The hairline below is the other half of the
+   same idea: without it the panel simply stops and the edge reads abrupt.
+
+   This replaces the old transparent-over-hero state, which needed
+   pointer-events:none so an invisible bar would not eat taps aimed at the
+   hero's links. The bar is visible everywhere now, so taps belong to it. */
+/* Three classes deliberately: .navbar.fixed-top alone ties with Bootstrap's
+   .bg-light:not(.sidebar) at (0,2,0), and that one is declared later, so it
+   was winning and flattening the alpha back to opaque. */
+.navbar.navbar-light.fixed-top {
+    background-color: rgba(248, 249, 250, 0.72) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Collapsed over the hero: nothing at all. No tint, no blur, no hairline —
+   the glass is for when the bar is actually a surface (menu open, or past
+   the hero), not for a closed bar sitting on the photo.
+   pointer-events:none because an invisible bar still swallows taps, and the
+   hero's resume/email links pass underneath it as you scroll. */
+.navbar.navbar-light.fixed-top:not(.is-past-hero) {
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-bottom-color: transparent;
+    pointer-events: none;
+}
+
+/* ...except the controls that still need to be tappable */
+.navbar.navbar-light.fixed-top:not(.is-past-hero) .navbar-toggler,
+.navbar.navbar-light.fixed-top:not(.is-past-hero) .navbar-collapse {
+    pointer-events: auto;
+}
+
+/* The hamburger keeps a solid white face even while the bar behind it is
+   transparent, so it never disappears into the photo. */
+.navbar-toggler {
+    background-color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.4rem 0.6rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+}
+
+/* Bootstrap's focus ring is a hard 4px slab — keep the soft shadow instead */
+.navbar-toggler:focus,
+.navbar-toggler:focus-visible {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+    outline: none;
+}
+
+.navbar-brand {
+    font-size: 1.45rem;
+    letter-spacing: -0.015em;
+}
+
+/* ---- Phone menu as a 4-up icon grid ----
+   Eight stacked rows is a lot of vertical menu on a phone. Laid out 4 to a
+   row with the icon over the label it fits in two rows and reads as a
+   launcher rather than a list. Grid rows stretch to the tallest cell, so
+   two-line labels stay aligned with one-line ones. */
+@media (max-width: 767.98px) {
+    #mobileNav .navbar-nav {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.4rem 0.625rem;
+        width: 100%;
+        margin: 0;
+        padding: 0.85rem 1rem 1.1rem;
+    }
+
+    #mobileNav .nav-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        height: 100%;
+        padding: 0.35rem 0.15rem;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--text-secondary); /* role: secondary-text */
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Each glyph sits in its own rounded tile rather than floating loose —
+       gives the row a rhythm, makes a proper 46px touch target, and reads as
+       a launcher instead of a bulleted list. */
+    #mobileNav .nav-link i.me-2 {
+        margin-right: 0 !important; /* the list layout's gap would throw it off-centre */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        background-color: rgba(0, 0, 0, 0.055);
+        font-size: 1.75rem;
+        color: var(--text-primary); /* role: primary-text */
+        transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+                    background-color 0.18s ease;
+    }
+
+    /* The last three are actions, not destinations — tint them so the row
+       reads as a different kind of thing without needing a divider. */
+    #mobileNav .nav-item:nth-child(n + 7) .nav-link i.me-2 {
+        background-color: rgba(var(--color-accent-rgb), 0.13);
+        color: var(--color-accent); /* role: accent */
+    }
+
+    /* Tile presses in slightly under the finger — the tactile cue that makes
+       a tap feel answered rather than just registered. */
+    #mobileNav .nav-link:active i.me-2 {
+        transform: scale(0.9);
+        background-color: rgba(0, 0, 0, 0.11);
+    }
+
+    #mobileNav .nav-item:nth-child(n + 7) .nav-link:active i.me-2 {
+        background-color: rgba(var(--color-accent-rgb), 0.24);
+    }
+
+    #mobileNav .nav-link:hover {
+        background-color: transparent;
+        color: var(--text-primary); /* role: primary-text */
+    }
+}
+
+/* An open menu always needs a solid backdrop, transparent bar or not,
+   otherwise the links render straight over the photo.
+
+   Two details matter here. Bootstrap only adds .show when the expand
+   animation FINISHES — during it the element is .collapsing — so matching
+   .show alone left the menu open over the photo for ~380ms. And the bar's
+   background transition then faded in over another 250ms on top of that.
+   Matching .collapsing catches the tap on frame one, and transition:none
+   makes the backdrop land instantly instead of fading in under the menu.
+   Closing still fades out gently, since the base transition reapplies once
+   these stop matching. */
+/* An open menu goes nearly opaque: nine items of small text over a blurred
+   photo is legible but busy. Keeps the blur so it stays the same material. */
+.navbar.navbar-light.fixed-top:has(.navbar-collapse.show),
+.navbar.navbar-light.fixed-top:has(.navbar-collapse.collapsing) {
+    background-color: rgba(248, 249, 250, 0.96) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+    pointer-events: auto;
+    transition: none;
+}
+
+/* With the menu open the bar is its own solid surface, so the name belongs
+   there even over the hero. */
+.navbar.fixed-top:has(.navbar-collapse.show) .navbar-brand,
+.navbar.fixed-top:has(.navbar-collapse.collapsing) .navbar-brand {
+    opacity: 1;
+    pointer-events: auto;
+}
 .bg-light:not(.sidebar) {
     background-color: var(--bg-light) !important; /* override Bootstrap's #f8f9fa */
 }
@@ -352,7 +697,9 @@ h1, h2, h3, h4, h5, h6 {
     position: absolute;
     left: 30vw;
     z-index: 1;
-    height: 140vw;
+    /* the photo tracks --hero-photo, NOT the panel's --hero-h: the panel is
+       what gets capped, and it clips this rather than scaling it */
+    height: var(--hero-photo, 140vw);
 }
 
 /* Hero headshot: light/dark variants */
@@ -394,6 +741,23 @@ h1, h2, h3, h4, h5, h6 {
     padding-left: 1rem;
     color: var(--color-secondary); /* role: secondary */
     white-space: normal;
+}
+
+/* Hero identity lines mirror the sidebar's scale:
+   name 1.4x / role 1x / former 0.75x, same as 24 / 17 / 12.8 there. */
+.title-text-name {
+    display: inline-block;
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+}
+
+.title-text-former {
+    display: inline-block;
+    margin-left: 1em;
+    font-size: 0.75em;
+    font-style: italic;
+    font-weight: 400;
 }
 
 /* Hero Subtitle */
@@ -456,14 +820,62 @@ h1, h2, h3, h4, h5, h6 {
 /* Section Header (Orange bar with title) */
 .section-header {
     background-color: var(--color-accent); /* role: accent */
-    padding: 1rem 2rem;
+    padding: 0.8rem 2rem;
     width: 100%;
+    /* so the Articles band can carry its jump button on the right; every
+       other band has a lone h2, which flex leaves exactly where it was */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
+/* A solid white pill rather than the band's own white-on-orange, which is
+   only 2.8:1 -- as a lone chevron that would be hard to see and hard to
+   hit. Dark mark on white is 12.6:1 and reads unmistakably as a control. */
+.section-jump {
+    appearance: none;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #333333;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.section-jump:hover {
+    transform: translateY(2px);
+    background: #f1f2f3;
+}
+
+.section-jump:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* the attribute alone loses to the display above */
+.section-jump[hidden] {
+    display: none;
+}
+
+/* 24px, down from 32. At 32 the band was shouting over everything under
+   it and made the whole page read oversized; the sidebar now carries more
+   of the weight. */
 .section-header h2 {
-    color: white; /* role: text — white on accent bar */
+    color: var(--color-on-accent);
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.5rem;
+    letter-spacing: 0.005em;
 }
 
 /* Section Content Wrapper (for future background pattern) */
@@ -497,12 +909,777 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    6.1 Experience Cards
    ------------------------------------ */
+/* ------------------------------------
+   6.1 Experience Tiles (collapsible)
+   ------------------------------------
+   Built on <details>/<summary> rather than JS: keyboard, screen readers and
+   the open/close state all come free from the browser.
+
+   auto-fill + minmax means the number of columns follows the available
+   width instead of being pinned to a breakpoint — 3 across on a wide screen,
+   2 on a tablet, 1 on a phone, no media queries. An opened tile takes the
+   whole row (grid-column 1 / -1) so the job description reads at a sensible
+   measure rather than in a 280px ribbon. */
+.experience-grid {
+    --exp-gap: 1.25rem;
+    /* One source of truth for the card's internal geometry. The panel is a
+       separate element from the tile, so without this they drift: the blurb
+       sat at the card edge while the company name sat 90px further in. */
+    --exp-pad-x: 1.1rem;
+    --exp-pad-y: 0.95rem;
+    --exp-logo-w: 76px;
+    --exp-logo-h: 44px;
+    --exp-rail-gap: 0.9rem;
+    /* how far body text is pushed past the logo rail: nothing until the card
+       is wide enough to have a rail worth aligning to */
+    --exp-indent: 0px;
+    /* shared measure, in rem not ch: ch scales with font-size, so the 0.8rem
+       blurb and the 0.94rem description would have ended on different right
+       edges even at the same ch count */
+    --exp-measure: 36rem;
+    display: grid;
+    /* min(100%, X), not a bare X: a bare floor cannot shrink, so on a 320px
+       phone (288px of content) the 300-320px floors in the education and
+       project grids pushed their tracks straight through the page padding
+       and gave the document a horizontal scroll. */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: var(--exp-gap);
+    /* stretch, so every tile in a row ends on the same line no matter how
+       many lines its company name took. An open tile is moved out to a row
+       of its own where it spans the full width, so it never stretches its
+       neighbours. */
+    align-items: stretch;
+}
+
+
+/* The tile is a real <button>, so the browser gives us focus, Enter and
+   Space for nothing; these first few lines just undo the UA button look. */
 .experience-card {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    width: 100%;
     background: var(--bg-card); /* role: background */
     box-shadow: var(--shadow-sm); /* role: shadow */
-    margin-bottom: 2rem;
+    margin-bottom: 0;
     border-radius: 4px;
     overflow: hidden;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--exp-pad-y) var(--exp-pad-x);
+    transition: box-shadow 0.25s ease, background-color 0.2s ease;
+}
+
+/* logo | text | chevron. Top-aligned so the logo sits with the company name
+   rather than floating to the middle of a tall text column. */
+.experience-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--exp-rail-gap);
+}
+
+/* Hover moves the border, not the fill -- a background tint here reads as a
+   selection state, which these are not. */
+.experience-card:hover {
+    border-color: #b9bec4;
+}
+
+/* The tile whose panel is currently up. The grid behind is dimmed, so this
+   is what tells you where you are when the panel is shorter than the grid. */
+.experience-card.is-current {
+    border-color: var(--color-accent); /* role: accent */
+    box-shadow: 0 0 0 1px var(--color-accent); /* role: accent */
+}
+
+.experience-card:focus-visible {
+    outline: 2px solid var(--color-accent); /* role: accent */
+    outline-offset: 2px;
+}
+
+.experience-card .company-logo {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    width: var(--exp-logo-w);
+    height: var(--exp-logo-h);
+}
+
+.experience-card .company-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: left center;
+}
+
+/* Chunky, near-square marks are capped shorter than the slot so they do
+   not outweigh the wide wordmarks sitting beside them in the same row. */
+.experience-card .company-logo.logo-block img {
+    max-height: calc(var(--exp-logo-h) * 0.68);
+}
+
+.experience-card .company-info {
+    display: block;
+    flex: 1;
+    min-width: 0;
+}
+
+/* No reserved line counts here. Padding the name and role out to two lines
+   each did level the tiles, but it left a visible hole between the role and
+   the dates. align-items:stretch on the grid levels the row bottoms instead,
+   which puts the slack under the last line where it reads as breathing room. */
+.experience-card .company-name {
+    display: block;
+    margin: 0;
+    color: var(--text-primary); /* role: primary-text */
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.96rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.experience-card .job-title {
+    display: block;
+    margin: 0.1rem 0 0;
+    color: #555; /* 7.5:1 on white */
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+/* Dates were a full-width footer bar on the old card; in a tile they are
+   the quiet last block. Dates read before place, so the two are separated
+   by weight and colour rather than sitting at the same value and blurring
+   into one grey smudge. */
+.experience-card .employment-dates {
+    display: block;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    background: none;
+    border-top: none;
+    color: #5a5a5a; /* 7.0:1 on white */
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+}
+
+.experience-card .employment-location {
+    display: block;
+    margin: 0.05rem 0 0;
+    color: #6e6e6e; /* 5.1:1 on white */
+    font-size: 0.75rem;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.35;
+}
+
+.experience-chevron {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0.15rem;
+    color: #8a8a8a;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ------------------------------------
+   6.1b The work-experience panel
+   ------------------------------------
+   Flourish-style. The grid stays put and fades back; one shared dialog
+   rises over it holding whichever role you picked, with arrows to step
+   through the rest. Only one panel exists no matter how many jobs there
+   are -- it is refilled, not duplicated. */
+.experience-stage,
+.project-stage {
+    position: relative;
+    /* The query container for both the grid and the panel over it. Measured
+       on its own width, not the viewport's -- the 280px sidebar makes those
+       two numbers disagree by a whole breakpoint. */
+    container-type: inline-size;
+    /* grown by the script to whatever the open dialog needs, so the panel
+       never spills over the Education section below it */
+    transition: min-height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.experience-grid {
+    transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.experience-stage.is-showing .experience-grid,
+.project-stage.is-showing .project-grid {
+    opacity: 0.3;
+    filter: saturate(0.25);
+    /* clicks land on the backdrop instead, which closes the panel */
+    pointer-events: none;
+}
+
+.experience-overlay,
+.project-overlay {
+    position: absolute;
+    /* top-anchored rather than inset:0, so the dialog takes its natural
+       height instead of being stretched to the grid's */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.experience-overlay[hidden],
+.project-overlay[hidden] {
+    display: none;
+}
+
+/* Reaches above and below the grid so a click just outside it still closes,
+   but NOT sideways: at -1.5rem all round it stuck 8px past the right edge of
+   a 390px phone and gave the whole document a horizontal scroll. body has
+   overflow-x:hidden, which does not catch it -- the overflow is on <html>. */
+.experience-backdrop,
+.project-backdrop {
+    position: absolute;
+    inset: -1.5rem 0;
+    cursor: default;
+}
+
+.experience-dialog,
+.project-dialog {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    /* capped, or on a wide screen the text measure leaves a huge empty gutter
+       on the right while the padding stays thin -- it reads lopsided */
+    max-width: 700px;
+    background: var(--bg-card); /* role: background */
+    border: 1px solid var(--border-color); /* role: border */
+    border-top: 3px solid var(--color-accent); /* role: accent */
+    border-radius: 6px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.07);
+    padding: 1.4rem 1.7rem 1.5rem;
+}
+
+.experience-dialog:focus-visible,
+.project-dialog:focus-visible {
+    outline: 2px solid var(--color-accent); /* role: accent */
+    outline-offset: 3px;
+}
+
+/* ---- head ----
+   The logo sits on its own line rather than in a side rail. As a rail it
+   pushed every line of body text ~126px in while the right padding stayed
+   at 22px, which read badly lopsided; now the logo, the company name and
+   the description all start on the same left edge. */
+.exp-dialog-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1.5rem;
+    --head-gap: 0.85rem;
+    row-gap: var(--head-gap);
+    /* The blurb's type, hoisted so the location below it can be positioned
+       off the blurb's own line rhythm rather than a copied-out number. */
+    --blurb-size: 0.8rem;
+    --blurb-leading: 1.55;
+    align-items: start;
+    /* No right padding for the close button: the only thing on its row is
+       the 150px logo, and the dates below it clear it vertically. Reserving
+       the space here just pushed the dates 35px further in than the left
+       margin, which is the lopsidedness this was meant to fix. */
+}
+
+/* ---- the logo row ----
+   Every source file is cropped to its own ink, so the box edge IS the mark
+   edge. That is what makes the next two lines work: bottom alignment puts
+   every logo on one baseline, and flush-left puts every logo on the same
+   left edge as the name below it. Before the crop, baked-in whitespace was
+   quietly indenting Watts 4px and floating MassCEC 4px off the baseline.
+
+   The box shrink-wraps the mark rather than sitting in a fixed-height row.
+   A fixed row meant the leftover space landed ABOVE the logo, and since
+   every mark is a different height that gap changed on every step -- 40px
+   above ASML, 53px above Smith & Nephew, none above Howard. Now the logo
+   always starts hard against the panel's top padding, so the header reads
+   the same however tall the mark is. --logo-row survives only as the
+   yardstick the sizes below are figured from. */
+.exp-dialog-logo {
+    --logo-row: 80px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    /* Centred, and the dates opposite are centred too, so the two always
+       share a vertical centre line however tall the mark is. Top-aligning
+       the logo while the dates hung off the bottom put their centroids
+       17-34px apart, and the offset changed on every step. */
+    align-self: center;
+    grid-area: 1 / 1;
+}
+
+/* Sized by equal optical AREA, not equal height or equal width -- a 6:1
+   wordmark and a 1:1 emblem set to the same height look nothing alike.
+   Each fraction below is sqrt(targetArea / aspectRatio) / row, so every
+   mark covers roughly the same ink footprint:
+
+     ASML      3.55:1  142 x 40   default
+     S&N       6.06:1  165 x 27   .logo-wide
+     Watts     1.56:1   94 x 60   .logo-block
+     MassCEC   0.86:1   65 x 76   .logo-emblem
+     Howard    1.06:1   85 x 80   .logo-stack  */
+.exp-dialog-logo img {
+    max-height: calc(var(--logo-row) * 0.50);
+    max-width: 170px;
+    width: auto;
+    object-fit: contain;
+    object-position: left bottom;
+}
+
+.exp-dialog-logo.logo-wide img   { max-height: calc(var(--logo-row) * 0.34); }
+.exp-dialog-logo.logo-block img  { max-height: calc(var(--logo-row) * 0.75); }
+.exp-dialog-logo.logo-emblem img { max-height: calc(var(--logo-row) * 0.95); }
+
+/* Howard is the one deliberate outlier: six stacked bands of mark and type,
+   so at the others' footprint its main wordmark drops under 11px. It runs
+   the full row height, about 20% more area than the rest. */
+.exp-dialog-logo.logo-stack img  { max-height: var(--logo-row); }
+
+/* The dates and place, ranged right against the logo on its own line.
+   Bottom-aligned so they share the logo's baseline and stay clear of the
+   close button, which wants the same top-right corner. */
+.exp-dialog-meta {
+    grid-area: 1 / 2;
+    justify-self: end;
+    align-self: center;
+    text-align: right;
+}
+
+.exp-dialog-id {
+    grid-area: 2 / 1 / 3 / 3;
+    min-width: 0;
+}
+
+.exp-dialog-name {
+    display: block;
+    margin: 0;
+    color: var(--text-primary); /* role: primary-text */
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+/* Carries real weight: it is the thing the panel is actually about, and at
+   #555/400 it was reading as a caption under the company name. */
+.exp-dialog-role {
+    display: block;
+    margin: 0.12rem 0 0;
+    color: var(--text-primary); /* role: primary-text */
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+/* 1.2, not the inherited 1.5: at 1.5 the two lines came to 40.5px, taller
+   than the shortest mark (Smith & Nephew at 27px). The row is then sized by
+   the text rather than the logo, and a centred logo picks up a gap above
+   it. At 1.2 the block is ~32px and only that one mark is shorter. */
+.exp-dialog-dates {
+    display: block;
+    margin: 0;
+    color: #4a4a4a; /* 8.9:1 on white */
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+}
+
+.exp-dialog-place {
+    display: block;
+    margin: 0.05rem 0 0;
+    color: #5f5f5f; /* 6.4:1 on white */
+    font-size: 0.79rem;
+    font-weight: 500;
+    font-style: italic;
+    line-height: 1.2;
+}
+
+/* ---- body: same left edge as the logo and the name above it ---- */
+.exp-dialog-body {
+    padding-left: 0;
+}
+
+.exp-dialog-blurb {
+    /* Lives in the head now (see the panel script), so it spans both the
+       logo and the date column and lets the head's row-gap space it,
+       instead of carrying its own top margin. */
+    grid-column: 1 / -1;
+    /* no measure cap: at 36rem this stopped ~70px short of the right margin,
+       which read as a mistake and cost extra lines of height */
+    margin: 0;
+    font-size: var(--blurb-size);
+    line-height: var(--blurb-leading);
+    color: #5a5a5a; /* 7.0:1 on white */
+}
+
+.exp-dialog-body .job-description {
+    margin: 0.9rem 0 0;
+    padding: 0;
+}
+
+.exp-dialog-body .project-link-btn {
+    margin: 1.15rem 0 0;
+}
+
+/* ---- project dialog ----
+   Same shell as the role panels, but the head is only a title: there is no
+   logo rail and no date column, so the two-track grid collapses to one. */
+.project-dialog .exp-dialog-head {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.4rem;
+}
+
+/* .exp-dialog-id is explicitly placed on row 2 (and row 3 in the narrow
+   container query) to clear the role panel's logo rail. There is no rail
+   here, so let it and the tags flow normally instead. */
+.project-dialog .exp-dialog-id {
+    grid-area: auto;
+}
+
+/* The tile's picture, carried into the panel. Shown at its own aspect
+   rather than the grid's 16:9 crop -- that crop exists so the tiles line up
+   with each other, and there is nothing to line up against in here. The cap
+   is a guard for an unusually tall image, not something these two hit. */
+.proj-dialog-thumb {
+    display: block;
+    margin: 0 0 0.15rem;
+    border: 1px solid var(--border-color); /* role: border */
+    border-radius: 4px;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.proj-dialog-thumb img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 360px;
+    object-fit: cover;
+    object-position: top;
+}
+
+.project-dialog .exp-dialog-name {
+    font-size: 1.16rem;
+}
+
+/* The write-up keeps the measure it had in the tile, but the dialog is
+   wider than a tile was, so it reads as prose rather than a caption. */
+.exp-dialog-body .project-description {
+    margin: 0.9rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.62;
+}
+
+.exp-dialog-body .project-list {
+    margin: 0.6rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.62;
+}
+
+/* The tiles' own tags are behind the dimmed grid while the panel is up, so
+   the panel carries its own copy of them under the title. */
+.project-dialog .exp-dialog-head .article-tags {
+    padding-top: 0.15rem;
+}
+
+/* ---- close ---- */
+/* Hung off the corner rather than sitting inside it. In the corner it
+   owned the exact space the dates need, which is what forced them down
+   away from the logo's centre line. Out here it clears the prev/next arrow
+   too, which is vertically centred and far below this. */
+.exp-close {
+    position: absolute;
+    top: -0.85rem;
+    right: -0.85rem;
+    z-index: 3;
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color); /* role: border */
+    border-radius: 50%;
+    background: var(--bg-card); /* role: background */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+    color: #5a5a5a; /* 7.0:1 on white */
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.exp-close:hover {
+    background: #f1f2f3;
+    border-color: #b9bec4;
+    color: var(--text-primary); /* role: primary-text */
+}
+
+.exp-close:focus-visible {
+    outline: 2px solid var(--color-accent); /* role: accent */
+    outline-offset: 2px;
+}
+
+/* ---- side arrows, the same round accent buttons as More About Me ---- */
+.exp-nav {
+    appearance: none;
+    /* The backdrop is absolutely positioned and these are static flex items,
+       so it painted over them and swallowed every arrow click -- the panel
+       just closed. Lifting them into the same layer as the dialog fixes it. */
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--color-accent-soft);
+    box-shadow: var(--shadow-accent); /* role: shadow */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.exp-nav:hover {
+    background-color: var(--color-accent); /* role: accent */
+    transform: scale(1.06);
+}
+
+.exp-nav:focus-visible {
+    outline: 2px solid var(--color-accent); /* role: accent */
+    outline-offset: 3px;
+}
+
+/* Masked rather than drawn as a background image. The chevron used to be
+   a white SVG baked into a data URI, which disappears the moment the button
+   fill is pale — on a lime button white-on-lime is 1.2:1. A mask takes its
+   colour from the element, so the glyph follows the theme. */
+.exp-nav-icon {
+    width: 19px;
+    height: 19px;
+    background-color: var(--color-on-soft);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 100%;
+    mask-size: 100%;
+}
+
+.exp-nav-prev .exp-nav-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e");
+}
+
+.exp-nav-next .exp-nav-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+/* ---- footer: the counter, plus the only arrows once the side ones go ---- */
+.exp-dialog-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.3rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border-light); /* role: border-light */
+}
+
+.exp-counter {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #6e6e6e; /* 5.1:1 on white */
+}
+
+.exp-foot-nav {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.7rem;
+    border: 1px solid var(--border-color); /* role: border */
+    border-radius: 4px;
+    background: var(--bg-card); /* role: background */
+    color: var(--text-secondary); /* role: secondary-text */
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.exp-foot-nav:hover {
+    border-color: #b9bec4;
+    color: var(--text-primary); /* role: primary-text */
+}
+
+.exp-foot-nav:focus-visible {
+    outline: 2px solid var(--color-accent); /* role: accent */
+    outline-offset: 2px;
+}
+
+/* Side arrows need gutters to sit in. Below this the dialog takes the whole
+   width and the footer buttons do the stepping instead. Measured on the
+   grid's own width -- the 280px sidebar makes the viewport misleading. */
+@container (max-width: 599.98px) {
+    .exp-nav {
+        display: none;
+    }
+
+    .experience-dialog,
+    .project-dialog {
+        padding: 1.15rem 1.15rem 1.25rem;
+    }
+
+    .exp-dialog-head {
+        grid-template-columns: minmax(0, 1fr);
+        --head-gap: 0.65rem;
+    }
+
+    /* stacked here, so the dates are on their own row below the logo and
+       nothing competes for the corner -- the button tucks back inside */
+    .exp-close {
+        top: 0.5rem;
+        right: 0.6rem;
+        border-color: transparent;
+        background: none;
+        box-shadow: none;
+    }
+
+    /* ...except over the project thumbnail, where borderless would put a
+       grey glyph straight onto the picture. Keep the chip there. */
+    .project-dialog .exp-close {
+        border-color: var(--border-color); /* role: border */
+        background: var(--bg-card); /* role: background */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+    }
+
+    .exp-dialog-meta {
+        align-self: start;
+    }
+
+    .exp-dialog-logo {
+        --logo-row: 58px;
+    }
+
+    .exp-dialog-logo img {
+        max-width: 124px;
+    }
+
+    .exp-dialog-meta {
+        grid-area: 2 / 1;
+        justify-self: start;
+        text-align: left;
+    }
+
+    .exp-dialog-id {
+        grid-area: 3 / 1 / 4 / 2;
+    }
+
+    /* ---- phone reading order ----
+       logo, company, location, what the company is, job title, dates.
+       The desktop head is two groups -- dates+place on the logo's line,
+       name+role below -- and that grouping is what holds the logo/date
+       centroids on one line up there. Here the parts need to interleave,
+       so display:contents dissolves the two boxes and promotes their
+       children to grid items; they still inherit text-align from the
+       group, so the left-ranging above still reaches them.
+       order only steers AUTO placement, so every explicit grid-area set
+       for the desktop layout has to be handed back first. */
+    .experience-dialog .exp-dialog-meta,
+    .experience-dialog .exp-dialog-id {
+        display: contents;
+    }
+
+    .experience-dialog .exp-dialog-logo,
+    .experience-dialog .exp-dialog-name,
+    .experience-dialog .exp-dialog-place,
+    .experience-dialog .exp-dialog-blurb,
+    .experience-dialog .exp-dialog-role,
+    .experience-dialog .exp-dialog-dates {
+        grid-area: auto;
+    }
+
+    .experience-dialog .exp-dialog-logo  { order: 1; }
+    .experience-dialog .exp-dialog-name  { order: 2; }
+    .experience-dialog .exp-dialog-blurb { order: 3; }
+    .experience-dialog .exp-dialog-place { order: 4; }
+    .experience-dialog .exp-dialog-role  { order: 5; }
+    .experience-dialog .exp-dialog-dates { order: 6; }
+
+    /* The location reads as a tail on the description rather than a row of
+       its own, so it cancels the head's gap exactly. Tied to the same
+       variable, so tuning the gap above cannot silently reopen this one.
+
+       It also has to pick up the blurb's type rhythm. Its own 12.64px/1.2
+       is set for the desktop head, where the date block has to stay
+       shorter than the logo beside it; sitting flush under a 12.8px/1.55
+       paragraph, that tighter leading made the line crowd the one above
+       it by ~4.7px and the two read as mis-set. */
+    .experience-dialog .exp-dialog-place {
+        font-size: var(--blurb-size);
+        line-height: var(--blurb-leading);
+        /* Sits 1.2 of the blurb's lines below its last line: cancel the
+           head's row gap, then add two tenths of a line back. Just enough
+           to read as its own line without detaching from the description
+           it belongs to. Derived, so retuning the blurb's size or leading
+           carries the location with it. */
+        margin-top: calc(
+            var(--head-gap) * -1 +
+            var(--blurb-size) * var(--blurb-leading) * 0.2);
+    }
+
+    /* Centred, and ~43% up on the old 58px: on a phone the mark is the only
+       thing on its row, so ranging it left leaves the row visibly
+       lopsided, and small it read weakly against type that did not shrink
+       as much. */
+    .experience-dialog .exp-dialog-logo {
+        --logo-row: 83px;
+        justify-content: center;
+        align-self: center;
+    }
+
+    .experience-dialog .exp-dialog-logo img {
+        max-width: 170px;
+    }
+}
+
+@container (min-width: 600px) {
+    .exp-dialog-foot {
+        justify-content: flex-end;
+    }
+
+    /* the side arrows already do this job */
+    .exp-foot-nav {
+        display: none;
+    }
+}
+
+/* ---- content source, never displayed ----
+   Each .experience-panel holds one role's long copy. The script reads them
+   to fill the shared dialog; they are never laid out themselves. */
+.experience-panel {
+    display: none;
 }
 
 /* Card Header (Company logo, name, and job title row) */
@@ -543,7 +1720,7 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #f0a070;
+    color: var(--color-accent-soft);
     font-size: 1.1rem;
     text-decoration: none;
     margin-left: 0.4rem;
@@ -565,25 +1742,40 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Card Content Areas */
+/* Hidden while the tile is collapsed, revealed with the panel. Indented to
+   the same left edge as the company name above it: the open card then reads
+   as one text column with a logo rail beside it, instead of the two
+   competing margins it had before. */
 .company-description {
-    padding: 1rem 1.5rem;
+    display: none;
+    /* capped, or at full width this ran past 150 characters a line */
+    max-width: var(--exp-measure);
+    margin: 0.7rem 0 0;
+    padding: 0;
+    border: none;
+    background: none;
     font-style: italic;
-    color: var(--text-secondary); /* role: secondary-text */
-    background-color: var(--bg-card); /* role: background */
-    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: #5a5a5a; /* 7.0:1 on white */
 }
 
+
 .job-description {
-    padding: 1.5rem;
-    line-height: 1.6;
+    padding: 1.25rem 1.5rem;
+    font-size: 0.94rem;
+    line-height: 1.7;
+    color: var(--text-body); /* role: body-text */
+    /* shares the blurb's measure above so the two blocks end level */
+    max-width: var(--exp-measure);
 }
 
 .project-link-btn {
     display: inline-block;
     margin: 0 1.5rem 1rem;
     padding: 0.5rem 1.25rem;
-    background-color: #f0a070;
-    color: #ffffff;
+    background-color: var(--color-accent-soft);
+    color: var(--color-on-soft);
     text-decoration: none;
     border-radius: 6px;
     font-size: 0.9rem;
@@ -593,7 +1785,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .project-link-btn:hover {
     background-color: var(--color-accent); /* role: accent */
-    color: #ffffff;
+    color: var(--color-on-accent);
     transform: translateY(-2px);
 }
 
@@ -609,6 +1801,17 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    6.2 Education Cards
    ------------------------------------ */
+/* Grid on content width, not viewport width. Bootstrap's col-md-6 went
+   2-up at a 768px viewport, but the 280px sidebar leaves only 424px of
+   content there — the cards came out 200px wide and "NORTHEASTERN
+   UNIVERSITY" was being clipped by the page's overflow:hidden. */
+.education-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
 .education-card {
     background: var(--bg-card); /* role: background */
     box-shadow: var(--shadow-sm); /* role: shadow */
@@ -622,15 +1825,49 @@ h1, h2, h3, h4, h5, h6 {
     /* hover pop removed per user request */
 }
 
+/* Logo + name header, mirroring .card-header-row on the experience cards so
+   Education and Work Experience read as the same component. The padding and
+   divider moved off .school-name onto this row when the logo was added. */
+.school-header-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem 0.75rem;
+    border-bottom: 1px solid var(--border-light); /* role: border-light */
+}
+
+.school-logo {
+    flex-shrink: 0;
+}
+
+/* Name over city beside the logo — same stack as .company-info holds the
+   company name over the job title on the experience cards. */
+.school-identity {
+    flex: 1;
+    min-width: 0;
+}
+
+.school-logo img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    display: block;
+}
+
+/* --- Education card type scale ---
+   Four real steps: school (18.4) > degree (17) > field/minor (15) >
+   location & dates (13.5), with the fellowship as a badge rather than a
+   fifth line of body text. Previously degree, field and honors all sat at
+   16px, so the card had one tier pretending to be three. */
 .school-name {
     text-transform: uppercase;
-    color: var(--color-secondary); /* role: secondary */
+    color: var(--text-primary); /* role: primary-text */
     font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: 0.03em;
     margin: 0;
-    padding: 1.25rem 1.5rem 0.75rem;
-    border-bottom: 1px solid var(--border-light); /* role: border-light */
+    padding: 0;
+    border-bottom: none;
 }
 
 .education-card-body {
@@ -638,31 +1875,65 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .school-location {
-    margin: 0 0 0.6rem 0;
-    color: var(--text-tertiary); /* role: secondary-text */
-    font-size: 0.9rem;
+    margin: 0.2rem 0 0;
+    color: #6a6a6a; /* 5.4:1 on white — #777 was 4.5:1, right on the line */
+    font-size: 0.845rem;
     font-style: italic;
 }
 
 .school-degree {
-    margin: 0.35rem 0;
-    color: var(--text-body); /* role: primary-text */
-    font-weight: 500;
+    margin: 0 0 0.5rem;
+    color: var(--text-primary); /* role: primary-text */
+    font-size: 1.06rem;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
-.school-honors {
-    margin: 0.35rem 0;
-    color: var(--color-accent); /* role: accent */
-    font-weight: 500;
+/* The field of study sits under its degree as a second line. Lighter than
+   the degree above it so the pair reads as one item, and so it is not
+   mistaken for a sibling of the separate "Minor in ..." line below. */
+.school-field {
+    display: inline-block;
+    margin-top: 0.1rem;
+    color: #555; /* 7.5:1 on white */
+    font-size: 0.94rem;
+    font-weight: 400;
+}
+
+/* A minor is subordinate to the degree it sits under, so it gets the same
+   cue as "fmr Mechanical Engineer" in the sidebar: smaller, italic, and
+   indented right of the line above it. */
+.school-minor {
+    margin: 0 0 0.5rem 0.75rem;
+    color: #555;
+    font-size: 0.875rem;
     font-style: italic;
+    font-weight: 400;
+}
+
+/* Badge, not body copy — it is a distinction, and at 16px italic orange it
+   both outweighed the degree and failed contrast (2.8:1). Dark orange on an
+   accent tint keeps the accent identity at 5.1:1. */
+.school-honors {
+    display: inline-block;
+    margin: 0 0 0.5rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    background-color: rgba(var(--color-accent-rgb), 0.13);
+    color: var(--color-accent-text);
+    font-size: 0.76rem;
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 .school-dates {
     margin: 0.75rem 0 0 0;
     padding-top: 0.6rem;
     border-top: 1px solid var(--border-light); /* role: border-light */
-    color: var(--text-secondary); /* role: secondary-text */
-    font-size: 0.92rem;
+    color: #555;
+    font-size: 0.845rem;
 }
 
 .date-highlight {
@@ -783,7 +2054,47 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
             6.5 Design Project Cards
             ------------------------------------ */
+         /* Same content-width grid as the article tiles, but auto-FIT: with
+            only two projects, auto-fill left a third track standing empty and
+            the pair sat in two-thirds of the width. auto-fit collapses the
+            empty track so the two fill the row and come out much shorter. */
+         .project-grid {
+             display: grid;
+             /* Same track size as .article-grid, so a project tile and an
+                article tile come out literally the same width. auto-FILL,
+                not auto-fit: with only two projects, fit would stretch the
+                pair across the whole row and they would tower over the
+                article tiles they are meant to match. */
+             grid-template-columns: repeat(auto-fill, minmax(min(100%, 235px), 1fr));
+             gap: 1.25rem;
+             align-items: stretch;
+         }
+
+         .project-cell {
+             display: flex;
+             min-width: 0;
+         }
+
+         .project-cell > * {
+             flex: 1;
+             min-width: 0;
+         }
+
+         /* A <button>, not an <a>: the tile opens the panel rather than
+            navigating, and the link out to the project lives inside the
+            panel. Reset the UA button chrome so it renders exactly like the
+            article tiles it now sits beside. */
          .project-card-link {
+             appearance: none;
+             -webkit-appearance: none;
+             background: none;
+             border: 0;
+             margin: 0;
+             padding: 0;
+             font: inherit;
+             text-align: left;
+             width: 100%;
+             cursor: pointer;
              text-decoration: none;
              color: inherit;
              display: block;
@@ -793,6 +2104,12 @@ h1, h2, h3, h4, h5, h6 {
          .project-card-link:hover {
              text-decoration: none;
              color: inherit;
+         }
+
+         .project-card-link:focus-visible {
+             outline: 2px solid var(--color-accent); /* role: accent */
+             outline-offset: 3px;
+             border-radius: 5px;
          }
 
          .project-card {
@@ -809,9 +2126,16 @@ h1, h2, h3, h4, h5, h6 {
              box-shadow: var(--shadow-md); /* role: shadow */
          }
 
+         /* Capped. The images are around 1.75:1, so on a wide card they grew
+            to nearly 300px and swallowed everything the smaller type saved.
+            Cropped from the top, which is where both images carry their
+            title. Narrow cards never reach the cap and are not cropped. */
          .project-image {
              width: 100%;
              height: auto;
+             max-height: 190px;
+             object-fit: cover;
+             object-position: top;
              display: block;
              border-bottom: 1px solid var(--border-color); /* role: border */
          }
@@ -825,37 +2149,180 @@ h1, h2, h3, h4, h5, h6 {
          }
 
          .project-content {
-             padding: 1.5rem;
+             padding: 1.05rem 1.15rem 1.15rem;
          }
 
+         /* 17px, down from 20. The old size, on top of 15px body copy and
+            1.5rem padding, made these read as posters rather than cards. */
          .project-title {
              color: var(--color-secondary); /* role: secondary */
-             margin: 0 0 1rem 0;
-             font-size: 1.25rem;
+             margin: 0 0 0.7rem 0;
+             font-size: 1.06rem;
+             line-height: 1.3;
          }
 
+         /* 15px, not 16. At 16 this was the largest supporting copy on the
+            page — bigger than the education field text (15), the sidebar bio
+            (14) and the article credits (12.8), and close enough to the
+            article headlines (18.4) to compete with them. 15px keeps ~55
+            characters per line here, still comfortable for long prose. */
          .project-description {
              color: var(--text-secondary); /* role: secondary-text */
+             font-size: 0.86rem;
              line-height: 1.6;
-             margin-bottom: 1rem;
+             margin-bottom: 0.7rem;
+         }
+
+         .project-list {
+             color: var(--text-secondary); /* role: secondary-text */
+             font-size: 0.86rem;
+             line-height: 1.6;
+             margin: 0 0 0.7rem;
+             padding-left: 1.1rem;
          }
 
          .project-skills {
              display: flex;
              flex-wrap: wrap;
-             gap: 0.5rem;
+             gap: 0.35rem;
          }
 
          .skill-tag {
              background-color: var(--bg-light); /* role: background-light */
              border: 1px solid var(--border-color); /* role: border */
-             padding: 0.25rem 0.75rem;
-             border-radius: 4px;
-             font-size: 0.85rem;
-             font-weight: bold;
+             padding: 0.16rem 0.5rem;
+             border-radius: 3px;
+             font-size: 0.7rem;
+             font-weight: 600;
              color: var(--text-primary); /* role: primary-text */
          }
 
+
+/* ------------------------------------
+   6.6 Article Tiles
+   ------------------------------------
+   Same construction as the design-project cards above, so the two sections
+   read as one system — but tuned for short, image-led entries rather than
+   long write-ups. */
+.article-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.article-card-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Grid on content width rather than Bootstrap's col-md-6, which went 2-up
+   on VIEWPORT width and so ignored the 280px sidebar entirely. Four across
+   on a wide screen instead of two: the old 328px cards with a 183px image
+   and an 18px headline read oversized next to everything around them. */
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 235px), 1fr));
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+.article-cell {
+    display: flex;
+    min-width: 0;
+}
+
+.article-cell > * {
+    flex: 1;
+    min-width: 0;
+}
+
+.article-card {
+    background: var(--bg-card); /* role: background */
+    box-shadow: var(--shadow-sm); /* role: shadow */
+    border-radius: 4px;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.article-card-link:hover .article-card,
+.project-card-link:hover .article-card {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md); /* role: shadow */
+}
+
+/* The four source images run from 1.38 to 1.95 aspect — cropping them all to
+   16:9 is what makes the grid line up instead of stair-stepping. */
+.article-image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-bottom: 1px solid var(--border-color); /* role: border */
+}
+
+.article-content {
+    padding: 0.85rem 0.95rem 0.95rem;
+    /* column flex so the tag below can be pushed to the bottom */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.article-publication {
+    margin: 0 0 0.3rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-secondary); /* role: secondary-text */
+}
+
+.article-headline {
+    margin: 0;
+    font-size: 0.97rem;
+    font-weight: 600;
+    line-height: 1.34;
+    color: var(--text-primary); /* role: primary-text */
+}
+
+.article-credit {
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #6a6a6a; /* 5.4:1 on white — AA at this size */
+}
+
+/* margin-top:auto pins the tag to the bottom of the card, so tags line up
+   along one baseline across a row even though the headlines and credit
+   lines above them are different lengths. padding-top keeps a minimum gap
+   when the text runs long enough to close it. */
+.article-tags {
+    margin-top: auto;
+    padding-top: 0.7rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+/* Tinted with the accent rather than plain grey. A 10% wash keeps them
+   quiet enough not to compete with the headline above, while the accent
+   text on it still clears AA. */
+.article-tag {
+    display: inline-block;
+    background-color: rgba(var(--color-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--color-accent-rgb), 0.28);
+    padding: 0.16rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-accent-text);
+}
 
 /* ============================================
    7. CAROUSEL COMPONENT
@@ -898,15 +2365,14 @@ h1, h2, h3, h4, h5, h6 {
 .carousel-control-prev { left: 12px; }
 .carousel-control-next { right: 12px; }
 
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: #f0a070;
-    background-size: 40%;
-    box-shadow: var(--shadow-accent); /* role: shadow */
-    transition: background-color 0.3s ease;
+/* The only carousel is #aboutCarousel, whose own ID rules below override
+   every property this block used to set. Left as a marker so nobody adds
+   generic carousel styling here and wonders why it does nothing. */
+
+
+.carousel-control-next-icon::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 
 .carousel-control-prev-icon:hover,
@@ -972,9 +2438,15 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
 }
 
+/* Sized by HEIGHT, not width. The email and LinkedIn marks are square, so
+   a 100px width cap made them 100x100 -- but the resume icon is portrait
+   (124x150), so the same cap made it 100x121 and pushed its label 21px
+   below the other two. Matching heights is what lines the three labels up,
+   whatever shape the artwork is. */
 .contact-icon {
-    max-width: 100px;
-    height: auto;
+    width: auto;
+    height: 100px;
+    max-width: 100%;
     margin-bottom: 1rem;
     transition: transform 0.3s ease;
 }
@@ -1020,7 +2492,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    Desktop Layout (768px and up)
    ------------------------------------ */
-@media (min-width: 991px) {
+@media (min-width: 768px) {
     /* Layout - Adjust for sidebar */
     .main-content {
         margin-left: 280px;
@@ -1083,7 +2555,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ------------------------------------
    Mobile/Tablet Layout (767px and below)
    ------------------------------------ */
-@media (max-width: 990px) {
+@media (max-width: 767.98px) {
     /* Hide Desktop Sidebar */
     .sidebar {
         display: none !important;
@@ -1099,21 +2571,76 @@ h1, h2, h3, h4, h5, h6 {
         width: 100%;
     }
 
-    /* Hero Section - Account for mobile navbar */
+    /* Hero Section - Account for mobile navbar.
+
+       The hero is exactly the photo, pushed down by the navbar, and the
+       divider below reserves exactly the same — so the two cannot drift
+       apart. This is the original relationship from old tries/
+       style_clauderevK.css ("padding-top: calc(93vh + 56px)"); a later
+       revision flattened it to a blanket 100vh, and since the photo is
+       sized in vw (140vw) while the reservation was in vh, the two only
+       agreed on a viewport about 1.4:1. On a 390x844 phone that left 242px
+       of white under the photo. */
+    :root {
+        --hero-top: 56px;
+        /* the photo's own scale — keeps growing with the window */
+        --hero-photo: 140vw;
+        /* The full height of the Articles band, so it is not merely peeking
+           but readable: 0.8rem padding top and bottom plus the 34px jump
+           button, which is taller than the 24px heading beside it. Measured,
+           not guessed -- at 3.6rem the band finished 2px below the fold. */
+        --hero-peek: 3.85rem;
+        /* ...but the hero itself never outgrows the screen. Past that the
+           panel stops growing and CROPS the photo (it already has
+           overflow:hidden, and the photo is top-anchored, so the crop takes
+           the legs and keeps the head). Scaling the photo down instead would
+           shrink his face on the widest screens, which is backwards. */
+        /* clamp, not min: the cap alone could shrink the panel below what
+           the hero's own text needs and clip his name. On a 740x520 landscape
+           phone it cut 137px. The floor is the measured requirement of the
+           text block (90vw of it at 360px wide, 73vw at 740 -- i.e. about
+           58vw + 122px), rounded up for headroom. Where even that will not
+           fit, the band gives up its peek rather than the text being cut. */
+        --hero-h: clamp(
+            calc(58vw + 130px),
+            calc(100vh - var(--hero-top) - var(--hero-peek)),
+            var(--hero-photo));
+    }
+
+    /* svh = the viewport at its SMALLEST, i.e. with the phone's URL bar
+       showing. Using vh there would hide the band behind the chrome until
+       you scrolled. */
+    @supports (height: 100svh) {
+        :root {
+            --hero-h: clamp(
+                calc(58vw + 130px),
+                calc(100svh - var(--hero-top) - var(--hero-peek)),
+                var(--hero-photo));
+        }
+    }
+
     .title-panel {
-        top: 56px;
+        top: var(--hero-top);
         position: absolute;
+        /* was 93vh from the base rule: taller than the photo, and its white
+           background would otherwise paint over the section below */
+        height: var(--hero-h);
     }
 
     #titletext {
         transform: scale(1);
-        left:.5vw;
-        top:25vh;
-
+        left: .5vw;
+        /* Sits beside the neck, where the photo is narrowest — below the
+           shoulders the subject widens and swallows the text.
+           In vw, not vh, so it tracks the photo (height: 140vw) instead of
+           drifting on taller/shorter phones. */
+        top: 19vw;
     }
 
     .title-text {
-        font-size: 3.5vw;
+        font-size: 4.4vw;
+        font-weight: 500;
+        line-height: 1.22;
     }
 
     .hero-subtitle {
@@ -1134,7 +2661,7 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .divider {
-        padding-top: 100vh !important;
+        padding-top: calc(var(--hero-h) + var(--hero-top)) !important;
     }
 
     /* Section Content */
@@ -1142,13 +2669,16 @@ h1, h2, h3, h4, h5, h6 {
         padding: 1.5rem 1rem;
     }
 
-    /* Card Headers - Stack vertically on mobile */
+    /* Card Headers - Stack vertically on mobile.
+       .company-info is scoped to .card-header-row on purpose: the experience
+       tiles keep their logo beside the text at every width, and this rule
+       unscoped was centring their whole text block on phones. */
     .card-header-row {
         flex-direction: column;
         text-align: center;
     }
 
-    .company-info {
+    .card-header-row .company-info {
         text-align: center;
     }
 
@@ -1282,18 +2812,6 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 6px;
 }
 
-/* Sidebar logo: light/dark variants */
-.sidebar-logo-dark {
-    display: none;
-}
-
-[data-bs-theme="dark"] .sidebar-logo-light {
-    display: none;
-}
-
-[data-bs-theme="dark"] .sidebar-logo-dark {
-    display: block;
-}
 
 /* Dark mode: SVG mindset icons */
 [data-bs-theme="dark"] .mindset-icon {
@@ -1413,7 +2931,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(255, 107, 53, 0.04);
+    background: rgba(var(--color-accent-rgb), 0.04);
 }
 
 .about-card-title-group {
@@ -1442,18 +2960,24 @@ body, .sidebar, .navbar, .content-section, .section-content,
 
 .category-challenge,
 .category-mindset {
-    background-color: rgba(255, 107, 53, 0.12);
-    color: var(--color-accent, #ff6b35);
+    background-color: rgba(var(--color-accent-rgb), 0.12);
+    color: var(--color-accent);
 }
 
 /* --- Card Body --- */
 .about-card-body {
     display: flex;
     flex: 1;
+    /* so the icon can drop below instead of holding its 180px while the
+       text column collapses to a few words per line */
+    flex-wrap: wrap;
 }
 
 .about-card-text {
-    flex: 1;
+    /* 320px floor: below that the icon wraps away and the text keeps the
+       full width rather than being squeezed to ~178px */
+    flex: 1 1 320px;
+    min-width: 0;
     padding: 1.5rem;
 }
 
@@ -1471,7 +2995,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
 .about-card-footer {
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--border-color, #dee2e6);
-    background: rgba(255, 107, 53, 0.04);
+    background: rgba(var(--color-accent-rgb), 0.04);
 }
 
 .about-card-footer p {
@@ -1481,13 +3005,35 @@ body, .sidebar, .navbar, .content-section, .section-content,
     line-height: 1.55;
 }
 
+/* ---- More About Me: measure cap ----
+   This section is one column with nothing beside it, so it took the whole
+   content width and the line length grew with the window: at 1600px the
+   card copy ran 115 characters a line and the footer 154, against the
+   45-75 that reads comfortably. Same remedy as the role dialog -- cap the
+   block, not the type, so the card keeps its proportions and only stops
+   stretching. Scoped to this section: .section-subheader is also the
+   phone hero's headline. */
+#more-about-me .section-subheader,
+#more-about-me .about-nav-strip,
+#more-about-me .about-carousel-wrapper {
+    max-width: 50rem;
+}
+
+/* The footer runs the full width of the card while the body copy shares
+   its row with the 180px icon, so at any given card width the footer line
+   is ~35 characters longer. It needs a cap of its own on top of the
+   block's. */
+.about-card-footer p {
+    max-width: 30rem;
+}
+
 /* "How This Helps Today" block — shared by all cards */
 .about-card-example-header {
     font-weight: 700;
 }
 
 .about-card-example-subhead {
-    color: var(--color-accent, #ff6b35);
+    color: var(--color-accent);
     font-style: italic;
     font-weight: bold;
 }
@@ -1497,8 +3043,8 @@ body, .sidebar, .navbar, .content-section, .section-content,
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 180px;
-    min-width: 180px;
+    flex: 0 1 180px;
+    min-width: 0;
     padding: 1.5rem;
     background: transparent;
 }
@@ -1512,7 +3058,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
     object-fit: contain !important;
     display: block;
     /* Tint black SVGs to #ff6b35 orange */
-    filter: invert(46%) sepia(89%) saturate(1479%) hue-rotate(346deg) brightness(101%) contrast(101%);
+    filter: invert(46%) sepia(89%) saturate(1479%) hue-rotate(var(--accent-hue-rotate)) brightness(101%) contrast(101%);
 }
 
 .about-card-icon .mindset-icon-flip {
@@ -1522,7 +3068,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
 /* Bootstrap Icon as decorative image */
 .about-card-icon .about-card-bi-icon {
     font-size: 5rem;
-    color: var(--color-accent, #ff6b35);
+    color: var(--color-accent);
     opacity: 0.2;
     line-height: 1;
 }
@@ -1537,7 +3083,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
     transform: translateY(-50%) !important;
     opacity: 1 !important;
     border-radius: 50%;
-    background-color: #f0a070;
+    background-color: var(--color-accent-soft);
     transition: background-color 0.3s ease;
 }
 
@@ -1546,31 +3092,58 @@ body, .sidebar, .navbar, .content-section, .section-content,
 
 #aboutCarousel .carousel-control-prev:hover,
 #aboutCarousel .carousel-control-next:hover {
-    background-color: var(--color-accent, #ff6b35);
+    background-color: var(--color-accent);
 }
 
+/* Bootstrap draws these chevrons as a white SVG background-image, which
+   vanishes the moment the button behind them is pale — white on the lime
+   fill is 1.2:1. Masked instead, so the glyph takes --color-on-soft and
+   follows whatever theme is loaded. The circle is the parent button, not
+   this element, so masking here costs nothing. */
 #aboutCarousel .carousel-control-prev-icon,
 #aboutCarousel .carousel-control-next-icon {
     width: 20px !important;
     height: 20px !important;
-    background-color: transparent !important;
+    background-color: var(--color-on-soft) !important;
+    background-image: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+#aboutCarousel .carousel-control-prev-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e");
+}
+
+#aboutCarousel .carousel-control-next-icon {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 
 /* --- Thumbnail Navigation Strip --- */
+/* A grid that wraps, not a flex row that squeezes. As a flex row with
+   flex:1 and no minimum these were shrinking to 78px at tablet width, where
+   `overflow: hidden` on the thumb chopped the labels mid-word
+   ("Journa Transiti"). auto-fit keeps them ~140px or wider and drops them
+   onto another line instead. */
 .about-nav-strip {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
     gap: 0.5rem;
     margin-top: 1.25rem;
     margin-bottom: 1.5rem;
-    justify-content: center;
 }
 
 .about-nav-thumb {
-    flex: 1;
-    max-width: 180px;
-    height: 52px;
+    /* min-height, not height: a label that wraps to two lines used to be
+       clipped by the fixed 52px */
+    min-height: 52px;
     border-radius: 6px;
     overflow: hidden;
     cursor: pointer;
@@ -1584,12 +3157,12 @@ body, .sidebar, .navbar, .content-section, .section-content,
 }
 
 .about-nav-thumb:hover {
-    border-color: #f0a070;
+    border-color: var(--color-accent-soft);
 }
 
 .about-nav-thumb.active {
-    border-color: var(--color-accent, #ff6b35);
-    box-shadow: 0 0 0 1px var(--color-accent, #ff6b35);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
 }
 
 /* Thumbnail icon image */
@@ -1599,7 +3172,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
     height: 26px;
     object-fit: contain;
     opacity: 0.45;
-    filter: invert(46%) sepia(89%) saturate(1479%) hue-rotate(346deg) brightness(101%) contrast(101%);
+    filter: invert(46%) sepia(89%) saturate(1479%) hue-rotate(var(--accent-hue-rotate)) brightness(101%) contrast(101%);
     pointer-events: none;
 }
 
@@ -1611,7 +3184,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
 .about-nav-thumb-bi {
     flex-shrink: 0;
     font-size: 1.3rem;
-    color: var(--color-accent, #ff6b35);
+    color: var(--color-accent);
     opacity: 0.45;
     line-height: 1;
     pointer-events: none;
@@ -1628,7 +3201,7 @@ body, .sidebar, .navbar, .content-section, .section-content,
 }
 
 .about-nav-thumb.active .about-nav-thumb-label {
-    color: var(--color-accent, #ff6b35);
+    color: var(--color-accent);
 }
 
 /* --- More About Me Responsive --- */
@@ -1708,4 +3281,39 @@ body, .sidebar, .navbar, .content-section, .section-content,
 
 [data-bs-theme="dark"] .about-nav-thumb-icon {
     filter: invert(80%) sepia(30%) saturate(600%) hue-rotate(5deg) brightness(105%) contrast(90%);
+}
+
+/* Height of the collapsed phone navbar. Declared once here and read by the
+   scroll handler in index.html so the two can never drift apart. */
+:root {
+    /* the phone navbar's measured height. Anchor landings and the hero
+       jump button both offset by this, so a wrong value parks every section
+       a couple of pixels underneath the bar. */
+    --mobile-nav-h: 62px;
+}
+
+/* Anchor landings clear the fixed phone navbar. Desktop has no fixed bar,
+   so this only applies below the breakpoint. */
+@media (max-width: 767.98px) {
+    section[id] {
+        scroll-margin-top: var(--mobile-nav-h);
+    }
+}
+
+/* ============================================
+   13. TITLE PANEL — PHONE ONLY
+   ============================================
+   Desktop and tablet get the sidebar identity block instead of the hero.
+   Phones (< 768px) keep the original title panel and the old navbar, since
+   the sidebar is hidden there and the hero is the only intro they get.
+
+   .title-panel is position:absolute, so the 93vh .divider is what actually
+   reserves its space — both have to be removed together or the page opens
+   on a blank screen.
+   ============================================ */
+@media (min-width: 768px) {
+    .title-container,
+    .divider {
+        display: none !important;
+    }
 }

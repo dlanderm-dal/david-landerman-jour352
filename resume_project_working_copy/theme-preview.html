@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme preview — David Landerman</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; flex-direction: column;
+    background: #22252a; color: #e8eaed;
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header { flex: 0 0 auto; padding: .7rem 1rem .8rem; border-bottom: 1px solid #383c43; }
+  .row { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: .95rem; font-weight: 700; letter-spacing: .01em; }
+  .hint { color: #9aa0a8; font-size: .8rem; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .7rem; }
+  .sw {
+    appearance: none; cursor: pointer; position: relative;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid transparent; padding: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+  }
+  .sw:hover { transform: scale(1.12); }
+  .sw[aria-pressed="true"] { border-color: #fff; }
+  .sw.is-current::after {
+    content: ''; position: absolute; inset: -6px;
+    border: 1px dashed #7d848d; border-radius: 50%;
+  }
+
+  .readout { display: flex; align-items: center; gap: .6rem; margin-top: .75rem; flex-wrap: wrap; }
+  .name { font-weight: 700; font-size: .9rem; min-width: 8.5rem; }
+  code {
+    font: 600 .76rem/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #2e323a; border: 1px solid #3f444c; border-radius: 4px;
+    padding: .1rem .4rem; color: #dfe3e8; white-space: nowrap;
+  }
+  .chip {
+    font-size: .72rem; padding: .12rem .45rem; border-radius: 3px;
+    border: 1px solid #3f444c; background: #2e323a; color: #b9bfc7;
+  }
+  .chip.pass { border-color: #2f6b45; background: #1f3a2a; color: #9fe0b8; }
+  .chip.fail { border-color: #7a3030; background: #3a2020; color: #f0a8a8; }
+
+  button.act {
+    appearance: none; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 600;
+    padding: .32rem .7rem; border-radius: 5px;
+    border: 1px solid #4a5058; background: #30343c; color: #e8eaed;
+  }
+  button.act:hover { background: #3a3f48; }
+  button.act.done { border-color: #2f6b45; background: #1f3a2a; color: #9fe0b8; }
+
+  .snippet { margin-top: .6rem; }
+  .snippet code { display: block; white-space: pre; padding: .5rem .6rem; line-height: 1.6; }
+
+  .stage { flex: 1 1 auto; min-height: 0; position: relative; background: #fff; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .oops {
+    position: absolute; inset: 0; display: none; place-items: center; padding: 2rem;
+    background: #22252a; color: #e8eaed; text-align: center;
+  }
+  .oops p { max-width: 34rem; }
+
+  .sizes { margin-left: auto; display: flex; gap: .3rem; }
+  .sizes button[aria-pressed="true"] { border-color: #8a9199; background: #3f444c; }
+  .stage.phone iframe { width: 390px; margin: 0 auto; box-shadow: 0 0 0 1px #3f444c; }
+  .stage.phone { background: #2b2f35; display: flex; justify-content: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <h1>Theme preview</h1>
+    <span class="hint">Click a colour — the real page recolours underneath. Nothing is saved until you say so.</span>
+    <span class="sizes">
+      <button class="act" data-size="desktop" aria-pressed="true">Desktop</button>
+      <button class="act" data-size="phone" aria-pressed="false">Phone</button>
+    </span>
+  </div>
+
+  <div class="swatches" id="swatches"></div>
+
+  <div class="readout">
+    <span class="name" id="themeName">Signal Orange</span>
+    <code id="themeHex">#FF6B35</code>
+    <span class="chip" id="chipFill">—</span>
+    <span class="chip" id="chipText">—</span>
+    <button class="act" id="copyBtn">Copy CSS</button>
+    <button class="act" id="resetBtn">Back to current</button>
+    <button class="act" id="snipBtn">Show CSS</button>
+    <button class="act" id="reloadBtn">Reload page</button>
+  </div>
+
+  <div class="snippet" id="snippetWrap" hidden><code id="snippet"></code></div>
+</header>
+
+<div class="stage" id="stage">
+  <!-- src is set in the script with a cache-buster: left as a plain
+       attribute the browser happily serves a months-old index.html, which
+       only has some of the theme tokens and recolours halfway. -->
+  <iframe id="site" title="Site preview"></iframe>
+  <div class="oops" id="oops">
+    <p><strong>The preview can't reach the page.</strong><br>
+    This file needs to be opened through the local server, not by double-clicking
+    the HTML. Use <code>Preview color themes.command</code> in this folder.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- colour maths (same as color-themes.html) ---------- */
+function hex2rgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.substr(i,2),16));}
+function rgb2hex(r,g,b){return '#'+[r,g,b].map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('').toUpperCase();}
+function lum(rgb){const c=rgb.map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];}
+function ratio(a,b){const L1=lum(hex2rgb(a)),L2=lum(hex2rgb(b));const hi=Math.max(L1,L2),lo=Math.min(L1,L2);return (hi+0.05)/(lo+0.05);}
+function toHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;const l=(mx+mn)/2;const s=d===0?0:d/(1-Math.abs(2*l-1));if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return [h,s,l];}
+function hsl2hex(h,s,l){const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;let t;if(h<60)t=[c,x,0];else if(h<120)t=[x,c,0];else if(h<180)t=[0,c,x];else if(h<240)t=[0,x,c];else if(h<300)t=[x,0,c];else t=[c,0,x];return rgb2hex(...t.map(v=>(v+m)*255));}
+
+/* the five tokens + the icon hue, derived from one accent */
+function tokensFor(accent, name){
+  if (name && CUSTOM[name]) {
+    var c = CUSTOM[name];
+    return {accent:c.accent, hover:c.hover, soft:c.soft, text:c.text,
+            onAccent:c.onAccent, onSoft:c.onSoft, rgb:c.rgb, rot:c.rot,
+            needsText: c.text.toUpperCase() !== c.accent.toUpperCase(),
+            custom:true};
+  }
+  const [h,s,l]=toHsl(...hex2rgb(accent));
+  const hover=hsl2hex(h,s,Math.max(0,l-0.07));
+  const soft =hsl2hex(h,Math.max(0,s-0.20),Math.min(0.92,l+0.09));
+  let text=accent, tl=l;
+  while(ratio(text,'#FFFFFF')<4.5 && tl>0){tl-=0.004; text=hsl2hex(h,s,tl);}
+  return {accent, hover, soft, text,
+          onAccent: '#ffffff', onSoft: '#ffffff',
+          rgb: hex2rgb(accent).join(', '),
+          rot: Math.round(((h-35)%360+360)%360)+'deg',
+          needsText: text.toUpperCase()!==accent.toUpperCase()};
+}
+
+/* ---------- the palette ---------- */
+var CURRENT = '#FF6B35';
+/* Hand-built pairings. These override the derived tokens, because a
+   two-colour scheme is not something you can calculate from one hex. */
+var CUSTOM = {
+  'Sage': {
+    accent: '#065B57',        /* the deep teal-green field */
+    hover:  '#04433F',
+    soft:   '#DFF994',        /* the lime, used as the button fill */
+    text:   '#065B57',        /* 7.9:1 on white, so it doubles as text */
+    onAccent: '#DFF994',      /* lime type on the green band, as in the image */
+    onSoft: '#0A1F14',        /* near-black on the lime pill */
+    rgb:    '6, 91, 87',
+    rot:    '145deg'
+  }
+};
+
+var THEMES = [
+  ['Sage','#065B57'],
+  ['Signal Orange','#FF6B35'], ['Ember','#C1440E'], ['Terracotta','#B4553A'],
+  ['Copper','#A15C2B'], ['Rust','#9C4221'], ['Brick','#A83232'],
+  ['Crimson','#B3122E'], ['Oxblood','#6E1F2E'], ['Marigold','#C2700A'],
+  ['Ochre','#9A7211'], ['Olive','#5F6F30'], ['Moss','#4A6B37'],
+  ['Forest','#2E6B4F'], ['Pine','#1F5A45'], ['Emerald','#047857'],
+  ['Sea','#0F766E'], ['Teal','#0E7490'], ['Slate Blue','#33607F'],
+  ['Steel','#41618A'], ['Navy','#1D3E6E'], ['Federal Blue','#14366B'],
+  ['Cobalt','#1D4ED8'], ['Indigo','#4338CA'], ['Aubergine','#5B2C6F'],
+  ['Plum','#6B2D5C'], ['Graphite','#333F48']
+];
+
+var frame = document.getElementById('site');
+var bar   = document.getElementById('swatches');
+var active = CURRENT;
+var activeName = 'Signal Orange';
+
+THEMES.forEach(function (t) {
+  var b = document.createElement('button');
+  b.className = 'sw' + (t[1].toUpperCase()===CURRENT ? ' is-current' : '');
+  b.style.background = t[1];
+  b.title = t[0] + '  ' + t[1];
+  b.setAttribute('aria-label', t[0]);
+  b.setAttribute('aria-pressed', String(t[1].toUpperCase()===CURRENT));
+  b.addEventListener('click', function () { pick(t[0], t[1]); });
+  bar.appendChild(b);
+});
+
+function doc(){
+  try { return frame.contentDocument; } catch (e) { return null; }
+}
+
+function paint(tok){
+  var d = doc();
+  if (!d || !d.documentElement) { document.getElementById('oops').style.display='grid'; return false; }
+  var r = d.documentElement.style;
+  r.setProperty('--color-accent', tok.accent);
+  r.setProperty('--color-accent-hover', tok.hover);
+  r.setProperty('--color-accent-soft', tok.soft);
+  r.setProperty('--color-accent-text', tok.text);
+  r.setProperty('--color-accent-rgb', tok.rgb);
+  r.setProperty('--accent-hue-rotate', tok.rot);
+  r.setProperty('--color-on-accent', tok.onAccent);
+  r.setProperty('--color-on-soft', tok.onSoft);
+  return true;
+}
+
+function pick(name, hex){
+  active = hex;
+  activeName = name;
+  var tok = tokensFor(hex, name);
+  paint(tok);
+
+  document.getElementById('themeName').textContent = name;
+  document.getElementById('themeHex').textContent = hex.toUpperCase();
+
+  var onFill = ratio(tok.onAccent, tok.accent);
+  var label  = (tok.onAccent.toUpperCase() === '#FFFFFF' ? 'white' : 'type') + ' on band ';
+  chip('chipFill', label + onFill.toFixed(1) + ':1', onFill >= 4.5);
+  var onBtn = ratio(tok.onSoft, tok.soft);
+  chip('chipText', tok.custom ? 'button ' + onBtn.toFixed(1) + ':1'
+                              : (tok.needsText ? 'needs a darker text shade'
+                                               : 'one shade does everything'),
+       tok.custom ? onBtn >= 4.5 : !tok.needsText);
+
+  document.getElementById('snippet').textContent = cssFor(tok);
+  [].forEach.call(bar.children, function (b, i) {
+    b.setAttribute('aria-pressed', String(THEMES[i][1] === hex));
+  });
+}
+
+function chip(id, text, ok){
+  var e = document.getElementById(id);
+  e.textContent = text;
+  e.className = 'chip ' + (ok ? 'pass' : 'fail');
+}
+
+function cssFor(tok){
+  return '--color-accent: '        + tok.accent   + ';\n' +
+         '--color-accent-hover: '  + tok.hover    + ';\n' +
+         '--color-accent-soft: '   + tok.soft     + ';\n' +
+         '--color-accent-text: '   + tok.text     + ';\n' +
+         '--color-accent-rgb: '    + tok.rgb      + ';\n' +
+         '--accent-hue-rotate: '   + tok.rot      + ';\n' +
+         '--color-on-accent: '     + tok.onAccent + ';\n' +
+         '--color-on-soft: '       + tok.onSoft   + ';';
+}
+
+document.getElementById('resetBtn').addEventListener('click', function(){
+  pick('Signal Orange', CURRENT);
+});
+
+document.getElementById('snipBtn').addEventListener('click', function(){
+  var w = document.getElementById('snippetWrap');
+  w.hidden = !w.hidden;
+  this.textContent = w.hidden ? 'Show CSS' : 'Hide CSS';
+});
+
+document.getElementById('copyBtn').addEventListener('click', function(){
+  var btn = this, text = cssFor(tokensFor(active, activeName));
+  function ok(){ btn.textContent='Copied'; btn.classList.add('done');
+                 setTimeout(function(){btn.textContent='Copy CSS'; btn.classList.remove('done');},1500); }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(ok, legacy);
+  } else { legacy(); }
+  function legacy(){
+    var ta=document.createElement('textarea'); ta.value=text;
+    ta.style.cssText='position:fixed;top:-1000px'; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); ok(); } catch(e){ btn.textContent='Press Cmd+C'; }
+    document.body.removeChild(ta);
+  }
+});
+
+[].forEach.call(document.querySelectorAll('[data-size]'), function(b){
+  b.addEventListener('click', function(){
+    var phone = b.dataset.size === 'phone';
+    document.getElementById('stage').classList.toggle('phone', phone);
+    document.querySelectorAll('[data-size]').forEach(function(o){
+      o.setAttribute('aria-pressed', String(o === b));
+    });
+  });
+});
+
+/* the page reloads its own CSS on every navigation, so re-apply after load */
+frame.addEventListener('load', function(){
+  if (!doc()) { document.getElementById('oops').style.display='grid'; return; }
+  document.getElementById('oops').style.display='none';
+  if (active !== CURRENT) paint(tokensFor(active, activeName));
+});
+pick('Signal Orange', CURRENT);
+
+/* always fetch the page fresh, never whatever the browser has lying around */
+frame.src = 'index.html?_=' + Date.now();
+
+/* and reload it fresh on demand, for when you've just edited the site */
+document.getElementById('reloadBtn').addEventListener('click', function(){
+    frame.src = 'index.html?_=' + Date.now();
+});
+</script>
+</body>
+</html>
