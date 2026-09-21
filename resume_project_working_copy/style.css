@@ -1129,6 +1129,15 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     right: 0;
     z-index: 5;
+    /* a column now, so the jump strip can sit above the panel; the arrows
+       and the panel keep their own row below it */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.exp-panel-row {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1335,6 +1344,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .exp-dialog-body .project-link-btn {
     margin: 1.15rem 0 0;
+}
+
+/* Only filled on a phone, where the link becomes its own band. */
+.exp-dialog-foot-band:empty {
+    display: none;
+}
+
+/* Desktop has no jump strip: the grid is right there, five tiles wide. */
+.exp-jump {
+    display: none;
 }
 
 /* ---- project dialog ----
@@ -1556,22 +1575,13 @@ h1, h2, h3, h4, h5, h6 {
         --head-gap: 0.65rem;
     }
 
-    /* stacked here, so the dates are on their own row below the logo and
-       nothing competes for the corner -- the button tucks back inside */
+    /* Tucks back inside the card here -- nothing competes for the corner
+       once the head is stacked. It keeps its chip: stripped to a bare grey
+       glyph it read as decoration, and this is the control people need to
+       find. Both decks use the same one. */
     .exp-close {
         top: 0.5rem;
         right: 0.6rem;
-        border-color: transparent;
-        background: none;
-        box-shadow: none;
-    }
-
-    /* ...except over the project thumbnail, where borderless would put a
-       grey glyph straight onto the picture. Keep the chip there. */
-    .project-dialog .exp-close {
-        border-color: var(--border-color); /* role: border */
-        background: var(--bg-card); /* role: background */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
     }
 
     .exp-dialog-meta {
@@ -1596,57 +1606,26 @@ h1, h2, h3, h4, h5, h6 {
         grid-area: 3 / 1 / 4 / 2;
     }
 
-    /* ---- phone reading order ----
-       logo, company, location, what the company is, job title, dates.
-       The desktop head is two groups -- dates+place on the logo's line,
-       name+role below -- and that grouping is what holds the logo/date
-       centroids on one line up there. Here the parts need to interleave,
-       so display:contents dissolves the two boxes and promotes their
-       children to grid items; they still inherit text-align from the
-       group, so the left-ranging above still reaches them.
-       order only steers AUTO placement, so every explicit grid-area set
-       for the desktop layout has to be handed back first. */
-    .experience-dialog .exp-dialog-meta,
-    .experience-dialog .exp-dialog-id {
-        display: contents;
+    /* ================= phone: the banded card =================
+       Borrowed from the More About Me cards: a tinted header carrying the
+       identity, a plain middle for the write-up, and a tinted footer for
+       the link. The script puts the parts in the right box (CSS cannot
+       reparent), so all that is left here is the banding. */
+
+    /* Bands run to the card edge, so the corners have to be clipped. Safe
+       here and not above: the close button only tucks inside the card at
+       this width. */
+    .experience-dialog {
+        overflow: hidden;
     }
 
-    .experience-dialog .exp-dialog-logo,
-    .experience-dialog .exp-dialog-name,
-    .experience-dialog .exp-dialog-place,
-    .experience-dialog .exp-dialog-blurb,
-    .experience-dialog .exp-dialog-role,
-    .experience-dialog .exp-dialog-dates {
-        grid-area: auto;
-    }
-
-    .experience-dialog .exp-dialog-logo  { order: 1; }
-    .experience-dialog .exp-dialog-name  { order: 2; }
-    .experience-dialog .exp-dialog-blurb { order: 3; }
-    .experience-dialog .exp-dialog-place { order: 4; }
-    .experience-dialog .exp-dialog-role  { order: 5; }
-    .experience-dialog .exp-dialog-dates { order: 6; }
-
-    /* The location reads as a tail on the description rather than a row of
-       its own, so it cancels the head's gap exactly. Tied to the same
-       variable, so tuning the gap above cannot silently reopen this one.
-
-       It also has to pick up the blurb's type rhythm. Its own 12.64px/1.2
-       is set for the desktop head, where the date block has to stay
-       shorter than the logo beside it; sitting flush under a 12.8px/1.55
-       paragraph, that tighter leading made the line crowd the one above
-       it by ~4.7px and the two read as mis-set. */
-    .experience-dialog .exp-dialog-place {
-        font-size: var(--blurb-size);
-        line-height: var(--blurb-leading);
-        /* Sits 1.2 of the blurb's lines below its last line: cancel the
-           head's row gap, then add two tenths of a line back. Just enough
-           to read as its own line without detaching from the description
-           it belongs to. Derived, so retuning the blurb's size or leading
-           carries the location with it. */
-        margin-top: calc(
-            var(--head-gap) * -1 +
-            var(--blurb-size) * var(--blurb-leading) * 0.2);
+    .experience-dialog .exp-dialog-head {
+        margin: -1.15rem -1.15rem 0;
+        padding: 1.15rem 1.15rem 1rem;
+        background: rgba(var(--color-accent-rgb), 0.04);
+        border-bottom: 2px solid var(--border-color); /* role: border */
+        justify-items: center;
+        text-align: center;
     }
 
     /* Centred, and ~43% up on the old 58px: on a phone the mark is the only
@@ -1655,12 +1634,198 @@ h1, h2, h3, h4, h5, h6 {
        as much. */
     .experience-dialog .exp-dialog-logo {
         --logo-row: 83px;
+        grid-area: auto;
         justify-content: center;
         align-self: center;
     }
 
     .experience-dialog .exp-dialog-logo img {
         max-width: 170px;
+    }
+
+    .experience-dialog .exp-dialog-name {
+        grid-area: auto;
+    }
+
+    /* The dates become the header's pill, the way the About cards put their
+       category alongside the title. */
+    .experience-dialog .exp-dialog-dates {
+        grid-area: auto;
+        display: inline-block;
+        margin-top: 0.15rem;
+        padding: 0.2rem 0.7rem;
+        border-radius: 20px;
+        background-color: rgba(var(--color-accent-rgb), 0.12);
+        /* the hover shade, not accent-text: at 12px the lighter one came to
+           4.39:1 on the tint, just under AA */
+        color: var(--color-accent-hover); /* role: accent-hover */
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        line-height: 1.35;
+        white-space: nowrap;
+    }
+
+    .experience-dialog .exp-dialog-body {
+        padding-top: 1.1rem;
+    }
+
+    .experience-dialog .exp-dialog-body .exp-dialog-blurb {
+        margin: 0;
+    }
+
+    /* The location reads as a tail on the description rather than a row of
+       its own, and has to pick up its type rhythm to do it. Its own
+       12.64px/1.2 is set for the desktop head, where the date block has to
+       stay shorter than the logo beside it; under a 12.8px/1.55 paragraph
+       that tighter leading crowded the line above by ~4.7px. Sits 1.2 of
+       the blurb's lines below its last line -- derived, so retuning the
+       blurb's type carries the location with it. */
+    .experience-dialog .exp-dialog-place {
+        display: block;
+        font-size: var(--blurb-size);
+        line-height: var(--blurb-leading);
+        margin-top: calc(var(--blurb-size) * var(--blurb-leading) * 0.2);
+    }
+
+    .experience-dialog .exp-dialog-role {
+        display: block;
+        margin-top: 1rem;
+    }
+
+    .experience-dialog .exp-dialog-foot-band {
+        margin: 1.15rem -1.15rem -1.25rem;
+        padding: 1rem 1.15rem;
+        background: rgba(var(--color-accent-rgb), 0.04);
+        border-top: 1px solid var(--border-color); /* role: border */
+    }
+
+    .experience-dialog .exp-dialog-foot-band .project-link-btn {
+        margin: 0;
+    }
+
+    /* The footer band sits on the card's bottom edge, so the stepper needs
+       its own room back underneath it. */
+    /* :not(:empty) -- an empty band is display:none, but the adjacent
+       sibling selector would still match and leave the stepper floating on
+       2.5rem of nothing. No role is linkless today; this keeps it that way
+       if one ever is. */
+    .experience-dialog .exp-dialog-foot-band:not(:empty) + .exp-dialog-foot {
+        margin-top: calc(1.25rem + 1.3rem);
+    }
+
+    /* ---- the jump strip ---- */
+    /* Lifted into the same layer as the panel. The backdrop is absolutely
+       positioned and this was a static sibling, so the backdrop painted
+       over it: the gaps between chips showed the dimmed grid through, and
+       every chip click landed on the backdrop and closed the panel
+       instead. Same trap the arrows fell into.
+       Solid, bordered and padded so it reads as part of the panel rather
+       than as chips floating on the page. */
+    .exp-jump {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 88px), 1fr));
+        gap: 0.4rem;
+        margin-bottom: 0.9rem;
+        padding: 0.5rem;
+        background: var(--bg-card); /* role: background */
+        border: 1px solid var(--border-color); /* role: border */
+        border-radius: 6px;
+        box-shadow: var(--shadow-sm); /* role: shadow */
+    }
+
+    .exp-jump-chip {
+        appearance: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        min-height: 52px;
+        padding: 0.35rem 0.25rem;
+        border: 1px solid var(--border-color); /* role: border */
+        border-radius: 6px;
+        background: var(--bg-card); /* role: background */
+        color: var(--text-secondary); /* role: secondary-text */
+        font: inherit;
+        font-size: 0.6rem;
+        font-weight: 600;
+        line-height: 1.15;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .exp-jump-chip img {
+        height: 16px;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+        opacity: 0.55;
+    }
+
+    .exp-jump-chip.is-current {
+        border-color: var(--color-accent); /* role: accent */
+        background: rgba(var(--color-accent-rgb), 0.08);
+        color: var(--color-accent-text); /* role: accent-text */
+    }
+
+    .exp-jump-chip.is-current img {
+        opacity: 1;
+    }
+
+    .exp-jump-chip:focus-visible {
+        outline: 2px solid var(--color-accent); /* role: accent */
+        outline-offset: 2px;
+    }
+
+    /* ---- arrows, and the gutters that pay for them ----
+       Straddling the card edges at +/-22px exactly as the About carousel
+       does. The card pulls in 2rem a side to make the room: measured, that
+       is 32px off the reading column, which is the whole cost of having
+       them here. */
+    .experience-overlay .exp-nav {
+        display: flex;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        z-index: 4;
+    }
+
+    /* The circle reaches 22px past the card edge, so the card needs at
+       least that much padding or the arrow sits on the first characters of
+       every line -- which is what it was doing at 1.15rem (18.4px). About
+       gets away with the same 22px because its card pads 1.5rem. Matching
+       that, and pulling the inset in to 1.5rem at the same time so the
+       change buys measure back rather than costing more: the reading
+       column ends up wider than it was with the arrows overlapping. */
+    .experience-overlay .exp-nav-prev { left: 2px; }
+    .experience-overlay .exp-nav-next { right: 2px; }
+
+    .experience-overlay .experience-dialog {
+        margin: 0 1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    /* the bands are pulled out to the card edge, so they follow the padding */
+    .experience-dialog .exp-dialog-head {
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .experience-dialog .exp-dialog-foot-band {
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
     }
 }
 
@@ -2429,13 +2594,26 @@ h1, h2, h3, h4, h5, h6 {
 /* ============================================
    8. CONTACT & RESUME COMPONENTS
    ============================================ */
+/* Same content-width sizing as the article and project grids. auto-fit so
+   the three collapse to two, then one, on the width actually available
+   rather than the viewport's. */
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
 .contact-item {
     text-align: center;
-    padding: 2rem;
+    /* Gives way before the icon does: at a flat 2rem the padding held its
+       64px while the artwork was the thing that got squeezed. */
+    padding: clamp(1rem, 4%, 2rem);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    min-width: 0;
 }
 
 /* Sized by HEIGHT, not width. The email and LinkedIn marks are square, so
@@ -2447,6 +2625,10 @@ h1, h2, h3, h4, h5, h6 {
     width: auto;
     height: 100px;
     max-width: 100%;
+    /* The belt to the grid's braces: height and max-width can both bind at
+       once, and when they do the image is squashed rather than scaled.
+       contain makes that impossible whatever the column does. */
+    object-fit: contain;
     margin-bottom: 1rem;
     transition: transform 0.3s ease;
 }
@@ -2804,6 +2986,28 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 6px;
 }
 
+/* The same plate for the panel and the jump chips, which never had one --
+   ASML's navy wordmark and Smith & Nephew's orange were sitting on the dark
+   card with nothing behind them.
+
+   On the WRAPPER for the panel, not the image: the logo sizes are figured
+   from max-height for equal optical area, and with border-box a 6px pad on
+   the image would eat 12px of artwork and undo that. The wrapper
+   shrink-wraps the mark in both layouts, so the plate hugs it. */
+[data-bs-theme="dark"] .exp-dialog-logo {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 6px;
+    border-radius: 6px;
+}
+
+/* content-box here so the 16px stays the artwork, not the artwork plus pad */
+[data-bs-theme="dark"] .exp-jump-chip img {
+    box-sizing: content-box;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 3px;
+    border-radius: 3px;
+}
+
 /* Dark mode: Contact icons */
 [data-bs-theme="dark"] .contact-icon,
 [data-bs-theme="dark"] .logo_image {
@@ -2816,6 +3020,18 @@ h1, h2, h3, h4, h5, h6 {
 /* Dark mode: SVG mindset icons */
 [data-bs-theme="dark"] .mindset-icon {
     filter: invert(0.8);
+}
+
+/* The role/project panel was built with hardcoded light-mode greys
+   (#5a5a5a, #5f5f5f, #6e6e6e, all noted as "on white"). On the dark card
+   they land at 2.1-2.9:1, well under AA -- the company description in
+   particular is barely legible. Scoped to dark so the light panel, which
+   already passes comfortably, is untouched. */
+[data-bs-theme="dark"] .exp-dialog-blurb,
+[data-bs-theme="dark"] .exp-dialog-place,
+[data-bs-theme="dark"] .exp-counter,
+[data-bs-theme="dark"] .exp-close {
+    color: var(--text-secondary); /* role: secondary-text */
 }
 
 /* Dark mode: Smooth transition */

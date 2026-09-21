@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="en">
+<!-- data-bs-theme is pinned to light on purpose. The dark palette is
+     still in style.css but must stay unreachable: the toggles and the
+     theme script below are commented out, and nothing else writes this
+     attribute. Setting it explicitly means a stale value cannot leak in. -->
+<html lang="en" data-bs-theme="light">
 <!--David Landerman Jour352 Resume Project-->
 
 <head>
@@ -20,7 +24,7 @@
         crossorigin="anonymous"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" type="text/css" href="style.css?v=118">
+    <link rel="stylesheet" type="text/css" href="style.css?v=125">
 
 </head>
 
@@ -370,6 +374,7 @@
                      <!-- Same chrome as the Work Experience overlay. -->
                      <div class="project-overlay" hidden>
                          <div class="project-backdrop" data-proj-close></div>
+                         <div class="exp-panel-row">
                          <button type="button" class="exp-nav exp-nav-prev" aria-label="Previous project">
                              <span class="exp-nav-icon" aria-hidden="true"></span>
                          </button>
@@ -393,6 +398,7 @@
                          <button type="button" class="exp-nav exp-nav-next" aria-label="Next project">
                              <span class="exp-nav-icon" aria-hidden="true"></span>
                          </button>
+                         </div><!-- /exp-panel-row -->
                          <p class="exp-live visually-hidden" aria-live="polite"></p>
                      </div>
                  </div>
@@ -427,7 +433,7 @@
              ============================================ -->
                         <div class="experience-stage">
                             <div class="experience-grid">
-                            <button type="button" class="experience-card site-card" id="exp-tile-0"
+                            <button type="button" class="experience-card site-card" id="exp-tile-0" data-short="Howard Center"
                                 aria-expanded="false" aria-controls="exp-panel-0"
                                 aria-labelledby="exp-name-0 exp-role-0">
                                 <span class="experience-card-head">
@@ -445,7 +451,7 @@
                                 <span class="company-description">An investigative reporting newsroom located at The University of Maryland and funded generously by the Scripps-Howard Foundation.</span>
                             </button>
 
-                            <button type="button" class="experience-card site-card" id="exp-tile-1"
+                            <button type="button" class="experience-card site-card" id="exp-tile-1" data-short="ASML"
                                 aria-expanded="false" aria-controls="exp-panel-1"
                                 aria-labelledby="exp-name-1 exp-role-1">
                                 <span class="experience-card-head">
@@ -463,7 +469,7 @@
                                 <span class="company-description">A Dutch company which, in layman's terms, makes the machines that make microchips. Specifically, they make the machine that performs the most detailed part of the process, semiconductor lithography.</span>
                             </button>
 
-                            <button type="button" class="experience-card site-card" id="exp-tile-2"
+                            <button type="button" class="experience-card site-card" id="exp-tile-2" data-short="S&amp;N"
                                 aria-expanded="false" aria-controls="exp-panel-2"
                                 aria-labelledby="exp-name-2 exp-role-2">
                                 <span class="experience-card-head">
@@ -481,7 +487,7 @@
                                 <span class="company-description">A global medical device company.</span>
                             </button>
 
-                            <button type="button" class="experience-card site-card" id="exp-tile-3"
+                            <button type="button" class="experience-card site-card" id="exp-tile-3" data-short="Watts Water"
                                 aria-expanded="false" aria-controls="exp-panel-3"
                                 aria-labelledby="exp-name-3 exp-role-3">
                                 <span class="experience-card-head">
@@ -499,7 +505,7 @@
                                 <span class="company-description">A global water technology company. Think valves and piping.</span>
                             </button>
 
-                            <button type="button" class="experience-card site-card" id="exp-tile-4"
+                            <button type="button" class="experience-card site-card" id="exp-tile-4" data-short="MassCEC"
                                 aria-expanded="false" aria-controls="exp-panel-4"
                                 aria-labelledby="exp-name-4 exp-role-4">
                                 <span class="experience-card-head">
@@ -601,6 +607,12 @@
                                  tile and its matching .experience-panel. -->
                             <div class="experience-overlay" hidden>
                                 <div class="experience-backdrop" data-exp-close></div>
+                                <!-- Phone only: chips to jump straight to a role rather than
+                                     stepping past three. Built by the script. -->
+                                <div class="exp-jump" role="group" aria-label="Jump to a role"></div>
+                                <!-- The arrows and the panel share a row so the arrows can be
+                                     centred on the panel, not on the panel plus the strip. -->
+                                <div class="exp-panel-row">
                                 <button type="button" class="exp-nav exp-nav-prev" aria-label="Previous role">
                                     <span class="exp-nav-icon" aria-hidden="true"></span>
                                 </button>
@@ -611,6 +623,7 @@
                                     </button>
                                     <div class="exp-dialog-head"></div>
                                     <div class="exp-dialog-body"></div>
+                                    <div class="exp-dialog-foot-band"></div>
                                     <div class="exp-dialog-foot">
                                         <button type="button" class="exp-foot-nav" data-exp-step="-1">
                                             <i class="bi bi-arrow-left" aria-hidden="true"></i> Previous
@@ -624,6 +637,7 @@
                                 <button type="button" class="exp-nav exp-nav-next" aria-label="Next role">
                                     <span class="exp-nav-icon" aria-hidden="true"></span>
                                 </button>
+                                </div><!-- /exp-panel-row -->
                                 <p class="exp-live visually-hidden" aria-live="polite"></p>
                             </div>
                         </div>
@@ -867,31 +881,29 @@
                 <h2>Let's Talk</h2>
             </div>
             <div class="section-content">
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="contact-item">
-                            <a href="mailto:dlanderm@umd.edu">
-                                <img src="resume_images/email.svg" class="contact-icon" alt="Email">
-                            </a>
-                            <p class="contact-label">Email Address</p>
-                            <p class="contact-detail">dlanderm@umd.edu</p>
-                        </div>
+                <!-- Content-width grid, not col-md-4: on viewport width
+                     Bootstrap forced three columns from 768px, but the 280px
+                     sidebar leaves only ~424px there, so each column had 77px
+                     of room for a 100px icon and the artwork squashed. -->
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <a href="mailto:dlanderm@umd.edu">
+                            <img src="resume_images/email.svg" class="contact-icon" alt="Email">
+                        </a>
+                        <p class="contact-label">Email Address</p>
+                        <p class="contact-detail">dlanderm@umd.edu</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="contact-item">
-                            <a href="https://www.linkedin.com/in/david-landerman/" target="_blank">
-                                <img src="resume_images/linkedin.jpeg" class="contact-icon" alt="LinkedIn">
-                            </a>
-                            <p class="contact-label">LinkedIn</p>
-                        </div>
+                    <div class="contact-item">
+                        <a href="https://www.linkedin.com/in/david-landerman/" target="_blank" rel="noopener">
+                            <img src="resume_images/linkedin.jpeg" class="contact-icon" alt="LinkedIn">
+                        </a>
+                        <p class="contact-label">LinkedIn</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="contact-item">
-                            <a href="landerman_resume.pdf" download="landerman_resume.pdf">
-                                <img src="resume_images/resume_vector.svg" class="contact-icon" alt="Resume Download">
-                            </a>
-                            <p class="contact-label">Resume Download</p>
-                        </div>
+                    <div class="contact-item">
+                        <a href="landerman_resume.pdf" download="landerman_resume.pdf">
+                            <img src="resume_images/resume_vector.svg" class="contact-icon" alt="Resume Download">
+                        </a>
+                        <p class="contact-label">Resume Download</p>
                     </div>
                 </div>
             </div>
@@ -1265,21 +1277,70 @@
 
                 var head = dialog.querySelector('.exp-dialog-head');
                 var body = dialog.querySelector('.exp-dialog-body');
+                var band = dialog.querySelector('.exp-dialog-foot-band');
                 var counter = dialog.querySelector('.exp-counter');
                 var live = overlay.querySelector('.exp-live');
+                var jump = overlay.querySelector('.exp-jump');
                 var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
                 var current = -1;       // index on show, -1 when closed
                 var lastFocus = null;   // tile to hand focus back to
+
+                /* The phone layout is a different arrangement of the same
+                   parts, not a restyling of one -- the blurb, location and
+                   job title move out of the head and the link moves into a
+                   band of its own. CSS cannot reparent, so the script builds
+                   whichever one fits and rebuilds if the line is crossed
+                   while the panel is open. Measured on the stage, matching
+                   the @container breakpoint; the viewport is 280px out. */
+                var NARROW = 600;
+                function narrow() {
+                    return stage.getBoundingClientRect().width < NARROW;
+                }
+                var wasNarrow = narrow();
+
+                // chips to jump straight to a role, phone only (CSS hides it
+                // above the breakpoint). Built once; only .is-current moves.
+                var chips = [];
+                if (jump && opts.jump) {
+                    tiles.forEach(function (tile, i) {
+                        var chip = document.createElement('button');
+                        chip.type = 'button';
+                        chip.className = 'exp-jump-chip';
+                        var img = tile.querySelector('.company-logo img');
+                        if (img) {
+                            var ic = document.createElement('img');
+                            ic.src = img.getAttribute('src');
+                            ic.alt = '';
+                            chip.appendChild(ic);
+                        }
+                        chip.appendChild(el('span', 'exp-jump-label',
+                            tile.getAttribute('data-short') || textOf(tile, '.company-name')));
+                        chip.addEventListener('click', function () { show(i, tile); });
+                        jump.appendChild(chip);
+                        chips.push(chip);
+                    });
+                }
 
                 // Built from the tile rather than cloned, so the dialog
                 // cannot end up carrying a duplicate of the tile's ids.
                 function render(i) {
                     head.textContent = '';
                     body.textContent = '';
-                    opts.fill(tiles[i], head, body);
+                    if (band) band.textContent = '';
+                    opts.fill(tiles[i], head, body, {
+                        narrow: narrow(),
+                        band: band
+                    });
 
                     counter.textContent = (i + 1) + ' / ' + tiles.length;
+                    chips.forEach(function (c, k) {
+                        c.classList.toggle('is-current', k === i);
+                        /* aria-current, not aria-selected: these are buttons
+                           in a group, not tabs in a tablist -- see the markup */
+                        if (k === i) { c.setAttribute('aria-current', 'true'); }
+                        else { c.removeAttribute('aria-current'); }
+                    });
                     tiles.forEach(function (t, k) {
                         t.classList.toggle('is-current', k === i);
                         t.setAttribute('aria-expanded', k === i ? 'true' : 'false');
@@ -1293,13 +1354,21 @@
 
                 /* The overlay is out of flow, so the section would not grow
                    for it and a long panel would run down over whatever is
-                   below. The stage is given the dialog's height instead, and
+                   below. The stage is given the overlay's height instead, and
                    a ResizeObserver keeps it right as the content or the
-                   window changes. */
+                   window changes.
+
+                   The OVERLAY, not the dialog: on a phone the jump strip sits
+                   above the panel inside the same overlay, and measuring only
+                   the dialog left the stage ~118px short -- the panel ran
+                   down over the Education section by exactly the strip's
+                   height. The backdrop is absolutely positioned so it adds
+                   nothing here, and min-height cannot feed back into a height
+                   the overlay takes from its content. */
                 function syncHeight() {
                     if (current < 0) return;
                     stage.style.minHeight = Math.ceil(
-                        dialog.getBoundingClientRect().height) + 'px';
+                        overlay.getBoundingClientRect().height) + 'px';
                 }
 
                 var ro = window.ResizeObserver ? new ResizeObserver(syncHeight) : null;
@@ -1313,7 +1382,7 @@
                     if (first) {
                         overlay.hidden = false;
                         stage.classList.add('is-showing');
-                        if (ro) ro.observe(dialog);
+                        if (ro) ro.observe(overlay);
                         syncHeight();
                         dialog.focus({ preventScroll: true });
                         document.addEventListener('keydown', onKey, true);
@@ -1335,7 +1404,7 @@
 
                 function hide() {
                     if (current < 0) return;
-                    if (ro) ro.unobserve(dialog);
+                    if (ro) ro.unobserve(overlay);
                     document.removeEventListener('keydown', onKey, true);
                     stage.classList.remove('is-showing');
                     stage.style.minHeight = '';
@@ -1411,7 +1480,34 @@
                     if (e.target.closest('.exp-nav-next')) { step(1); }
                 });
 
-                window.addEventListener('resize', syncHeight);
+                function checkBreakpoint() {
+                    var n = narrow();
+                    if (n === wasNarrow) return;
+                    wasNarrow = n;
+                    if (current >= 0) render(current);
+                }
+
+                /* Driven off the stage, not the window: the breakpoint is the
+                   stage's own width (that is what the @container rules read),
+                   and it can change without the window doing anything -- the
+                   sidebar collapsing, or a scrollbar appearing. The width
+                   guard matters because syncHeight writes the stage's
+                   min-height, which would otherwise call us straight back. */
+                if (window.ResizeObserver) {
+                    var lastW = -1;
+                    new ResizeObserver(function (entries) {
+                        var w = Math.round(entries[0].contentRect.width);
+                        if (w === lastW) return;
+                        lastW = w;
+                        checkBreakpoint();
+                        syncHeight();
+                    }).observe(stage);
+                }
+
+                window.addEventListener('resize', function () {
+                    checkBreakpoint();
+                    syncHeight();
+                });
             }
 
             // ---- Work Experience ----
@@ -1422,10 +1518,11 @@
                 dialogSel: '.experience-dialog',
                 closeAttr: 'data-exp-close',
                 stepAttr: 'data-exp-step',
+                jump: true,
                 label: function (tile) {
                     return textOf(tile, '.company-name') + ', ' + textOf(tile, '.job-title') + '.';
                 },
-                fill: function (tile, head, body) {
+                fill: function (tile, head, body, ctx) {
                     var logo = tile.querySelector('.company-logo');
                     var img = logo && logo.querySelector('img');
 
@@ -1441,26 +1538,46 @@
                     }
                     head.appendChild(rail);
 
-                    /* when and where ride on the logo's line, ranged right;
-                       who and what go on the line below it */
-                    var meta = el('span', 'exp-dialog-meta');
-                    meta.appendChild(el('span', 'exp-dialog-dates', textOf(tile, '.employment-dates')));
-                    meta.appendChild(el('span', 'exp-dialog-place', textOf(tile, '.employment-location')));
-                    head.appendChild(meta);
-
-                    var id = el('span', 'exp-dialog-id');
                     var name = el('span', 'exp-dialog-name', textOf(tile, '.company-name'));
                     name.id = 'expDialogName';
-                    id.appendChild(name);
-                    id.appendChild(el('span', 'exp-dialog-role', textOf(tile, '.job-title')));
-                    head.appendChild(id);
+                    var role = el('span', 'exp-dialog-role', textOf(tile, '.job-title'));
+                    var dates = el('span', 'exp-dialog-dates', textOf(tile, '.employment-dates'));
+                    var place = el('span', 'exp-dialog-place', textOf(tile, '.employment-location'));
+                    var blurbText = textOf(tile, '.company-description');
+                    var blurb = blurbText ? el('p', 'exp-dialog-blurb', blurbText) : null;
 
-                    /* In the head rather than the body: on a phone the company
-                       blurb sits between the location and the job title, and
-                       only siblings can be ordered against each other. */
-                    var blurb = textOf(tile, '.company-description');
-                    if (blurb) head.appendChild(el('p', 'exp-dialog-blurb', blurb));
-                    panelInto(body, tile);
+                    if (ctx.narrow) {
+                        /* Phone: three bands. Identity in a tinted header with
+                           the dates as its pill, the write-up in the middle,
+                           the link in a tinted footer of its own. */
+                        head.appendChild(name);
+                        head.appendChild(dates);
+                        if (blurb) body.appendChild(blurb);
+                        body.appendChild(place);
+                        body.appendChild(role);
+                        panelInto(body, tile);
+                        /* the outbound link is the whole point of the footer
+                           band, so move it out of the body it was cloned into */
+                        var link = body.querySelector('.project-link-btn');
+                        if (link && ctx.band) ctx.band.appendChild(link);
+                    } else {
+                        /* Desktop: when and where ride on the logo's line,
+                           ranged right; who and what go on the line below it.
+                           The two stay grouped -- that grouping is what holds
+                           the logo and date centroids on one line. */
+                        var meta = el('span', 'exp-dialog-meta');
+                        meta.appendChild(dates);
+                        meta.appendChild(place);
+                        head.appendChild(meta);
+
+                        var id = el('span', 'exp-dialog-id');
+                        id.appendChild(name);
+                        id.appendChild(role);
+                        head.appendChild(id);
+
+                        if (blurb) head.appendChild(blurb);
+                        panelInto(body, tile);
+                    }
                 }
             });
 
@@ -1477,7 +1594,7 @@
                 label: function (tile) {
                     return textOf(tile, '.article-headline') + '.';
                 },
-                fill: function (tile, head, body) {
+                fill: function (tile, head, body, ctx) {
                     var shot = tile.querySelector('.article-image');
                     if (shot) {
                         var thumb = el('span', 'proj-dialog-thumb');
